@@ -2,6 +2,9 @@
 
 namespace Chef
 {
+    /// <summary>
+    /// Provides a COM-visible assembly to access Windows PowerShell via the .NET Managed interface.
+    /// </summary>
     public class PowerShell
     {
         /// <summary>
