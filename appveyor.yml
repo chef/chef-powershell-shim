@@ -6,6 +6,4 @@ before_build:
 build:
   verbosity: minimal
 artifacts:
-- path: '**/Chef.PowerShell.dll'
-- path: '**/Chef.PowerShell.pdb'
-- path: '**/Chef.PowerShell.reg'
+- path: 'Chef.Powershell/bin/Release/*'
