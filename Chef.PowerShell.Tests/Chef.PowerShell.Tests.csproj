@@ -57,9 +57,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\src\Chef.PowerShell.csproj">
       <Project>{ab46ba32-444c-4776-bee4-c41bfdf354c3}</Project>
       <Name>Chef.PowerShell</Name>
