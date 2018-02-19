@@ -30,7 +30,8 @@ namespace Chef
                 // If there were errors read them out the error stream and send to the Console.
                 foreach (ErrorRecord err in powerShell.Streams.Error)
                 {
-                    Console.WriteLine(err.Exception.ToString());
+                    Console.WriteLine(err.Exception.Message);
+                    Console.WriteLine(err.ScriptStackTrace);
                 }
 
                 // This method is only ever expected to return a single result
