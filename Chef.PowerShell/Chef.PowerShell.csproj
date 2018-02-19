@@ -25,7 +25,8 @@
     <WarningLevel>3</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <DocumentationFile>bin\Debug\Chef.PowerShell.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <RegisterForComInterop>false</RegisterForComInterop>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
@@ -64,6 +65,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>%25systemroot%25\Microsoft.NET\Framework64\v4.0.30319\regasm.exe Chef.PowerShell.dll /regfile Chef.PowerShell.reg</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
