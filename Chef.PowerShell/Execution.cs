@@ -10,7 +10,7 @@ namespace Chef
 {
     public partial class PowerShell
     {
-        class Execution
+        public class Execution
         { 
             public string result;
             public List<string> errors;
