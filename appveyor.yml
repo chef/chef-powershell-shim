@@ -12,4 +12,4 @@ before_build:
 build:
   verbosity: minimal
 artifacts:
-- path: 'Chef.Powershell/bin/Release/*'
+- path: 'Release/*'
