@@ -12,4 +12,6 @@ before_build:
 build:
   verbosity: minimal
 artifacts:
-- path: '**/Release/*'
+- path: 'x64/Release/Chef.PowerShell.dll'
+- path: 'x64/Release/Chef.PowerShell.Wrapper.dll'
+- path: 'x64/Release/Newtonsoft.Json.dll'
