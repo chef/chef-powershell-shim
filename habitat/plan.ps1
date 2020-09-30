@@ -7,14 +7,10 @@ $pkg_build_deps=@(
   "core/nuget",
   "core/dotnet-45-dev-pack",
   "core/windows-10-sdk",
-  # until the vs 2019 plan is promoted we need to fully qualify it
-  "core/visual-build-tools-2019/16.7.3/20200923133724",
+  "core/visual-build-tools-2019",
   "core/dotnet-core-sdk"
 )
-$pkg_bin_dirs=@(
-  "bin",
-  "bin/shared/Microsoft.NETCore.App/3.1.8"
-)
+$pkg_bin_dirs=@("bin")
 
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
@@ -48,4 +44,5 @@ function Invoke-Install {
   Rename-Item $pkg_prefix/bin/shared/Microsoft.NETCore.App/3.1.8/Chef.Powershell.Core.deps.json $pkg_prefix/bin/shared/Microsoft.NETCore.App/3.1.8/Microsoft.NETCore.App.deps.json
   mkdir $pkg_prefix/bin/host/fxr/3.1.8
   Copy-Item $pkg_prefix/bin/shared/Microsoft.NETCore.App/3.1.8/hostfxr.dll $pkg_prefix/bin/host/fxr/3.1.8
+  Copy-Item $pkg_prefix/bin/shared/Microsoft.NETCore.App/3.1.8/Ijwhost.dll $pkg_prefix/bin
 }
