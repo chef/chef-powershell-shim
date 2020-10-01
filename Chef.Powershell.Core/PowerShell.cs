@@ -8,14 +8,14 @@ using System;
 namespace Chef
 {
     /// <summary>
-    /// Provides a class that allows access to Windows PowerShell via the .NET Managed interface.
+    /// Provides a class that allows access to PowerShell Core via the .NET Managed interface.
     /// </summary>
     public partial class PowerShell
     {
         const string EMPTY_JSON_STRING = "{}";
 
         /// <summary>
-        /// Executes a PowerShell script via Windows PowerShell. Requires PowerShell 3.0 or above.
+        /// Executes a PowerShell script via PowerShell Core.
         /// </summary>
         /// <param name="powershellScript">String. Script to execute.</param>
         /// <returns>A string containing either a Json representation of the resultset, or an empty Json object "{}" if no results are returned.</returns>
