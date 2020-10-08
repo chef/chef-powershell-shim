@@ -1,0 +1,30 @@
+# Documentation available at https://expeditor.chef.io/docs/getting-started/
+---
+# Slack channel in Chef Software slack to send notifications about build failures, etc
+slack:
+  notify_channel: chef-infra-notify
+
+github:
+  delete_branch_on_merge: true
+
+pipelines:
+  - verify:
+      public: true
+  - habitat/build
+
+promote:
+  channels:
+    - unstable
+    - stable
+
+# These actions are taken, in order they are specified, anytime a Pull Request is merged.
+merge_actions:
+  - trigger_pipeline:habitat/build:
+      ignore_labels:
+        - "Expeditor: Skip Habitat"
+        - "Expeditor: Skip All"
+
+subscriptions:
+  - workload: project_promoted:{{agent_id}}:*
+    actions:
+      - built_in:promote_habitat_packages
