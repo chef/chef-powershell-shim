@@ -2,18 +2,9 @@
 
 A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform
 
-[![Build status](https://ci.appveyor.com/api/projects/status/me2p06lmis0riex1?svg=true)](https://ci.appveyor.com/project/chef/chef-powershell-shim)
-
 ### Development Prerequisites
 
-Install:
-
-* Visual Studio 2017
-* .NET Framework 4.6.1 SDK or higher 
-
-It is assumed the user understands how to build and test using C# and Visual Studio.
-
-Release mode builds are produced from Appveyor.
+Binaries can be built with Habitat.
 
 ## Contributing/Development
 
@@ -31,12 +22,6 @@ Once your repository is set up, you can start working on the code.  We do utiliz
 RSpec for test driven development, so you'll need to get a development
 environment running. Follow the above procedure ("Installing from Git") to get
 your local copy of the source running.
-
-## Testing
-
-Tests can be executed from the Chef.PowerShell.Tests project in Visual Studio.
-
-When you submit a PR these tests will run automatically on Appveyor.
 
 # License
 
