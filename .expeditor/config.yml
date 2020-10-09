@@ -15,7 +15,6 @@ pipelines:
 
 promote:
   channels:
-    - unstable
     - stable
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
@@ -26,6 +25,6 @@ merge_actions:
         - "Expeditor: Skip All"
 
 subscriptions:
-  - workload: project_promoted:{{agent_id}}:*
+  - workload: buildkite_hab_build_group_published:{{agent_id}}:*
     actions:
       - built_in:promote_habitat_packages
