@@ -5,6 +5,7 @@ param (
     [string]$Plan
 )
 
+$env:HAB_LICENSE = "accept-no-persist"
 $env:HAB_ORIGIN = 'ci'
 
 Write-Host "--- :8ball: :windows: Verifying $Plan"
@@ -31,5 +32,7 @@ if (-not $?) { throw "unable to install this build"}
 
 if(Test-Path "./${Plan}/tests/test.ps1") {
   Write-Host "--- :mag_right: Testing $Plan"
-  powershell -File "./${Plan}/tests/test.ps1" -PackageIdentifier $pkg_ident
+  hab studio run "$plan\tests\test.ps1 $pkg_ident; exit `$LASTEXITCODE"
 }
+
+Exit $LASTEXITCODE

@@ -14,4 +14,42 @@ steps:
     - .expeditor/test_plan.ps1 -Plan habitat
   expeditor:
     executor:
-      windows:
+      docker:
+        host_os: windows
+        shell: [ "powershell", "-Command" ]
+
+- label: ":windows: dotnet-45-dev-pack-x86"
+  commands:
+    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-45-dev-pack-x86
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        shell: [ "powershell", "-Command" ]
+
+- label: ":windows: dotnet-core-sdk-x86"
+  commands:
+    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-core-sdk-x86
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        shell: [ "powershell", "-Command" ]
+
+- label: ":windows: vs-2019-x86"
+  commands:
+    - .expeditor/test_plan.ps1 -Plan habitat-vs-2019-x86
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        shell: [ "powershell", "-Command" ]
+
+- label: ":windows: win-10-sdk-x86"
+  commands:
+    - .expeditor/test_plan.ps1 -Plan habitat-win-10-sdk-x86
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        shell: [ "powershell", "-Command" ]

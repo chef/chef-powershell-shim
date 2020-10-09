@@ -1,6 +1,6 @@
 # Documentation available at https://expeditor.chef.io/docs/getting-started/
 ---
-# Slack channel in Chef Software slack to send notifications about build failures, etc
+# Slack  channel in Chef Software slack to send notifications about build failures, etc
 slack:
   notify_channel: chef-infra-notify
 
@@ -10,7 +10,8 @@ github:
 pipelines:
   - verify:
       public: true
-  - habitat/build
+  - habitat/build:
+      definition: .expeditor/build.habitat.yml
 
 promote:
   channels:
