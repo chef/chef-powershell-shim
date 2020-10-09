@@ -12,7 +12,7 @@ Describe "chef-powershell-shim" {
                 $env:CHEF_POWERSHELL_BIN = $bin
                 $exec = Add-Type -MemberDefinition $cSharp -Name "ps_exec" -Namespace Chef -PassThru
                 [System.Runtime.InteropServices.Marshal]::PtrToStringUni($exec::ExecuteScript("write-output `$PSVersionTable"))
-            } -ArgumentList "$(hab pkg path $env:HAB_ORIGIN/chef-powershell-shim)\bin"
+            } -ArgumentList "$(hab pkg path $env:HAB_ORIGIN/chef-powershell-shim-x86)\bin"
             $oResult = ConvertFrom-Json (ConvertFrom-Json $jResult).Result
 
             $oResult.PSEdition | Should -Be "Desktop"
@@ -28,7 +28,7 @@ Describe "chef-powershell-shim" {
                 $env:PATH += ";$bin"
                 $exec = Add-Type -MemberDefinition $cSharp -Name "ps_exec" -Namespace Chef -PassThru
                 [System.Runtime.InteropServices.Marshal]::PtrToStringUni($exec::ExecuteScript("write-output `$PSVersionTable"))
-            } -ArgumentList "$(hab pkg path $env:HAB_ORIGIN/chef-powershell-shim)\bin"
+            } -ArgumentList "$(hab pkg path $env:HAB_ORIGIN/chef-powershell-shim-x86)\bin"
             $oResult = ConvertFrom-Json (ConvertFrom-Json $jResult).Result
 
             $oResult.PSEdition | Should -Be "Core"
