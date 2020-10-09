@@ -15,7 +15,6 @@ pipelines:
 
 promote:
   channels:
-    - unstable
     - stable
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
