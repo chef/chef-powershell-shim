@@ -1,0 +1,17 @@
+---
+expeditor:
+  defaults:
+    buildkite:
+      retry:
+        automatic:
+          limit: 1
+      timeout_in_minutes: 30
+
+steps:
+
+- label: ":windows: chef-powershell-shim"
+  commands:
+    - .expeditor/test_plan.ps1 -Plan habitat
+  expeditor:
+    executor:
+      windows:
