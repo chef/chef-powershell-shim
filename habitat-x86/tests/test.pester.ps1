@@ -24,7 +24,7 @@ Describe "chef-powershell-shim" {
                 param($bin)
                 $cSharp = "[DllImport(@`"$bin\shared\Microsoft.NETCore.App\3.1.8\Chef.PowerShell.Wrapper.Core.dll`")]public static extern IntPtr ExecuteScript(string script);"
                 $env:DOTNET_MULTILEVEL_LOOKUP = 0
-                $env:DOTNET_ROOT = $bin
+                ${env:DOTNET_ROOT(x86)} = $bin
                 $env:PATH += ";$bin"
                 $exec = Add-Type -MemberDefinition $cSharp -Name "ps_exec" -Namespace Chef -PassThru
                 [System.Runtime.InteropServices.Marshal]::PtrToStringUni($exec::ExecuteScript("write-output `$PSVersionTable"))
