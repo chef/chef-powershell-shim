@@ -19,7 +19,8 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
     if (prefix) {
         try
         {
-            String^ finalPath = Path::Combine(prefix, args->Name->Substring(0, args->Name->IndexOf(",")) + ".dll");
+            AssemblyName^ name = gcnew AssemblyName(args->Name);
+            String^ finalPath = Path::Combine(prefix, name->Name + ".dll");
             Assembly^ retval = Assembly::LoadFrom(finalPath);
             return retval;
         }

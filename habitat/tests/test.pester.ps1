@@ -17,6 +17,18 @@ Describe "chef-powershell-shim" {
 
             $oResult.PSEdition | Should -Be "Desktop"
         }
+
+        It "is able to load assemblies from the GAC" {
+            $jResult = Invoke-Command -ComputerName localhost -EnableNetworkAccess {
+                param($bin)
+                $cSharp = "[DllImport(@`"$bin\Chef.PowerShell.Wrapper.dll`")]public static extern IntPtr ExecuteScript(string script);"
+                $env:CHEF_POWERSHELL_BIN = $bin
+                $exec = Add-Type -MemberDefinition $cSharp -Name "ps_exec" -Namespace Chef -PassThru
+                [System.Runtime.InteropServices.Marshal]::PtrToStringUni($exec::ExecuteScript("Add-Type -Assembly Microsoft.Activities.Build"))
+            } -ArgumentList "$(hab pkg path $env:HAB_ORIGIN/chef-powershell-shim)\bin"
+
+            ConvertFrom-Json (ConvertFrom-Json $jResult).Errors.Count | Should -Be 0
+        }
     }
     Context "powershell core" {
         It "executes the Core edition" {
