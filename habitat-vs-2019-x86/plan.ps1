@@ -1,6 +1,6 @@
 $pkg_name="visual-build-tools-2019-x86"
 $pkg_origin="chef"
-$pkg_version="16.7.3"
+$pkg_version="16.8.1"
 $pkg_description="Standalone compiler, libraries and scripts"
 $pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019"
 $pkg_license=@("Microsoft Software License")
@@ -10,17 +10,17 @@ $pkg_shasum="d3ffaa4ec21a06d29b773e544c0c613df65b270ad30c036b623188a8b12dd745"
 $pkg_build_deps=@("core/7zip")
 
 $pkg_bin_dirs=@(
-    "Contents\VC\Tools\MSVC\14.27.29110\bin\HostX86\x86",
-    "Contents\VC\Redist\MSVC\14.27.29016\x86\Microsoft.VC142.CRT",
+    "Contents\VC\Tools\MSVC\14.28.29333\bin\HostX86\x86",
+    "Contents\VC\Redist\MSVC\14.28.29325\x86\Microsoft.VC142.CRT",
     "Contents\MSBuild\Current\Bin"
 )
 $pkg_lib_dirs=@(
-    "Contents\VC\Tools\MSVC\14.27.29110\atlmfc\lib\x86",
-    "Contents\VC\Tools\MSVC\14.27.29110\lib\x86"
+    "Contents\VC\Tools\MSVC\14.28.29333\atlmfc\lib\x86",
+    "Contents\VC\Tools\MSVC\14.28.29333\lib\x86"
 )
 $pkg_include_dirs=@(
-    "Contents\VC\Tools\MSVC\14.27.29110\atlmfc\include",
-    "Contents\VC\Tools\MSVC\14.27.29110\include"
+    "Contents\VC\Tools\MSVC\14.28.29333\atlmfc\include",
+    "Contents\VC\Tools\MSVC\14.28.29333\include"
 )
 
 function Invoke-SetupEnvironment {
