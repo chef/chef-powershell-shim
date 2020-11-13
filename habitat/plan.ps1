@@ -35,7 +35,7 @@ function Invoke-Build {
 
 function Invoke-Install {
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/x64/release/*.dll "$pkg_prefix/bin"
-  Copy-Item "$(Get-HabPackagePath visual-build-tools-2019)\Contents\VC\Redist\MSVC\14.27.29016\x64\Microsoft.VC142.CRT\*.dll" "$pkg_prefix/bin"
+  Copy-Item "$env:VCToolsInstallDir_160\x64\Microsoft.VC142.CRT\*.dll" "$pkg_prefix/bin"
 
   dotnet publish --output $pkg_prefix/bin/shared/Microsoft.NETCore.App/3.1.8 --self-contained --configuration Release --runtime win10-x64 $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj
   
