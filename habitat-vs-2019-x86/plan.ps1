@@ -26,8 +26,8 @@ $pkg_include_dirs=@(
 function Invoke-SetupEnvironment {
     Set-RuntimeEnv "DisableRegistryUse" "true"
     Set-RuntimeEnv "UseEnv" "true"
-    Set-RuntimeEnv "VCToolsVersion" "14.27.29016"
-    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.27.29016"
+    Set-RuntimeEnv "VCToolsVersion" "14.28.29325"
+    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.28.29325"
 }
 
 function Invoke-Unpack {
