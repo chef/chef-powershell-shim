@@ -34,7 +34,7 @@ Describe "chef-powershell-shim" {
         It "executes the Core edition" {
             $jResult = Invoke-Command -ComputerName localhost -EnableNetworkAccess {
                 param($bin)
-                $cSharp = "[DllImport(@`"$bin\shared\Microsoft.NETCore.App\3.1.8\Chef.PowerShell.Wrapper.Core.dll`")]public static extern IntPtr ExecuteScript(string script);"
+                $cSharp = "[DllImport(@`"$bin\shared\Microsoft.NETCore.App\5.0.0\Chef.PowerShell.Wrapper.Core.dll`")]public static extern IntPtr ExecuteScript(string script);"
                 $env:DOTNET_MULTILEVEL_LOOKUP = 0
                 $env:DOTNET_ROOT = $bin
                 $env:PATH += ";$bin"
