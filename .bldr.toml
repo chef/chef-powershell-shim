@@ -16,11 +16,11 @@ build_targets = [
 ]
 plan_path = "habitat-dotnet-45-dev-pack-x86"
 
-[dotnet-core-sdk-x86]
+[dotnet-5-sdk-x86]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-dotnet-core-sdk-x86"
+plan_path = "habitat-dotnet-5-sdk-x86"
 
 [visual-build-tools-2019-x86]
 build_targets = [

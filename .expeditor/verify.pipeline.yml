@@ -27,9 +27,9 @@ steps:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: dotnet-core-sdk-x86"
+- label: ":windows: dotnet-5-sdk-x86"
   commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-core-sdk-x86
+    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-5-sdk-x86
   expeditor:
     executor:
       docker:
