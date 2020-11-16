@@ -6,7 +6,7 @@ $pkg_upstream_url="https://dotnet.microsoft.com/"
 $pkg_description=".NET is a free, cross-platform, open-source developer platform for building many different types of applications."
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_source="https://dotnetcli.azureedge.net/dotnet/Sdk/$pkg_version/dotnet-sdk-$pkg_version-win-x86.zip"
-$pkg_shasum="296c89fbfdfedb652e314342e0de069ff392db1a4b0367a2daa9554cf50c1dec"
+$pkg_shasum="3ce63836d27f1799d17cbef947ef24fcfe68264be5e1eb6b0ada2c7931d20f3a"
 $pkg_bin_dirs=@("bin")
 
 function Invoke-SetupEnvironment {
