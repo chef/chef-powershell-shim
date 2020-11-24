@@ -1,6 +1,6 @@
 $pkg_name="chef-powershell-shim-x86"
 $pkg_origin="chef"
-$pkg_version="0.2.2"
+$pkg_version="0.3.0"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
