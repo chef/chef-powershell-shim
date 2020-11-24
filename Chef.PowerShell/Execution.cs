@@ -18,6 +18,11 @@ namespace Chef
             /// An array containing the errors.
             /// </summary>
             public List<string> errors;
+
+            /// <summary>
+            /// An array containing the verbose text.
+            /// </summary>
+            public List<string> verbose;
         }
     }
 }
