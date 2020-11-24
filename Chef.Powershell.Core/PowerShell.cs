@@ -48,7 +48,10 @@ namespace Chef
 
                     foreach (var errorRecord in powershell.Streams.Error)
                     {
-                        execution.errors.Add(errorRecord.ToString());
+                        execution.errors.Add(String.Format("{0}: {1}\n{2}",
+                            errorRecord.InvocationInfo.InvocationName,
+                            errorRecord.Exception.Message,
+                            errorRecord.InvocationInfo.PositionMessage));
                     }
 
                     foreach (var verboseRecord in powershell.Streams.Verbose)
