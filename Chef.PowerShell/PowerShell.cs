@@ -21,54 +21,51 @@ namespace Chef
         /// <returns>A string containing either a Json representation of the resultset, or an empty Json object "{}" if no results are returned.</returns>
         public static string ExecuteScript(string powershellScript)
         {
-            var config = RunspaceConfiguration.Create();
-            using (var runspace = RunspaceFactory.CreateRunspace(config))
+            using (var powershell = System.Management.Automation.PowerShell.Create())
             {
-                runspace.Open();
-                using (var pipeline = runspace.CreatePipeline())
+                powershell.AddScript(powershellScript);
+                var jsonCommand = new Command("ConvertTo-Json");
+                jsonCommand.Parameters.Add("-Compress");
+                powershell.Commands.AddCommand(jsonCommand);
+
+                var execution = new Execution();
+                var results = new Collection<PSObject>();
+                execution.errors = new List<string>();
+                execution.verbose = new List<string>();
+
+                try
                 {
-                    pipeline.Commands.AddScript(powershellScript);
-                    var jsonCommand = new Command("ConvertTo-Json");
-                    jsonCommand.Parameters.Add("-Compress");
-                    pipeline.Commands.Add(jsonCommand);
-
-                    var execution = new Execution();
-                    var results = new Collection<PSObject>();
-                    execution.errors = new List<string>();
-
-                    try
+                    results = powershell.Invoke();
+                    switch (results.Count)
                     {
-                        results = pipeline.Invoke();
-                        switch (results.Count)
-                        {
-                            case 1:
-                                execution.result = results[0].ToString();
-                                break;
-                            default:
-                                execution.result = EMPTY_JSON_STRING;
-                                break;
-                        }
+                        case 1:
+                            execution.result = results[0].ToString();
+                            break;
+                        default:
+                            execution.result = EMPTY_JSON_STRING;
+                            break;
+                    }
 
-                        foreach (var errorRecord in pipeline.Error.ReadToEnd())
-                        {
-                            execution.errors.Add(errorRecord.ToString());
-                        }
-                    }
-                    catch (RuntimeException runtimeException)
+                    foreach (var errorRecord in powershell.Streams.Error)
                     {
-                        execution.result = EMPTY_JSON_STRING;
-                        var exception = String.Format("Runtime exception: {0}: {1}\n{2}",
-                            runtimeException.ErrorRecord.InvocationInfo.InvocationName,
-                            runtimeException.Message,
-                            runtimeException.ErrorRecord.InvocationInfo.PositionMessage);
-                        execution.errors.Add(exception);
+                        execution.errors.Add(errorRecord.ToString());
                     }
-                    finally
+
+                    foreach (var verboseRecord in powershell.Streams.Verbose)
                     {
-                        runspace.Close();
+                        execution.verbose.Add(verboseRecord.ToString());
                     }
-                    return JsonConvert.SerializeObject(execution, new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat });
                 }
+                catch (RuntimeException runtimeException)
+                {
+                    execution.result = EMPTY_JSON_STRING;
+                    var exception = String.Format("Runtime exception: {0}: {1}\n{2}",
+                        runtimeException.ErrorRecord.InvocationInfo.InvocationName,
+                        runtimeException.Message,
+                        runtimeException.ErrorRecord.InvocationInfo.PositionMessage);
+                    execution.errors.Add(exception);
+                }
+                return JsonConvert.SerializeObject(execution, new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat });
             }
         }
     }
