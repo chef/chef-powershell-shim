@@ -45,7 +45,17 @@ namespace Chef
                             execution.result = EMPTY_JSON_STRING;
                             break;
                     }
-
+                }
+                catch (RuntimeException runtimeException)
+                {
+                    execution.result = EMPTY_JSON_STRING;
+                    var exception = String.Format("Runtime exception: {0}: {1}\n{2}",
+                        runtimeException.ErrorRecord.InvocationInfo.InvocationName,
+                        runtimeException.Message,
+                        runtimeException.ErrorRecord.InvocationInfo.PositionMessage);
+                    execution.errors.Add(exception);
+                }
+                finally {
                     foreach (var errorRecord in powershell.Streams.Error)
                     {
                         execution.errors.Add(String.Format("{0}: {1}\n{2}",
@@ -58,15 +68,6 @@ namespace Chef
                     {
                         execution.verbose.Add(verboseRecord.ToString());
                     }
-                }
-                catch (RuntimeException runtimeException)
-                {
-                    execution.result = EMPTY_JSON_STRING;
-                    var exception = String.Format("Runtime exception: {0}: {1}\n{2}",
-                        runtimeException.ErrorRecord.InvocationInfo.InvocationName,
-                        runtimeException.Message,
-                        runtimeException.ErrorRecord.InvocationInfo.PositionMessage);
-                    execution.errors.Add(exception);
                 }
                 return JsonConvert.SerializeObject(execution, new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat });
             }
