@@ -1,6 +1,6 @@
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
-$pkg_version="0.3.2"
+$pkg_version="0.3.3"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
