@@ -1,0 +1,42 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "06:00"
+    timezone: America/Los_Angeles
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: Microsoft.WSMan.Runtime
+    versions:
+    - 7.1.1
+    - 7.1.3
+  - dependency-name: System.Management.Automation
+    versions:
+    - 7.1.1
+    - 7.1.3
+  - dependency-name: Microsoft.WSMan.Management
+    versions:
+    - 7.1.1
+    - 7.1.2
+    - 7.1.3
+  - dependency-name: Microsoft.PowerShell.Commands.Utility
+    versions:
+    - 7.1.1
+    - 7.1.2
+    - 7.1.3
+  - dependency-name: Microsoft.PowerShell.Commands.Management
+    versions:
+    - 7.1.1
+    - 7.1.2
+    - 7.1.3
+  - dependency-name: Microsoft.PowerShell.ConsoleHost
+    versions:
+    - 7.1.1
+    - 7.1.2
+    - 7.1.3
+  - dependency-name: Microsoft.PowerShell.Commands.Diagnostics
+    versions:
+    - 7.1.1
+    - 7.1.3
