@@ -3,11 +3,11 @@
 
 using namespace System;
 
-const wchar_t* ExecuteScript(const char* powershellScript)
+const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
 {
     try {
         String^ wPowerShellScript = gcnew String(powershellScript);
-        String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript);
+        String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
         pin_ptr<const wchar_t> result = PtrToStringChars(output);
         return result;
     }
