@@ -19,7 +19,7 @@ namespace Chef
         /// </summary>
         /// <param name="powershellScript">String. Script to execute.</param>
         /// <returns>A string containing either a Json representation of the resultset, or an empty Json object "{}" if no results are returned.</returns>
-        public static string ExecuteScript(string powershellScript)
+        public static string ExecuteScript(string powershellScript, int timeout)
         {
             using (var powershell = System.Management.Automation.PowerShell.Create())
             {
@@ -29,22 +29,35 @@ namespace Chef
                 powershell.Commands.AddCommand(jsonCommand);
 
                 var execution = new Execution();
-                var results = new Collection<PSObject>();
                 execution.errors = new List<string>();
                 execution.verbose = new List<string>();
 
                 try
                 {
-                    results = powershell.Invoke();
-                    switch (results.Count)
+                    IAsyncResult asyncResult = powershell.BeginInvoke();
+                    if (asyncResult.AsyncWaitHandle.WaitOne(timeout * 1000))
                     {
-                        case 1:
-                            execution.result = results[0].ToString();
-                            break;
-                        default:
-                            execution.result = EMPTY_JSON_STRING;
-                            break;
+                        PSDataCollection<PSObject> results = powershell.EndInvoke(asyncResult: asyncResult);
+                        switch (results.Count)
+                        {
+                            case 1:
+                                execution.result = results[0].ToString();
+                                break;
+                            default:
+                                execution.result = EMPTY_JSON_STRING;
+                                break;
+                        }
                     }
+                    else
+                    {
+                        powershell.Stop();
+                        execution.result = EMPTY_JSON_STRING;
+                        TimeoutException exception = new TimeoutException($"Execution of {powershellScript} timed out after {timeout} seconds");
+                        ErrorRecord record = new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.OperationTimeout, asyncResult);
+                        powershell.Streams.Error.Add(record);
+                        throw new RuntimeException($"Timeout limit exceeded!");
+                    }
+
                 }
                 catch (RuntimeException runtimeException)
                 {
