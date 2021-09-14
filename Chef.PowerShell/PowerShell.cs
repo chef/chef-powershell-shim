@@ -34,8 +34,9 @@ namespace Chef
 
                 try
                 {
+                    int timeoutMilliseconds = timeout < 0 ? -1 : timeout*1000;
                     IAsyncResult asyncResult = powershell.BeginInvoke();
-                    if (asyncResult.AsyncWaitHandle.WaitOne(timeout * 1000))
+                    if (asyncResult.AsyncWaitHandle.WaitOne(timeoutMilliseconds))
                     {
                         PSDataCollection<PSObject> results = powershell.EndInvoke(asyncResult: asyncResult);
                         switch (results.Count)
@@ -52,10 +53,7 @@ namespace Chef
                     {
                         powershell.Stop();
                         execution.result = EMPTY_JSON_STRING;
-                        TimeoutException exception = new TimeoutException($"Execution of {powershellScript} timed out after {timeout} seconds");
-                        ErrorRecord record = new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.OperationTimeout, asyncResult);
-                        powershell.Streams.Error.Add(record);
-                        throw new RuntimeException($"Timeout limit exceeded!");
+                        execution.errors.Add($"Execution of {powershellScript} timed out after {timeout} seconds");
                     }
 
                 }
