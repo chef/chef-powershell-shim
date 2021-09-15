@@ -8,7 +8,7 @@ Describe "chef-powershell-shim" {
         It "executes the Desktop edition" {
             $jResult = Invoke-Command -ComputerName localhost -EnableNetworkAccess -ConfigurationName Microsoft.PowerShell32 {
                 param($bin)
-                $cSharp = "[DllImport(@`"$bin\Chef.PowerShell.Wrapper.dll`")]public static extern IntPtr ExecuteScript(string script);"
+                $cSharp = "[DllImport(@`"$bin\Chef.PowerShell.Wrapper.dll`")]public static extern IntPtr ExecuteScript(string script, int timeout = -1);"
                 $env:CHEF_POWERSHELL_BIN = $bin
                 $exec = Add-Type -MemberDefinition $cSharp -Name "ps_exec" -Namespace Chef -PassThru
                 [System.Runtime.InteropServices.Marshal]::PtrToStringUni($exec::ExecuteScript("write-output `$PSVersionTable"))
@@ -22,7 +22,7 @@ Describe "chef-powershell-shim" {
         It "executes the Core edition" {
             $jResult = Invoke-Command -ComputerName localhost -EnableNetworkAccess -ConfigurationName Microsoft.PowerShell32 {
                 param($bin)
-                $cSharp = "[DllImport(@`"$bin\shared\Microsoft.NETCore.App\5.0.0\Chef.PowerShell.Wrapper.Core.dll`")]public static extern IntPtr ExecuteScript(string script);"
+                $cSharp = "[DllImport(@`"$bin\shared\Microsoft.NETCore.App\5.0.0\Chef.PowerShell.Wrapper.Core.dll`")]public static extern IntPtr ExecuteScript(string script, int timeout = -1);"
                 $env:DOTNET_MULTILEVEL_LOOKUP = 0
                 ${env:DOTNET_ROOT(x86)} = $bin
                 $env:PATH += ";$bin"
