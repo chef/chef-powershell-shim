@@ -71,5 +71,5 @@ function Invoke-Unpack {
 }
 
 function Invoke-Install {
-    Copy-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname\expanded\Contents" $pkg_prefix -Force -Recurse
+    Copy-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname\Contents" $pkg_prefix -Force -Recurse
 }
