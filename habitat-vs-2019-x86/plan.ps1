@@ -60,7 +60,7 @@ function Invoke-Unpack {
 
     $setup = "$HAB_CACHE_SRC_PATH/$pkg_dirname/Contents/resources/app/layout/setup.exe"
     Write-Host "Launching $setup with args: $installArgs"
-    & $setup $installArgs.Split(" ")
+    Start-Process $setup -ArgumentList $installArgs -Wait
     Push-Location "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     try {
         Get-ChildItem "$HAB_CACHE_SRC_PATH/$pkg_dirname" -Include *.vsix -Exclude @('*x64*', '*.arm.*') -Recurse | ForEach-Object {
@@ -71,5 +71,5 @@ function Invoke-Unpack {
 }
 
 function Invoke-Install {
-    Copy-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname\Contents" $pkg_prefix -Force -Recurse
+    Copy-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname\expanded\Contents" $pkg_prefix -Force -Recurse
 }
