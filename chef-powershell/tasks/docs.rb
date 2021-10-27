@@ -1,5 +1,3 @@
-RESOURCES_TO_SKIP = ["whyrun_safe_ruby_block", "l_w_r_p_base", "user_resource_abstract_base_class", "linux_user", "pw_user", "aix_user", "solaris_user", "windows_user", "mac_user", ""].freeze
-
 namespace :docs_site do
 
   desc "Generate resource documentation pages in a docs_site directory"

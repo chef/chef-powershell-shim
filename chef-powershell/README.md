@@ -1,6 +1,6 @@
-# Chef Utils gem
+﻿# Chef-PowerShell gem
 
-**Umbrella Project**: [Chef Infra](https://github.com/chef/chef-oss-practices/blob/main/projects/chef-infra.md)
+**Umbrella Project**: [Chef PowerShell Shim](https://github.com/chef/chef-powershell-shim/blob/main/README.md)
 
 **Project State**: [Active](https://github.com/chef/chef-oss-practices/blob/main/repo-management/repo-states.md#active)
 
@@ -10,238 +10,95 @@
 
 ## Getting Started
 
-Chef Utils gem contains common code and mixins for the core Chef Infra Ruby gems. This is intended to be a "core" or "foundations" library
-for the chef ecosystem (and external related gems) which allows the use of core code and utility functions of the chef gem without requiring
-all the heaviness of the chef gem.
+The Chef-Powershell gem contains code previously included directly in the Chef Infra client to allow Chef binaries to access PowerShell and Windows PowerShell via ffi. This makes it super easy to add and execute an arbitrary block of PowerShell code. This code DOES NOT replace the PowerShell resource that your recipes normally consume. Rather, that resource relies on this tool to execute your code.
 
-### Platform Family Helpers
-
-The Platform Family helpers provide an alternative to comparing values from `node['platform_family']` or using the `platform_family?()` helper method. They allow you to write simpler logic that checks for specific platform family. Additionally we've provided several super families listed below, which bundle together common platform families into a single helper.
-
-* `aix?`
-* `amazon?`
-* `arch?` - includes arch, manjaro, and antergos platforms
-* `debian?` - includes debian, ubuntu, linuxmint, raspbian, and devuan platforms
-* `dragonflybsd?`
-* `fedora?` - includes arista_eos, fedora, and pidora platforms
-* `freebsd?`
-* `gentoo?`
-* `macos?`
-* `macos_ruby?` - this is always true if the ruby VM is running on a mac host and is not stubbed by ChefSpec
-* `netbsd?`
-* `openbsd?`
-* `rhel?` - includes redhat, centos, scientific, oracle, and clearos platforms
-* `rhel6?` - includes redhat6, centos6, scientific6, oracle6, and clearos6 platforms
-* `rhel7?` - includes redhat7, centos7, scientific7, oracle7, and clearos7 platforms
-* `rhel8?` - includes redhat8, centos8, scientific8, oracle8, and clearos8 platforms
-* `smartos?`
-* `solaris2?`
-* `suse?` - includes suse and opensuseleap platforms
-* `windows?` - NOTE: in a class context when called without a node object (ChefUtils.windows?) this is not stubbable by ChefSpec, but when called with a node as the first argument or when called from the DSL it is stubabble by chefspec
-* `windows_ruby?` - this is always true if the ruby VM is running on a windows host and is not stubbed by ChefSpec
-
-Super Families:
-
-* `fedora_based?` - anything of fedora lineage (fedora, redhat, centos, amazon, pidora, etc)
-* `rpm_based?`- all `fedora_based` systems plus `suse` and any future linux distros based on RPM (excluding AIX)
-* `solaris_based?`- all solaris-derived systems (omnios, smartos, openindiana, etc)
-* `bsd_based?`- all bsd-derived systems (freebsd, netbsd, openbsd, dragonflybsd).
-
-### Platform Helpers
-
-The Platform helpers provide an alternative to comparing values from `node['platform']` or using the `platform?()` helper method. In general we'd highly suggest writing code using the Platform Family helpers, but these helpers can be used when it's necessary to target specific platforms.
-
-* `aix_platform?`
-* `amazon_platform?`
-* `arch_platform?`
-* `centos_platform?`
-* `clearos_platform?`
-* `debian_platform?`
-* `dragonfly_platform?`
-* `fedora_platform?`
-* `freebsd_platform?`
-* `gentoo_platform?`
-* `leap_platform?`
-* `linuxmint_platform?`
-* `macos_platform?`
-* `netbsd_platform?`
-* `omnios_platform?`
-* `openbsd_platform?`
-* `openindiana_platform?`
-* `opensuse_platform?`
-* `oracle_platform?`
-* `raspbian_platform?`
-* `redhat_platform?`
-* `scientific_platform?`
-* `slackware_platform?`
-* `smartos_platform?`
-* `solaris2_platform?`
-* `suse_platform?`
-* `ubuntu_platform?`
-* `windows_platform?`
-
-For compatibility with old chef-sugar code the following aliases work for backwards compatibility, but will be DEPRECATED in the future.
-
-* `centos?`
-* `clearos?`
-* `linuxmint?`
-* `omnios?`
-* `openindiana?`
-* `opensuse?`
-* `oracle?`
-* `raspbian?`
-* `redhat?`
-* `scientific?`
-* `ubuntu?`
-
-### OS Helpers
-
-The OS helpers provide an alternative to comparing data from `node['os']`.
-
-* `linux?` - Any Linux distribution
-* `darwin?` - Darwin or macOS platforms
-
-### Architecture Helpers
-
-Architecture Helpers allow you to determine the processor architecture of your node.
-
-* `_32_bit?`
-* `_64_bit?`
-* `arm?`
-* `armhf?`
-* `i386?`
-* `intel?`
-* `powerpc?`
-* `ppc64?`
-* `ppc64le?`
-* `s390?`
-* `s390x?`
-* `sparc?`
-
-### Cloud Helpers
-
-* `cloud?` - if the node is running in any cloud, including internal ones
-* `alibaba?` - if the node is running in alibaba cloud
-* `ec2?` - if the node is running in ec2
-* `gce?` - if the node is running in gce
-* `rackspace?` - if the node is running in rackspace
-* `eucalyptus?` - if the node is running under eucalyptus
-* `linode?` - if the node is running in linode
-* `openstack?` - if the node is running under openstack
-* `azure?` - if the node is running in azure
-* `digital_ocean?` - if the node is running in digital ocean
-* `softlayer?` - if the node is running in softlayer
-
-### Virtualization Helpers
-
-* `kvm?` - if the node is a kvm guest
-* `kvm_host?` - if the node is a kvm host
-* `lxc?` - if the node is an lxc guest
-* `lxc_host?` - if the node is an lxc host
-* `parallels?`- if the node is a parallels guest
-* `parallels_host?`- if the node is a parallels host
-* `vbox?` - if the node is a virtualbox guest
-* `vbox_host?` - if the node is a virtualbox host
-* `vmware?` - if the node is a vmware guest
-* `vmware_host?` - if the node is a vmware host
-* `openvz?` - if the node is an openvz guest
-* `openvz_host?` - if the node is an openvz host
-* `guest?` - if the node is detected as any kind of guest
-* `hypervisor?` - if the node is detected as being any kind of hypervisor
-* `physical?` - the node is not running as a guest (may be a hypervisor or may be bare-metal)
-* `vagrant?` - attempts to identify the node as a vagrant guest (this check may be error prone)
-
-### Train Helpers
-
-**EXPERIMENTAL**: APIs may have breaking changes any time without warning
-
-* `file_exist?`
-* `file_open`
-
-### Introspection Helpers
-
-* `docker?` - if the node is running inside of docker
-* `systemd?` - if the init system is systemd
-* `kitchen?` - if ENV['TEST_KITCHEN'] is set
-* `ci?` - if ENV['CI'] is set
-* `include_recipe?(recipe_name)` - if the `recipe_name` is in the run list, the expanded run list, or has been `include_recipe`'d.
-
-### Service Helpers
-
-* `debianrcd?` - if the `update-rc.d` binary is present
-* `invokercd?` - if the `invoke-rc.d` binary is present
-* `upstart?` - if the `initctl` binary is present
-* `insserv?` - if the `insserv` binary is present
-* `redhatrcd?` - if the `chkconfig` binary is present
-
-* `service_script_exist?(type, service)`
-
-### Which/Where Helpers
-
-* `which`
-* `where`
-
-### Path Sanity Helpers
-
-* `sanitized_path`
-
-### Content Rendering Helpers
-
-* `render_json`
-* `render_toml`
-* `render_yaml`
 ## Documentation for Cookbook library authors
 
-To use the helpers in a class or module in a cookbook library file you can include the ChefUtils DSL:
-
-```ruby
-module MyHelper
-  include ChefUtils # or any individual module with DSL methods in it
-
-  def do_something
-    puts "RHEL" if rhel?
-  end
-
-  extend self
-end
-```
-
-Now you can include MyHelper in another class/module, or you can call MyHelper.do_something directly.
+None. This gem is not meant to be consumed directly by cookbooks. It can be consumed by ruby code blocks.
 
 ## Documentation for Software Developers
 
-The design of the DSL helper libraries in this gem are designed around the Chef Infra Client use cases. Most of the helpers are
-accessible through the Chef DSL directly via the `ChefUtils` module. They are also available via class method calls on
-the ChefUtils module directly (e.g. `ChefUtils.debian?`). For that to be possible there is Chef Infra Client specific wiring in
-the `ChefUtils::Internal` class allowing the helpers to access the `Chef.run_context` global values. This allows them to be
-used from library helpers in cookbooks inside Chef Infra Client.
+The Chef-PowerShell gem provides in-process access to the PowerShell engine.
 
-For external use in other gems, this automatic wiring will not work correctly, and so it will not generally be possible to
-call helpers off of the `ChefUtils` class (some exceptions that do not require a node-like object or a train connection will
-may still work). For use in other gems you should create your own module and mixin the helper class. If you have a node
-method in your class/module then that method will be used.
+`powershell_exec` is initialized with a string that should be set to the script
+to run and also takes an optional interpreter argument which must be either
+:powershell (Windows PowerShell which is the default) or :pwsh (PowerShell
+Core). It will return a Chef_PowerShell::PowerShell object that provides 5 methods:
 
-You can wire up a module which implements the Chef DSL with your own wiring using this template:
+.result - returns a hash representing the results returned by executing the
+          PowerShell script block
+
+.verbose - this is an array of string containing any messages written to the
+          PowerShell verbose stream during execution
+
+.errors - this is an array of string containing any messages written to the
+          PowerShell error stream during execution
+
+.error? - returns true if there were error messages written to the PowerShell
+          error stream during execution
+
+.error! - raise Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed if there was an error
+
+Some examples of usage:
 
 ```ruby
-module MyDSL
-  include ChefUtils # or any individual module with DSL methods in it
-
-  private
-
-  def __getnode
-    # return something Mash-like with node semantics with a node["platform"], etc.
-  end
-
-  def __transport_connection
-    # return a Train::Transport connection
-  end
-
-  extend self # if your wiring is to global state to make `MyDSL.helper?` work.
-end
+ > powershell_exec!("(Get-Item c:\\windows\\system32\\w32time.dll).VersionInfo"
+  ).result["FileVersion"]
+=> "10.0.14393.0 (rs1_release.160715-1616)"
 ```
-
-Those methods are marked API private for the purposes of end-users, but are public APIs for the purposes of software development.
+```ruby
+> powershell_exec("(get-process ruby).Mainmodule").result["FileName"]
+=> C:\\opscode\\chef\\embedded\\bin\\ruby.exe"
+```
+```ruby
+> powershell_exec("$a = $true; $a").result
+=> true
+```
+```ruby
+> powershell_exec("$PSVersionTable", :pwsh).result["PSEdition"]
+=> "Core"
+```
+```ruby
+> powershell_exec("$PSVersionTable", :powershell).result["PSEdition"]
+=> "Desktop"
+```
+```ruby
+> powershell_exec("not-found").errors
+=> ["ObjectNotFound: (not-found:String) [], CommandNotFoundException: The
+term 'not-found' is not recognized as the name of a cmdlet, function, script
+file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again. (at <ScriptBlock>,
+  <No file>: line 1)"]
+  ```
+  ```ruby
+> powershell_exec("not-found").error?
+=> true
+```
+```ruby
+> powershell_exec("get-item c:\\notfound -erroraction stop")
+WIN32OLERuntimeError: (in OLE method `ExecuteScript': )
+    OLE error code:80131501 in System.Management.Automation
+      The running command stopped because the preference variable
+      "ErrorActionPreference" or common parameter is set to Stop: Cannot find
+      path 'C:\notfound' because it does not exist.
+```
+```ruby
+require "chef-powershell"
+...
+include Chef_PowerShell::ChefPowerShell::PowerShellExec
+...
+def join_command
+  cmd = ""
+  cmd << "$pswd = ConvertTo-SecureString \'#{new_resource.password}\' -AsPlainText -Force;" if new_resource.password
+  cmd << "$credential = New-Object System.Management.Automation.PSCredential (\'#{new_resource.user}\',$pswd);" if new_resource.password
+  cmd << "Add-Computer -WorkgroupName #{new_resource.workgroup_name}"
+  cmd << " -Credential $credential" if new_resource.password
+  cmd << " -Force"
+  cmd
+end
+...
+my_result = powershell_exec!(join_command)
+```
 
 ## Getting Involved
 
@@ -249,7 +106,7 @@ We'd love to have your help developing Chef Infra. See our [Contributing Documen
 
 ## License and Copyright
 
-Copyright 2008-2019, Chef Software, Inc.
+Copyright Chef Software, Inc.
 
 ```
 Licensed under the Apache License, Version 2.0 (the "License");

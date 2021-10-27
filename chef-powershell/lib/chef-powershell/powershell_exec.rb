@@ -18,12 +18,12 @@
 require_relative "./powershell"
 require_relative "./pwsh"
 
-# The powershell_exec mixin provides in-process access to the PowerShell engine.
+# The Chef-PowerShell gem provides in-process access to the PowerShell engine.
 #
 # powershell_exec is initialized with a string that should be set to the script
 # to run and also takes an optional interpreter argument which must be either
 # :powershell (Windows PowerShell which is the default) or :pwsh (PowerShell
-# Core). It will return a Chef::PowerShell object that provides 5 methods:
+# Core). It will return a Chef_PowerShell::PowerShell object that provides 5 methods:
 #
 # .result - returns a hash representing the results returned by executing the
 #           PowerShell script block

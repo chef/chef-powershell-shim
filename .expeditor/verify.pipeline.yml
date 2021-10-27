@@ -62,3 +62,14 @@ steps:
       docker:
         host_os: windows
         shell: [ "powershell", "-Command" ]
+
+- label: ":windows: build-and-publish-windows-gem"
+  command:
+    - bundle config --local path vendor/bundle
+    - bundle install --jobs=7 --retry=3
+    - bundle exec rake all
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        user: 'NT AUTHORITY\SYSTEM'

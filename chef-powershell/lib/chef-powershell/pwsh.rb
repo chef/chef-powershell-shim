@@ -46,8 +46,8 @@ class Chef_PowerShell
       original_dotnet_root_x86 = ENV["DOTNET_ROOT(x86)"]
 
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
-      ENV["DOTNET_ROOT"] = RbConfig::CONFIG["bindir"]
-      ENV["DOTNET_ROOT(x86)"] = RbConfig::CONFIG["bindir"]
+      ENV["DOTNET_ROOT"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/AMD64"
+      ENV["DOTNET_ROOT(x86)"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/x86"
 
       super
     ensure

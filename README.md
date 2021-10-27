@@ -1,10 +1,10 @@
 # chef-powershell-shim
 
-A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform
+A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform. This repo now also contains the chef-powershell Ruby gem which consumes the the .NET Assembly and provides the interface between Chef and PowerShell via ffi.
 
 ### Development Prerequisites
 
-Binaries can be built with Habitat.
+Binaries can be built with Habitat. See the Rake task ```:update_chef_powershell_dlls``` in the chef-powershell/Rakefile
 
 ## Contributing/Development
 
