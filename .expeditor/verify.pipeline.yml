@@ -67,6 +67,8 @@ steps:
   command:
     - cd chef-powershell
     - gem install bundler:2.2.29
+    - C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+    - choco install node -y
     - npm install -g cspell
     - bundle config --local path vendor/bundle
     - bundle install --jobs=7 --retry=3
