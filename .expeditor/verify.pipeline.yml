@@ -66,6 +66,7 @@ steps:
 - label: ":windows: build-and-publish-windows-gem"
   command:
     - cd chef-powershell
+    - gem install bundler:2.2.29
     - bundle config --local path vendor/bundle
     - bundle install --jobs=7 --retry=3
     - bundle exec rake all
