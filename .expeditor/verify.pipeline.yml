@@ -72,6 +72,7 @@ steps:
     - SET "PATH=%PATH%;C:\Program Files\nodejs\"
     - refreshenv
     - npm install -g cspell
+    - bundle update
     - bundle config --local path vendor/bundle
     - bundle install --jobs=7 --retry=3
     - bundle exec rake all
