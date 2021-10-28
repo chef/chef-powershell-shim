@@ -22,6 +22,11 @@ describe Chef_PowerShell::ChefPowerShell::PowershellExec, :windows_only do
   let(:powershell_mixin) { Class.new { include Chef_PowerShell::ChefPowerShell::PowershellExec } }
   subject(:object) { powershell_mixin.new }
 
+  before do
+    file_path = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/"
+    ENV["CHEF_POWERSHELL_BIN"] = file_path
+  end
+
   describe "#powershell_exec" do
     context "not specifying an interpreter" do
       it "runs a basic command and returns a Chef::PowerShell object" do
