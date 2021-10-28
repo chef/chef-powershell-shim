@@ -23,7 +23,7 @@ namespace :spellcheck do
   task prereqs: %i{cspell_check config_check fetch_common}
 
   task :fetch_common do
-    sh "wget -q https://raw.githubusercontent.com/chef/chef_dictionary/master/chef.txt -O chef_dictionary.txt"
+    sh "curl https://raw.githubusercontent.com/chef/chef_dictionary/master/chef.txt --output chef_dictionary.txt"
   end
 
   task :config_check do
