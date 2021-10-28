@@ -68,6 +68,7 @@ steps:
     - cd chef-powershell
     - gem install bundler:2.2.29
     - gem install libyajl2-gem
+    - gem install chef-powershell -v 1.0.0
     - choco install nodejs -y
     - refreshenv
     - npm install -g cspell

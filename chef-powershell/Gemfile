@@ -4,7 +4,6 @@ source "https://rubygems.org"
 gem "rubocop", ">= 1.22.0"
 gem "rspec"
 gem "chefstyle"
-gem "libyajl2"
 
 gemspec
 

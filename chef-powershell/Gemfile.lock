@@ -57,7 +57,6 @@ PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
-  chef-powershell!
   chefstyle
   fauxhai-ng
   rake
