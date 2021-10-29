@@ -6,8 +6,6 @@ gem "rspec"
 gem "chefstyle"
 gem "rake"
 
-gemspec
-
 group(:development, :test) do
   gem "fauxhai-ng"
 end
