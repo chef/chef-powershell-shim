@@ -65,6 +65,8 @@ steps:
 
 - label: ":windows: build-and-publish-windows-gem"
   command:
+    - choco install habitat -y
+    - refreshenv
     - bundle update
     - bundle exec rake update_chef_powershell_dlls
     - cd chef-powershell
