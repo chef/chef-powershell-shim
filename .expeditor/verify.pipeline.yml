@@ -81,9 +81,10 @@ steps:
     - bundle exec rake all
   expeditor:
     executor:
+      windows:
+        privileged: true
       docker:
         host_os: windows
-        privileged: true
         image: rubydistros/windows-2019:3.0
         environment:
           - HAB_LICENSE=accept-no-persist
