@@ -83,8 +83,8 @@ steps:
     executor:
       docker:
         host_os: windows
+        privileged: true
         image: rubydistros/windows-2019:3.0
         environment:
-          - CHEF_LICENSE=accept-no-persist
           - HAB_LICENSE=accept-no-persist
           - HAB_ORIGIN=ci
