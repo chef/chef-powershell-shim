@@ -65,7 +65,6 @@ steps:
 
 - label: ":windows: build-and-publish-windows-gem"
   command:
-    - set CHEF_LICENSE=accept-no-persist
     - choco install habitat -y
     - refreshenv
     - bundle update
@@ -84,3 +83,5 @@ steps:
       docker:
         host_os: windows
         image: rubydistros/windows-2019:3.0
+        environment:
+          - CHEF_LICENSE=accept-no-persist
