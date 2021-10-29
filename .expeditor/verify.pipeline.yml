@@ -68,6 +68,7 @@ steps:
     - choco install habitat -y
     - refreshenv
     - bundle update
+    - hab origin key generate %HAB_ORIGIN%
     - bundle exec rake update_chef_powershell_dlls
     - cd chef-powershell
     - gem install bundler:2.2.29
@@ -86,3 +87,4 @@ steps:
         environment:
           - CHEF_LICENSE=accept-no-persist
           - HAB_LICENSE=accept-no-persist
+          - HAB_ORIGIN=ci
