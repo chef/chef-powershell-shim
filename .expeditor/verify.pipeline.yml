@@ -65,6 +65,7 @@ steps:
 
 - label: ":windows: build-and-publish-windows-gem"
   command:
+    - bundle update
     - bundle exec rake update_chef_powershell_dlls
     - cd chef-powershell
     - gem install bundler:2.2.29
