@@ -81,11 +81,11 @@ steps:
     - bundle exec rake all
   expeditor:
     executor:
-      windows:
-        privileged: true
       docker:
         host_os: windows
         image: rubydistros/windows-2019:3.0
         environment:
           - HAB_LICENSE=accept-no-persist
           - HAB_ORIGIN=ci
+    accounts:
+    - NT AUTHORITY\System
