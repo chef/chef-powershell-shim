@@ -83,9 +83,9 @@ steps:
     executor:
       docker:
         host_os: windows
+        user: 'NT AUTHORITY\SYSTEM'
         image: rubydistros/windows-2019:3.0
         environment:
           - HAB_LICENSE=accept-no-persist
           - HAB_ORIGIN=ci
-    accounts:
-    - NT AUTHORITY\System
+
