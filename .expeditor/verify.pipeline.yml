@@ -65,6 +65,7 @@ steps:
 
 - label: ":windows: build-and-publish-windows-gem"
   command:
+    - set CHEF_LICENSE=accept-no-persist
     - choco install habitat -y
     - refreshenv
     - bundle update
