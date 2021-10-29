@@ -66,14 +66,6 @@ steps:
 - label: ":windows: build-and-publish-windows-gem"
   command:
     - bundle exec rake update_chef_powershell_dlls
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        image: rubydistros/windows-2019:3.0
-
-- label: ":windows: build-and-publish-windows-gem"
-  command:
     - cd chef-powershell
     - gem install bundler:2.2.29
     - gem install libyajl2-gem
