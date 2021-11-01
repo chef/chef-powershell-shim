@@ -64,28 +64,11 @@ steps:
         shell: [ "powershell", "-Command" ]
 
 - label: ":windows: build-and-publish-windows-gem"
-  command:
-    - choco install habitat -y
-    - refreshenv
-    - bundle update
-    - hab origin key generate %HAB_ORIGIN%
-    - bundle exec rake update_chef_powershell_dlls
-    - cd chef-powershell
-    - gem install bundler:2.2.29
-    - gem install libyajl2-gem
-    - gem install chef-powershell -v 1.0.0
-    - choco install nodejs -y
-    - refreshenv
-    - npm install -g cspell
-    - bundle update
-    - bundle exec rake all
+  commands:
+    - .expeditor/build_gems.ps1
   expeditor:
     executor:
-      docker:
-        host_os: windows
-        user: 'NT AUTHORITY\SYSTEM'
-        image: rubydistros/windows-2019:3.0
-        environment:
-          - HAB_LICENSE=accept-no-persist
-          - HAB_ORIGIN=ci
-
+      windows:
+        privileged: true
+        single-use: true
+        shell: ["powershell", "-Command"]

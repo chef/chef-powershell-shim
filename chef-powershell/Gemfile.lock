@@ -57,11 +57,11 @@ PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
+  chef-powershell!
   chefstyle
   fauxhai-ng
   rake
   rspec
-  rubocop (>= 1.22.0)
 
 BUNDLED WITH
    2.2.29

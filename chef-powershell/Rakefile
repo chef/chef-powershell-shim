@@ -40,10 +40,11 @@ task :update_chef_powershell_dlls do
   raise "Unable to locate Habitat cli. Please install Habitat cli before invoking this task!" unless find_executable "hab"
 
   sh("hab pkg build Habitat")
-  sh("hab pkg build Habitat-x86")
+  sh("hab pkg build -R Habitat-x86")
 
-  sh("hab pkg install chef/chef-powershell-shim")
-  sh("hab pkg install chef/chef-powershell-shim-x86")
+# got to run " . .\"
+  sh("hab pkg install ci/chef-powershell-shim")
+  sh("hab pkg install ci/chef-powershell-shim-x86")
 
   x64 = `hab pkg path chef/chef-powershell-shim`.chomp.tr("\\", "/")
   x86 = `hab pkg path chef/chef-powershell-shim-x86`.chomp.tr("\\", "/")
@@ -61,4 +62,5 @@ task :chefstyle do
 end
 
 task all: %w{chefstyle spellcheck spec update_chef_powershell_dlls gem_build}.freeze
-task gem: %w{chefstyle spellcheck spec gem_build }.freeze
+task gem: %w{chefstyle spellcheck spec:doc gem_build}.freeze
+task gem_check: %w{chefstyle spellcheck spec:doc}.freeze
