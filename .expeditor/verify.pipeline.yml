@@ -68,7 +68,7 @@ steps:
     - .expeditor/build_gems.ps1
   expeditor:
     executor:
-      windows:
-        privileged: true
-        single-use: true
-        shell: ["powershell", "-Command"]
+      docker:
+        host_os: windows
+        image: rubydistros/windows-2019:3.0
+        shell: [ "powershell", "-Command" ]
