@@ -29,6 +29,12 @@ namespace :spellcheck do
   task :config_check do
     require "json"
 
+    chef_dictionary = "chef_dictionary.txt"
+
+    unless File.readable?(chef_dictionary)
+      abort "Dictionary file '#{chef_dictionary}' not found, skipping spellcheck"
+    end
+
     config_file = "cspell.json"
 
     unless File.readable?(config_file)
