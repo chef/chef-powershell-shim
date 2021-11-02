@@ -20,16 +20,6 @@ choco install habitat -y
 if (-not $?) { throw "unable to install Habitat"}
 Write-Output "`r"
 
-# Write-Output "--- Installing Msys2 via Choco"
-# choco install msys2 -y
-# if (-not $?) { throw "unable to install Msys2"}
-# Write-Output "`r"
-
-Write-Output "--- Installing Git via Choco"
-choco install git -y
-if (-not $?) { throw "unable to install git"}
-Write-Output "`r"
-
 Write-Output "--- Refreshing the build environment to pick up Hab binaries"
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
@@ -98,14 +88,10 @@ Write-Host "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DLL'
 $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
 $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
 
-$x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
-$x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
-
 if (Test-Path -PathType Container $x64_bin_path) {
   Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
-}
-else {
+} else {
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
@@ -127,7 +113,7 @@ Write-Output "`r"
 Write-Output "--- :gem majesty: Installing Required Ruby Gems"
 gem install bundler:2.2.29
 gem install libyajl2-gem
-gem install chef-powershell -v 1.0.0
+gem install chef-powershell
 if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
@@ -147,13 +133,13 @@ npm install -g cspell
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"
 
-Write-Output "--- Correcting a gem build problem, moving header files around"
-$filename = "ansidecl.h"
-$locale = Get-ChildItem -path c:\ -Include $filename -Recurse -ErrorAction Ignore
-$parent_folder = $locale.Directory.Parent.FullName
-$child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
-Copy-Item $locale.FullName -Destination $child_folder -ErrorAction Continue
-Write-Output "`r"
+# Write-Output "--- Correcting a gem build problem, moving header files around"
+# $filename = "ansidecl.h"
+# $locale = Get-ChildItem -path c:\ -Include $filename -Recurse -ErrorAction Ignore
+# $parent_folder = $locale.Directory.Parent.FullName
+# $child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
+# Copy-Item $locale.FullName -Destination $child_folder -ErrorAction Continue
+# Write-Output "`r"
 
 Write-Output "--- Updating Gems in the Chef-PowerShell child directory"
 bundle update
