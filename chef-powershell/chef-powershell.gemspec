@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Chef Software, Inc"]
   spec.email         = ["oss@chef.io"]
 
-  spec.summary       = %q{Extneral module for accessing and utilizing PowerShell}
+  spec.summary       = %q{External Chef module for accessing and utilizing PowerShell}
   spec.homepage      = "https://github.com/chef/chef/tree/main/chef-powershell"
   spec.license       = "Apache-2.0"
 

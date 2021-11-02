@@ -98,13 +98,18 @@ Write-Host "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DLL'
 $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
 $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
 
+$x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
+$x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
+
 if (Test-Path -PathType Container $x64_bin_path) {
-  Get-ChildItem -Path $x64_bin_path -Recurse| Foreach-object {Remove-item -Recurse -path $_.FullName -Force }
+  Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
-} else {
+}
+else {
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
+Write-Output "`r"
 
 if (Test-Path -PathType Container $x86_bin_path) {
   Get-ChildItem -Path $x86_bin_path -Recurse| Foreach-object {Remove-item -Recurse -path $_.FullName -Force }
