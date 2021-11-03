@@ -23,15 +23,16 @@ class Chef_PowerShell
     # bindir directory.
     #
     # @param script [String] script to run
+    # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
-    def initialize(script)
+    def initialize(script, timeout: nil)
       @dll = Pwsh.dll
       super
     end
 
     protected
 
-    def exec(script)
+    def exec(script, timeout: nil)
       # Note that we need to override the location of the shared dotnet core library
       # location. With most .net core applications, you can simply publish them as a
       # "self-contained" application allowing consumers of the application to run them
@@ -64,7 +65,8 @@ class Chef_PowerShell
       # ensures that the correct architecture binaries are installed into the path.
       # Also note that the version of pwsh is determined by which assemblies the dll was
       # built with. To update powershell, those dependencies must be bumped.
-      @dll ||= Dir.glob("#{RbConfig::CONFIG["bindir"]}/**/Chef.PowerShell.Wrapper.Core.dll").last
+      powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.Core.dll"
+      @dll ||= powershell_dll
     end
   end
 end

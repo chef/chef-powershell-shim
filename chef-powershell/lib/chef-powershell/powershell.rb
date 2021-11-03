@@ -36,8 +36,9 @@ class Chef_PowerShell
     # Requires: .NET Framework 4.0 or higher on the target machine.
     #
     # @param script [String] script to run
+    # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
-    def initialize(script)
+    def initialize(script, timeout: nil)
       # This Powershell DLL source lives here: https://github.com/chef/chef-powershell-shim
       # Every merge into that repo triggers a Habitat build and promotion. Running
       # the rake :update_chef_exec_dll task in this (chef/chef) repo will pull down
@@ -45,7 +46,7 @@ class Chef_PowerShell
       # ensures that the correct architecture binaries are installed into the path.
       powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @dll ||= powershell_dll
-      exec(script)
+      exec(script, timeout: nil)
     end
 
     #
@@ -60,7 +61,7 @@ class Chef_PowerShell
     end
 
     #
-    # @raise [Chef::ChefPowerShell::CommandFailed] raise if the command failed
+    # @raise [Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed] raise if the command failed
     #
     def error!
       raise Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed, "Unexpected exit in PowerShell command: #{@errors}" if error?
@@ -69,14 +70,11 @@ class Chef_PowerShell
     # protected
     private
 
-    def self.attach(dll, script)
-      ffi_lib dll
-      attach_function :execute_powershell, :ExecuteScript, [:string], :pointer
-    end
-
-    def exec(script)
-      self.class.attach(@dll, script)
-      execution = execute_powershell(script).read_utf16string
+    def exec(script, timeout: nil)
+      FFI.ffi_lib @dll
+      FFI.attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+      timeout = timeout&.nonzero? ? timeout : -1
+      execution = FFI.execute_powershell(script, timeout).read_utf16string
       hashed_outcome = Chef::JSONCompat.parse(execution)
       @result = Chef::JSONCompat.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]

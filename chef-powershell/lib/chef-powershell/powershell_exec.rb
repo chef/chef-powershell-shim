@@ -108,22 +108,23 @@ class Chef_PowerShell
       #
       # @param script [String] script to run
       # @param interpreter [Symbol] the interpreter type, `:powershell` or `:pwsh`
+      # @param timeout [Integer, nil] timeout in seconds.
       # @return [Chef::PowerShell] output
-      def powershell_exec(script, interpreter = :powershell)
+      def powershell_exec(script, interpreter = :powershell, timeout: -1)
         case interpreter
         when :powershell
-          Chef_PowerShell::PowerShell.new(script)
+          Chef_PowerShell::PowerShell.new(script, timeout: timeout)
         when :pwsh
-          Chef_PowerShell::Pwsh.new(script)
+          Chef_PowerShell::Pwsh.new(script, timeout: timeout)
         else
           raise ArgumentError, "Expected interpreter of :powershell or :pwsh"
         end
       end
 
       # The same as the #powershell_exec method except this will raise
-      # Chef::PowerShell::CommandFailed if the command fails
-      def powershell_exec!(script, interpreter = :powershell)
-        cmd = powershell_exec(script, interpreter)
+      # Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed if the command fails
+      def powershell_exec!(script, interpreter = :powershell, **options)
+        cmd = powershell_exec(script, interpreter, **options)
         cmd.error!
         cmd
       end
