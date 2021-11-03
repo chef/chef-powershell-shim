@@ -97,7 +97,7 @@ require_relative "./pwsh"
 
 class Chef_PowerShell
   module ChefPowerShell
-    module PowershellExec
+    module PowerShellExec
       # The Chef.PowerShell.Wrapper.dll file looks in the same folder as ruby.exe OR in the folder specified by the environment variable CHEF_POWERSHELL_BIN for other chef powershell dll's
       # We don't want to move files around so we're setting the variable here to keep everything tidy.
       file_path = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/"

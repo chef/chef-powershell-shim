@@ -19,5 +19,5 @@
 require_relative "chef-powershell/powershell_exec"
 
 module ChefPowerShell
-  include Chef_PowerShell::ChefPowerShell::PowershellExec
+  include Chef_PowerShell::ChefPowerShell::PowerShellExec
 end

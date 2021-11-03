@@ -18,8 +18,8 @@
 
 require "chef-powershell"
 
-describe Chef_PowerShell::ChefPowerShell::PowershellExec, :windows_only do
-  let(:powershell_mixin) { Class.new { include Chef_PowerShell::ChefPowerShell::PowershellExec } }
+describe Chef_PowerShell::ChefPowerShell::PowerShellExec, :windows_only do
+  let(:powershell_mixin) { Class.new { include Chef_PowerShell::ChefPowerShell::PowerShellExec } }
   subject(:object) { powershell_mixin.new }
 
   before do
