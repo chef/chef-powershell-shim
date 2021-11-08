@@ -16,5 +16,5 @@
 
 module ChefPowerShell
   CHEFPOWERSHELL_ROOT = File.expand_path("..", __dir__)
-  VERSION = "1.0.2"
+  VERSION = "1.0.4"
 end

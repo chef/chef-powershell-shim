@@ -23,7 +23,6 @@ require "chef-powershell"
 
 class Chef_PowerShell
   class PowerShell
-    extend FFI::Library
 
     attr_reader :result
     attr_reader :errors
@@ -44,8 +43,7 @@ class Chef_PowerShell
       # the rake :update_chef_exec_dll task in this (chef/chef) repo will pull down
       # the built packages and copy the binaries to chef-powershell/bin/ruby_bin_folder. Bundle install
       # ensures that the correct architecture binaries are installed into the path.
-      powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
-      @dll ||= powershell_dll
+      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       exec(script, timeout: timeout)
     end
 
@@ -67,15 +65,41 @@ class Chef_PowerShell
       raise Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed, "Unexpected exit in PowerShell command: #{@errors}" if error?
     end
 
-    # protected
+    module PowerMod
+      extend FFI::Library
+      @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @@ps_command = ""
+      @@ps_timeout = -1
+
+      def self.set_ps_dll(value)
+        @@powershell_dll = value
+      end
+
+      def self.set_ps_command(value)
+        @@ps_command = value
+      end
+
+      def self.set_ps_timeout(value)
+        @@ps_timeout = value
+      end
+
+      def self.do_work
+        ffi_lib @@powershell_dll
+        attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+        execute_powershell(@@ps_command, @@ps_timeout)
+      end
+    end
+
     private
 
     def exec(script, timeout: -1)
-      FFI.ffi_lib @dll
-      FFI.attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
       timeout = -1 if timeout == 0 || timeout.nil?
-      execution = FFI.execute_powershell(script, timeout).read_utf16string
-      hashed_outcome = Chef::JSONCompat.parse(execution)
+      PowerMod.set_ps_dll(@powershell_dll)
+      PowerMod.set_ps_timeout(timeout)
+      PowerMod.set_ps_command(script)
+      execution = PowerMod.do_work
+      output = execution.read_utf16string
+      hashed_outcome = Chef::JSONCompat.parse(output)
       @result = Chef::JSONCompat.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]

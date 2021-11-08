@@ -30,33 +30,33 @@ describe Chef_PowerShell::ChefPowerShell::PowerShellExec, :windows_only do
   describe "#powershell_exec" do
     context "not specifying an interpreter" do
       it "runs a basic command and returns a Chef::PowerShell object" do
-        expect(object.powershell_exec("$PSVersionTable")).to be_kind_of(Chef_PowerShell::PowerShell)
+        expect(object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)).to be_kind_of(Chef_PowerShell::PowerShell)
       end
 
       it "uses less than version 6" do
-        execution = object.powershell_exec("$PSVersionTable")
+        execution = object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)
         expect(execution.result["PSVersion"].to_s.to_i).to be < 6
       end
     end
 
     context "using pwsh interpreter" do
       it "runs a basic command and returns a Chef::PowerShell object" do
-        expect(object.powershell_exec("$PSVersionTable", :pwsh)).to be_kind_of(Chef_PowerShell::Pwsh)
+        expect(object.powershell_exec("$PSVersionTable", :pwsh, timeout: -1)).to be_kind_of(Chef_PowerShell::Pwsh)
       end
 
       it "uses greater than version 6" do
-        execution = object.powershell_exec("$PSVersionTable", :pwsh)
+        execution = object.powershell_exec("$PSVersionTable", :pwsh, timeout: -1)
         expect(execution.result["PSVersion"]["Major"]).to be >= 7
       end
     end
 
     context "using powershell interpreter" do
       it "runs a basic command and returns a Chef::PowerShell object" do
-        expect(object.powershell_exec("$PSVersionTable", :powershell)).to be_kind_of(Chef_PowerShell::PowerShell)
+        expect(object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)).to be_kind_of(Chef_PowerShell::PowerShell)
       end
 
       it "uses less than version 6" do
-        execution = object.powershell_exec("$PSVersionTable", :powershell)
+        execution = object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)
         expect(execution.result["PSVersion"].to_s.to_i).to be < 6
       end
     end
@@ -80,7 +80,7 @@ describe Chef_PowerShell::ChefPowerShell::PowerShellExec, :windows_only do
 
   describe "#powershell_exec!" do
     it "runs a basic command and returns a Chef::PowerShell object" do
-      expect(object.powershell_exec!("$PSVersionTable")).to be_kind_of(Chef_PowerShell::PowerShell)
+      expect(object.powershell_exec!("$PSVersionTable", :powershell, timeout: -1)).to be_kind_of(Chef_PowerShell::PowerShell)
     end
 
     it "raises an error if the command fails" do
