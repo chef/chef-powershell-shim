@@ -32,8 +32,9 @@ Write-Output "`r"
 
 Write-Output "--- Setting up Habitat to build PowerShell DLL's"
 
-$env:HAB_ORIGIN = 'ci'
+$env:HAB_ORIGIN = "ci"
 $env:HAB_LICENSE= "accept-no-persist"
+$env:FORCE_FFI_YAJL="ext"
 
 if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
     Write-Host "--- :key: Using existing fake '$env:HAB_ORIGIN' origin key"
@@ -110,7 +111,7 @@ Write-Output "--- :Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
 Write-Output "`r"
 
-Write-Output "--- :gem majesty: Installing Required Ruby Gems"
+Write-Output "--- :gem majesty: Installing Gems for the Chef-PowerShell Gem"
 gem install bundler:2.2.29
 gem install libyajl2-gem
 gem install chef-powershell
@@ -129,9 +130,20 @@ Write-Output "`r"
 
 Write-Output "--- Installing CSPell via NPM, Getting Ready to SpellCheck the Gem code"
 npm install -g cspell
-# Start-Process "C:\Program Files\nodejs\npm" -ArgumentList 'install -g cspell' -Wait
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"
+
+$temp = Get-Location
+$full_path = [string]$temp.path + "\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
+[Environment]::SetEnvironmentVariable("CHEF_POWERSHELL_BIN", $full_path)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin" + ";" + $full_path
+
+
+$gem_path = [string]$temp.path + "vendor\bundle\ruby\3.0.0"
+[Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
+[Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
+[Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
+
 
 # Write-Output "--- Correcting a gem build problem, moving header files around"
 # $filename = "ansidecl.h"
@@ -141,9 +153,11 @@ Write-Output "`r"
 # Copy-Item $locale.FullName -Destination $child_folder -ErrorAction Continue
 # Write-Output "`r"
 
-Write-Output "--- Updating Gems in the Chef-PowerShell child directory"
-bundle update
-if (-not $?) { throw "Bundle Update failed"}
+Write-Output "--- Updating Gem Depdendencies in the Chef-PowerShell child directory"
+bundle config set --local without omnibus_package
+bundle config set --local path 'vendor/bundle'
+bundle install --jobs=3 --retry=3
+if (-not $?) { throw "Unable to install gem dependencies" }
 Write-Output "`r"
 
 Write-Output "--- :finally building the gem"
