@@ -1,0 +1,67 @@
+# escape=`
+# FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/windows/server:ltsc2022
+
+ENV BUNDLE_SILENCE_ROOT_WARNING=true `
+    DID_MODIFY_VERSION=1.0.3 `
+    FILE_MOD_VERSION=1.0.3 `
+    GIT_DISCOVERY_ACROSS_FILESYSTEM=true `
+    VAULT_UTIL_VERSION=2.0.0
+
+# When launched by user, default to PowerShell if no other command specified.
+CMD ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass"]
+
+# Install Chocolatey (and essentials)
+RUN powershell -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && `
+    C:\ProgramData\Chocolatey\bin\refreshenv && `
+    choco feature enable -n=allowGlobalConfirmation && `
+    choco config set cacheLocation C:\chococache && `
+    choco upgrade chocolatey && `
+    choco install awscli && `
+    choco install git && `
+    choco install 7zip && `
+    choco install jq && `
+    rmdir /q /s C:\chococache && `
+    echo Chocolatey install complete -- closing out layer (this can take awhile)
+
+#
+# Install vault-util, file-mod, did-modify
+#
+
+RUN powershell -Command "Invoke-WebRequest -UseBasicParsing -OutFile C:\\vault-util_windows_amd64.zip -URI https://github.com/chef/vault-util/releases/download/$env:VAULT_UTIL_VERSION/vault-util_windows_amd64.zip" && `
+    cmd.exe /C 7z -o"C:\\ci-utils\\" e "C:\\vault-util_windows_amd64.zip"
+
+RUN powershell -Command "Invoke-WebRequest -UseBasicParsing -OutFile C:\\did-modify_windows_amd64.zip -URI https://github.com/chef/did-modify/releases/download/$env:DID_MODIFY_VERSION/did-modify_windows_amd64.zip" && `
+    cmd.exe /C 7z -o"C:\\ci-utils\\" e "C:\\did-modify_windows_amd64.zip"
+
+RUN powershell -Command "Invoke-WebRequest -UseBasicParsing -OutFile C:\\file-mod_windows_amd64.zip -URI https://github.com/chef/file-mod/releases/download/$env:FILE_MOD_VERSION/file-mod_windows_amd64.zip" && `
+    cmd.exe /C 7z -o"C:\\ci-utils\\" e "C:\\file-mod_windows_amd64.zip"
+
+RUN setx path "C:\\ci-utils\\;%path%"
+
+# ci-settings directory is required for vault-util's configure-accounts lock file and print-git-credentials token cache
+RUN powershell -Command "New-Item -ItemType directory -Path C:\ci-settings"
+
+# will need to move this in the future once we can get teams moved to the latest images
+COPY buildkite-agent-hook.bat "C:\\ci-studio-common\\buildkite-agent-hooks\\ci-studio-common.bat"
+
+#
+# Install latest stable Chef Habitat
+#
+
+RUN powershell -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1'))"
+
+#
+# Software Languages
+#
+
+#############
+##
+## DO NOT install Rubyxxx + Devkit. It breaks the rspec environment. Actual cause is TBD
+##
+############
+
+RUN powershell -Command `
+    choco install chef-client -y `
+    echo Chef Client install complete
+
