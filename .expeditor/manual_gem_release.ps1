@@ -17,7 +17,7 @@ $ErrorActionPreference = "Stop"
 $project_name = "chef-powershell"
 
 Write-Output "--- Making sure we're in the correct spot"
-$project_root = [IO.Path]::GetFullPath("chef-powershell-shim")
+$project_root = (Get-ChildItem -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($project_name) } | Select-Object -First 1).FullName
 Set-Location -Path $project_root
 Write-Output "`r"
 
