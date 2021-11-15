@@ -9,7 +9,7 @@
 ##  Watch the magic unfold!
 #####
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = "Stop"
 
 Write-Output "--- Removing existing Ruby instances"
 $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")

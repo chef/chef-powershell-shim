@@ -1,25 +1,51 @@
 # Documentation available at https://expeditor.chef.io/docs/getting-started/
 ---
+
+# The name of the product keys for this product (from mixlib-install)
+product_key:
+  - chef-powershell
+
+rubygems:
+  - chef-powershell
+
 # Slack  channel in Chef Software slack to send notifications about build failures, etc
 slack:
   notify_channel: chef-infra-notify
 
+# There is no mechanism currently to build and publish a gem to artifactory on a Windows node.
+# To do that work, you'll need to run the publish-gem.ps1 script. It requires you to have an account on Rubygems and be a member of the chef-powershell gem
+# https://rubygems.org/gems/chef-powershell
+# Talk to releng or john.mccrae@progress.com to get access
+changelog:
+  rollup_header: Changes not yet released to stable
+
 github:
   delete_branch_on_merge: true
-
-pipelines:
-  - verify:
-      public: true
-  - habitat/build:
-      definition: .expeditor/build.habitat.yml
-
-artifact_channels:
-  - stable
+  # The tag format to use (e.g. v1.0.0)
+  version_tag_format: "v{{version}}"
+  # allow bumping the minor release via label move 1.0.3 to 1.0.4
+  version_bump_labels:
+    - "Expeditor: Bump Base Version"
+  # allow bumping the minor release via label move 1.0.3 to 1.1.0
+  minor_bump_labels:
+    - "Expeditor: Bump Version Minor"
+  # allow bumping the major release via label move 1.0.4 to 2.0.0
+  major_bump_labels:
+    - "Expeditor: Bump Version Major"
 
 subscriptions:
-  - workload: buildkite_hab_build_group_published:{{agent_id}}:*
-    actions:
-      - built_in:promote_habitat_packages
+  - workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
+      actions:
+        - built_in:bump_version:
+            ignore_labels:
+              - "Expeditor: Skip Version Bump"
+              - "Expeditor: Skip All"
+        - bash:.expeditor/update_version.sh:
+            only_if: built_in:bump_version
+        - built_in:update_changelog:
+            ignore_labels:
+              - "Expeditor: Skip Changelog"
+              - "Expeditor: Skip All"
   # These actions are taken, in order they are specified, anytime a Pull Request is merged.
   - workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
     actions:
