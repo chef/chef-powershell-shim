@@ -17,13 +17,13 @@ $ErrorActionPreference = "Stop"
 $project_name = "chef-powershell"
 
 Write-Output "--- Making sure we're in the correct spot"
-$project_root = (Get-ChildItem -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($project_name) } | Select-Object -First 1).FullName
+$project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
 Set-Location -Path $project_root
 Write-Output "`r"
 
 Write-Output "-- Is Habitat actually installed?"
 # Is hab installed?
-if(-not (Get-Command -Name Hab)){
+if (-not (Get-Command -Name Hab -ErrorAction SilentlyContinue)) {
     Write-Output "--- No, Installing Habitat via Choco"
     choco install habitat -y
     if (-not $?) { throw "unable to install Habitat" }
@@ -33,7 +33,7 @@ Write-Output "`r"
 
 Write-Output "--- Cleaning up old Hab directories for a minty fresh build experience"
 # Is there a c:\hab directory? If so, nuke it.
-if (Test-Path -Path c:\hab){
+if (Test-Path -Path c:\hab) {
     Remove-Item -LiteralPath c:\hab -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Output "`r"
@@ -50,7 +50,7 @@ catch {
 $rubygem = gem search chef-powershell
 [version]$rubygemsversion = [regex]::matches($rubygem, "\s*chef-powershell\s*\((\d*.\d*.\d*)\)\s*").groups[1].value
 
-if($LocalVersion -eq $rubygemsversion){
+if ($LocalVersion -eq $rubygemsversion) {
     . $("$project_root\.expeditor\update_version.ps1")
 }
 Write-Output "`r"
