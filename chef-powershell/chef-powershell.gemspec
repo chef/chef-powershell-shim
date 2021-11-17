@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["oss@chef.io"]
 
   spec.summary       = %q{External Chef module for accessing and utilizing PowerShell}
-  spec.homepage      = "https://github.com/chef/chef/tree/main/chef-powershell"
+  spec.homepage      = "https://github.com/chef/chef-powershell-shim"
   spec.license       = "Apache-2.0"
 
   spec.required_ruby_version = ">= 2.6"
@@ -22,10 +22,10 @@ Gem::Specification.new do |spec|
 
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/chef/chef/issues",
-    "changelog_uri" => "https://github.com/chef/chef/blob/main/CHANGELOG.md",
-    "documentation_uri" => "https://github.com/chef/chef/tree/main/chef-powershell/README.md",
+    "changelog_uri" => "https://github.com/chef/chef-powershell-shim/CHANGELOG.md",
+    "documentation_uri" => "https://github.com/chef/chef-powershell-shim/chef-powershell/README.md",
     "homepage_uri" => "https://github.com/chef/chef/tree/main/chef-powershell",
-    "source_code_uri" => "https://github.com/chef/chef/tree/main/chef-powershell",
+    "source_code_uri" => "https://github.com/chef/chef-powershell-shim/chef-powershell",
   }
 
   spec.require_paths = %w{lib bin}

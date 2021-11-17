@@ -12,13 +12,11 @@
 $ErrorActionPreference = "Stop"
 
 Write-Output "--- Removing existing Ruby instances"
-$currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+
 $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
   Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
-  $updatedpath = ($currentPath.Split(';') | Where-Object { $_ -ne $ruby.FullName }) -join ';'
 }
-[Environment]::SetEnvironmentVariable('PATH', $updatedpath, [EnvironmentVariableTarget]::Machine)
 Write-Output "`r"
 
 Write-Output "=== Starting the PowerShell Gem build process === "
@@ -81,6 +79,7 @@ if (-not $?) { throw "unable to determine details about this build"}
 
 Write-Output "--- :hammer_and_wrench: Installing 64-bit $pkg_ident"
 hab pkg install results/$pkg_artifact
+$pkg_artifact = $null
 if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
@@ -113,8 +112,6 @@ $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
 
 if (Test-Path -PathType Container $x64_bin_path) {
   Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
-  Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
-} else {
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
@@ -122,8 +119,6 @@ Write-Output "`r"
 
 if (Test-Path -PathType Container $x86_bin_path) {
   Get-ChildItem -Path $x86_bin_path -Recurse| Foreach-object {Remove-item -Recurse -path $_.FullName -Force }
-  Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-} else {
   New-Item -Path $x86_bin_path -ItemType Directory -Force
   Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
 }
@@ -136,7 +131,6 @@ Write-Output "`r"
 Write-Output "--- :gem majesty: Installing Gems for the Chef-PowerShell Gem"
 gem install bundler:2.2.29
 gem install libyajl2-gem
-gem install chef-powershell
 if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
@@ -155,10 +149,16 @@ npm install -g cspell
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"
 
+Write-Output "--- Find or Set the Chef_PowerShell_Bin Environment Variable"
+if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
+  $project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
+  $full_path = $project_root + "\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
+  [Environment]::SetEnvironmentVariable("CHEF_POWERSHELL_BIN", $full_path)
+}
+Write-Output "`r"
+
 Write-Output "--- Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
-$full_path = [string]$temp.path + "\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
-[Environment]::SetEnvironmentVariable("CHEF_POWERSHELL_BIN", $full_path)
 $gem_path = [string]$temp.path + "vendor\bundle\ruby\3.0.0"
 [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)

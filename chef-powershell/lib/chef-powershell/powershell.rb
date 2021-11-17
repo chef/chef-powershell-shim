@@ -19,7 +19,7 @@ require "ffi" unless defined?(FFI)
 require_relative "json_compat"
 require_relative "exceptions"
 require_relative "unicode"
-require "chef-powershell"
+# require "chef-powershell"
 
 class Chef_PowerShell
   class PowerShell
@@ -39,10 +39,9 @@ class Chef_PowerShell
     # @return [Object] output
     def initialize(script, timeout: -1)
       # This Powershell DLL source lives here: https://github.com/chef/chef-powershell-shim
-      # Every merge into that repo triggers a Habitat build and promotion. Running
-      # the rake :update_chef_exec_dll task in this (chef/chef) repo will pull down
-      # the built packages and copy the binaries to chef-powershell/bin/ruby_bin_folder. Bundle install
-      # ensures that the correct architecture binaries are installed into the path.
+      # Every merge into that repo triggers a Habitat build and verification process.
+      # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
+      # Bundle install ensures that the correct architecture binaries are installed into the path.
       @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       exec(script, timeout: timeout)
     end

@@ -33,9 +33,9 @@ describe Chef_PowerShell::ChefPowerShell::PowerShellExec, :windows_only do
         expect(object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)).to be_kind_of(Chef_PowerShell::PowerShell)
       end
 
-      it "uses less than version 6" do
+      it "uses less than version 7" do
         execution = object.powershell_exec("$PSVersionTable", :powershell, timeout: -1)
-        expect(execution.result["PSVersion"].to_s.to_i).to be < 6
+        expect(execution.result["PSVersion"].to_s.to_i).to be < 7
       end
     end
 
