@@ -48,11 +48,6 @@ $child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
 Copy-Item $locale.FullName -Destination $child_folder -ErrorAction Continue
 Write-Output "`r"
 
-Write-Output "--- Updating Gems in the PowerShell Shim root directory"
-bundle update
-if (-not $?) { throw "Bundle Update failed"}
-Write-Output "`r"
-
 Write-Output "--- Setting up Habitat to build PowerShell DLL's"
 $env:HAB_ORIGIN = "ci"
 $env:HAB_LICENSE= "accept-no-persist"
