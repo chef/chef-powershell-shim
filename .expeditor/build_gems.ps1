@@ -24,10 +24,9 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking for the Ruby Directory and can I access crap from it +++"
+Write-Output "--- :mag: Checking for the Ruby Directory and can I access crap from it +++"
 Get-ChildItem -Path C:\Ruby*
 Get-Command -Name Bundle -ErrorAction Continue
-Write-Output "+++ /Checking for the Ruby Directory and can I access crap from it +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
@@ -60,7 +59,6 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "--- :mag: Checking my Path +++"
 $env:Path
-Write-Output "--- /Checking my Path +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
@@ -95,12 +93,18 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "--- :mag: Checking my Project Root +++"
 Write-Output $project_root
-Write-Output "+++ /Checking my Project Root +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 
-
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "--- :mag: What is IN my Project Root? +++"
+Get-ChildItem
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLL's"
 hab pkg build Habitat
@@ -196,7 +200,6 @@ Write-Output "`r"
 Write-Output "--- :mag: Checking for The Chef PowerShell Bin env +++"
 Write-Output $([Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN"))
 # returns C:\hab\pkgs\ci\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\AMD64\
-Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
@@ -218,7 +221,6 @@ Write-Output "--- :mag: Checking for other Ruby env +++"
 Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
 Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
 Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
-Write-Output "+++ Checking for other Ruby env +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
@@ -229,7 +231,6 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "--- :mag: Checking for other ALL env +++"
 dir env:
-Write-Output "+++ Checking for other ALL env +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
