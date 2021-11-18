@@ -173,7 +173,7 @@ if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
   # We are currently located in c:\workdir\chef-powershell
   # $project_root = (Get-ChildItem c:\workdir -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
   $ps_root = Get-Location
-  $full_path = $($ps_root + "\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\")
+  $full_path = $("$ps_root\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\")
   if (Test-Path -Path $full_path){
     Write-Output "The bin path is correct"
   }
