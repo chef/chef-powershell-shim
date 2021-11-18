@@ -19,6 +19,17 @@ foreach ($ruby in $rubies){
 }
 Write-Output "`r"
 
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking for the Ruby Directory and can I access crap from it +++"
+Get-ChildItem -Path C:\Ruby*
+Get-Command -Name Bundle
+Write-Output "+++ /Checking for the Ruby Directory and can I access crap from it +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
 Write-Output "=== Starting the PowerShell Gem build process === "
 Write-Output "`r"
 Write-Output "--- system details"
@@ -39,6 +50,17 @@ Write-Output "--- Refreshing the build environment to pick up Hab binaries"
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
+
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking my Path +++"
+$env:Path
+Write-Output "+++ /Checking my Path +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
 
 Write-Output "--- Correcting a gem build problem, moving header files around"
 $filename = "ansidecl.h"
@@ -152,6 +174,18 @@ if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
 }
 Write-Output "`r"
 
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
+[Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN")
+Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
+
+
 Write-Output "--- Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
 $gem_path = [string]$temp.path + "vendor\bundle\ruby\3.0.0"
@@ -159,6 +193,31 @@ $gem_path = [string]$temp.path + "vendor\bundle\ruby\3.0.0"
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
 Write-Output "`r"
+
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking for other Ruby env +++"
+[Environment]::GetEnvironmentVariable("GEM_PATH")
+[Environment]::GetEnvironmentVariable("GEM_ROOT")
+[Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE")
+Write-Output "+++ Checking for other Ruby env +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
+
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking for other ALL env +++"
+dir env:
+Write-Output "+++ Checking for other ALL env +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
+
 
 Write-Output "--- Updating Gem Configuration in the Chef-PowerShell child directory"
 bundle config set --local without omnibus_package
