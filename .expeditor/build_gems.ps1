@@ -58,9 +58,9 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking my Path +++"
+Write-Output "--- :mag: Checking my Path +++"
 $env:Path
-Write-Output "+++ /Checking my Path +++"
+Write-Output "--- /Checking my Path +++"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
@@ -93,7 +93,7 @@ Set-Location $project_root
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking my Project Root +++"
+Write-Output "--- :mag: Checking my Project Root +++"
 Write-Output $project_root
 Write-Output "+++ /Checking my Project Root +++"
 Write-Output "`r"
@@ -182,7 +182,7 @@ npm install -g cspell
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"
 
-Write-Output "--- :firedog: Find or Set the Chef_PowerShell_Bin Environment Variable"
+Write-Output "--- :mag: Find or Set the Chef_PowerShell_Bin Environment Variable"
 if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
   $project_root = (Get-ChildItem c:\workdir -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
   $full_path = $project_root + "\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
@@ -193,7 +193,7 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
+Write-Output "--- :mag: Checking for The Chef PowerShell Bin env +++"
 Write-Output $([Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN"))
 # returns C:\hab\pkgs\ci\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\AMD64\
 Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
@@ -214,7 +214,7 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking for other Ruby env +++"
+Write-Output "--- :mag: Checking for other Ruby env +++"
 Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
 Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
 Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
@@ -227,7 +227,7 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "+++ Checking for other ALL env +++"
+Write-Output "--- :mag: Checking for other ALL env +++"
 dir env:
 Write-Output "+++ Checking for other ALL env +++"
 Write-Output "`r"
@@ -236,14 +236,14 @@ Write-Output "`r"
 
 
 
-Write-Output "--- Updating Gem Configuration in the Chef-PowerShell child directory"
+Write-Output "--- :screwdriver: Updating Gem Configuration in the Chef-PowerShell child directory"
 bundle config set --local without omnibus_package
 bundle config set --local path 'vendor/bundle'
 bundle install --jobs=3 --retry=3
 if (-not $?) { throw "Unable to install gem configuration" }
 Write-Output "`r"
 
-Write-Output "--- Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
+Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
 # remove the existing chef.powershell.dll and chef.powershell.wrapper.dll files under embedded\bin
 $file = get-command bundle
 $parent_folder = Split-Path -Path $file.Source
