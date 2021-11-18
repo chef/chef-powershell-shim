@@ -240,7 +240,8 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
-Write-Output "--- :finally verifying the gem code"
+Write-Output "--- :point_right: finally verifying the gem code"
+bundle update
 bundle exec rake gem_check
-# if (-not $?) { throw "Bundle Gem failed"}
-# Write-Output "`r"
+if (-not $?) { throw "Bundle Gem failed"}
+Write-Output "`r"
