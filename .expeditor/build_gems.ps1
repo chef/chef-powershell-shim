@@ -24,7 +24,7 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "+++ Checking for the Ruby Directory and can I access crap from it +++"
 Get-ChildItem -Path C:\Ruby*
-Get-Command -Name Bundle
+Get-Command -Name Bundle -ErrorAction Continue
 Write-Output "+++ /Checking for the Ruby Directory and can I access crap from it +++"
 Write-Output "`r"
 Write-Output "`r"
