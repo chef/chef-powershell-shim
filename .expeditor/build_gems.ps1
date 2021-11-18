@@ -13,7 +13,7 @@ $ErrorActionPreference = "Stop"
 
 $project_name = "chef-powershell"
 
-Write-Output "--- Removing existing Ruby instances"
+Write-Output "--- :ruby: Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
@@ -34,21 +34,23 @@ Write-Output "`r"
 
 Write-Output "=== Starting the PowerShell Gem build process === "
 Write-Output "`r"
-Write-Output "--- system details"
+
+Write-Output "--- :computer: System Details"
 $Properties = 'Caption', 'CSName', 'Version', 'BuildType', 'OSArchitecture'
 Get-CimInstance Win32_OperatingSystem | Select-Object $Properties | Format-Table -AutoSize
+Write-Output "`r"
 
-Write-Output "--- Installing Habitat via Choco"
+Write-Output "--- :screwdriver: Installing Habitat via Choco"
 choco install habitat -y
 if (-not $?) { throw "unable to install Habitat"}
 Write-Output "`r"
 
-Write-Output "--- Installing the latest Chef-Client"
+Write-Output "--- :screwdriver: Installing the latest Chef-Client"
 choco install chef-client -y
 if (-not $?) { throw "unable to install Chef-Client" }
 Write-Output "`r"
 
-Write-Output "--- Refreshing the build environment to pick up Hab binaries"
+Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
@@ -64,7 +66,7 @@ Write-Output "`r"
 Write-Output "`r"
 
 
-Write-Output "--- Correcting a gem build problem, moving header files around"
+Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
 $filename = "ansidecl.h"
 $locale = Get-ChildItem -path c:\opscode -Include $filename -Recurse -ErrorAction Ignore
 $parent_folder = $locale.Directory.Parent.FullName
@@ -72,7 +74,7 @@ $child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
 Copy-Item $locale.FullName -Destination $child_folder -ErrorAction Continue
 Write-Output "`r"
 
-Write-Output "--- Setting up Habitat to build PowerShell DLL's"
+Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
 $env:HAB_ORIGIN = "ci"
 $env:HAB_LICENSE= "accept-no-persist"
 $env:FORCE_FFI_YAJL="ext"
@@ -87,6 +89,18 @@ Write-Output "`r"
 
 $project_root = "$(git rev-parse --show-toplevel)"
 Set-Location $project_root
+
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "+++ Checking my Project Root +++"
+Write-Output $project_root
+Write-Output "+++ /Checking my Project Root +++"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+
+
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLL's"
 hab pkg build Habitat
@@ -168,7 +182,7 @@ npm install -g cspell
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"
 
-Write-Output "--- Find or Set the Chef_PowerShell_Bin Environment Variable"
+Write-Output "--- :firedog: Find or Set the Chef_PowerShell_Bin Environment Variable"
 if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
   $project_root = (Get-ChildItem c:\workdir -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
   $full_path = $project_root + "\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
@@ -189,7 +203,7 @@ Write-Output "`r"
 
 
 
-Write-Output "--- Setting up Environment Variables for Ruby and Chef PowerShell"
+Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
 $gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
 [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
