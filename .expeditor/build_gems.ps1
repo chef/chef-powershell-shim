@@ -92,7 +92,7 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "--- :mag: Checking my Project Root +++"
+Write-Output "--- :mag: Checking my Project Root"
 Write-Output $project_root
 Write-Output "`r"
 Write-Output "`r"
@@ -101,19 +101,19 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
-Write-Output "--- :mag: What is IN my Project Root? +++"
+Write-Output "--- :mag: What is IN my Project Root?"
 Get-ChildItem
 Start-Sleep 5
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 
-Write-Output "--- :construction: Building 64-bit PowerShell DLL's"
+Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
 hab pkg build Habitat
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
-Write-Output "--- :canofworms: Loading Details of 64-bit build "
+Write-Output "--- :canofworms: Loading Details of 64-bit build"
 . results/last_build.ps1
 if (-not $?) { throw "unable to determine details about this build"}
 Write-Output "`r"
