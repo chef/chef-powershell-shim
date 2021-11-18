@@ -11,6 +11,8 @@
 
 $ErrorActionPreference = "Stop"
 
+$project_name = "chef-powershell"
+
 Write-Output "--- Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"
@@ -94,7 +96,7 @@ Write-Output "`r"
 . results/last_build.ps1
 if (-not $?) { throw "unable to determine details about this build"}
 
-Write-Output "--- :hammer_and_wrench: Installing 64-bit $pkg_ident"
+Write-Output "--- :screwdriver: Installing 64-bit $pkg_ident"
 hab pkg install results/$pkg_artifact
 $pkg_artifact = $null
 if (-not $?) { throw "unable to install this build"}
@@ -123,7 +125,7 @@ Write-Output "--- :hammer_and_wrench: Capturing the x86 installation path"
 $x86 = hab pkg path ci/chef-powershell-shim-x86
 Write-Output "`r"
 
-Write-Output "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
+Write-Output "--- :muscle: cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
 $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
 $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
 
@@ -141,27 +143,27 @@ if (Test-Path -PathType Container $x86_bin_path) {
 }
 Write-Output "`r"
 
-Write-Output "--- :Moving to the chef-powershell gem directory"
+Write-Output "--- :truck: Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
 Write-Output "`r"
 
-Write-Output "--- :gem majesty: Installing Gems for the Chef-PowerShell Gem"
+Write-Output "--- :bank: Installing Gems for the Chef-PowerShell Gem"
 gem install bundler:2.2.29
 gem install libyajl2-gem
 if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
-Write-Output "--- Installing Node via Choco"
+Write-Output "--- :bank: Installing Node via Choco"
 choco install nodejs -y
 if (-not $?) { throw "unable to install Node"}
 Write-Output "`r"
 
-Write-Output "--- Refreshing the build environment to pick up Node.js binaries"
+Write-Output "--- :bank: Refreshing the build environment to pick up Node.js binaries"
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
 
-Write-Output "--- Installing CSPell via NPM, Getting Ready to SpellCheck the Gem code"
+Write-Output "--- :bank: Installing CSPell via NPM, Getting Ready to SpellCheck the Gem code"
 npm install -g cspell
 if (-not $?) { throw "unable to install CSpell"}
 Write-Output "`r"

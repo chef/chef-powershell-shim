@@ -331,6 +331,7 @@ lstat
 lwrp
 lwrps
 macaddress
+macinbox
 macos
 Macports
 Magnus
