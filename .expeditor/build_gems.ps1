@@ -91,7 +91,7 @@ hab pkg build Habitat
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
-Write-Output "--- :canofworms: Loading Details of 64-bit build"
+Write-Output "--- :mag: Loading Details of 64-bit build"
 . results/last_build.ps1
 if (-not $?) { throw "unable to determine details about this build"}
 Write-Output "`r"
@@ -193,36 +193,34 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 
-# Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
-# $temp = Get-Location
-# $gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
-# [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
-# [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
-# [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
-# Write-Output "`r"
+Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
+$temp = Get-Location
+$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
+[Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
+[Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
+[Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
+Write-Output "`r"
 
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "--- :mag: Checking for other Ruby env +++"
-# Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
-# Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
-# Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "`r"
-
-
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "--- :mag: Checking for other ALL env +++"
-# dir env:
-# Write-Output "`r"
-# Write-Output "`r"
-# Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "--- :mag: Checking for other Ruby env +++"
+Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
+Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
+Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
 
 
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "--- :mag: Checking for other ALL env +++"
+dir env:
+Write-Output "`r"
+Write-Output "`r"
+Write-Output "`r"
 
 # Write-Output "--- :screwdriver: Updating Gem Configuration in the Chef-PowerShell child directory"
 # bundle config set --local without omnibus_package
@@ -231,17 +229,18 @@ Write-Output "`r"
 # if (-not $?) { throw "Unable to install gem configuration" }
 # Write-Output "`r"
 
-# Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
-# # remove the existing chef.powershell.dll and chef.powershell.wrapper.dll files under embedded\bin
-# $file = get-command bundle
-# $parent_folder = Split-Path -Path $file.Source
-# if (Test-Path $($parent_folder + "\chef.powershell.dll")){
-#   Remove-item -path $($parent_folder + "\chef.powershell.dll")
-#   Remove-item -path $($parent_folder + "\chef.powershell.wrapper.dll")
-# }
-# Write-Output "`r"
+Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
+# remove the existing chef.powershell.dll and chef.powershell.wrapper.dll files under embedded\bin
+$file = get-command bundle
+$parent_folder = Split-Path -Path $file.Source
+Write-Output "Removing files from here : $parent_folder"
+if (Test-Path $($parent_folder + "\chef.powershell.dll")){
+  Remove-item -path $($parent_folder + "\chef.powershell.dll")
+  Remove-item -path $($parent_folder + "\chef.powershell.wrapper.dll")
+}
+Write-Output "`r"
 
-# Write-Output "--- :finally verifying the gem code"
-# bundle exec rake gem_check
+Write-Output "--- :finally verifying the gem code"
+bundle exec rake gem_check
 # if (-not $?) { throw "Bundle Gem failed"}
 # Write-Output "`r"
