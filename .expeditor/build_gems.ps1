@@ -168,7 +168,7 @@ Write-Output "`r"
 
 Write-Output "--- Find or Set the Chef_PowerShell_Bin Environment Variable"
 if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
-  $project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
+  $project_root = (Get-ChildItem c:\workdir -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
   $full_path = $project_root + "\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\"
   [Environment]::SetEnvironmentVariable("CHEF_POWERSHELL_BIN", $full_path)
 }
@@ -178,7 +178,8 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
-[Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN")
+Write-Output $([Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN"))
+# returns C:\hab\pkgs\ci\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\AMD64\
 Write-Output "+++ Checking for The Chef PowerShell Bin env +++"
 Write-Output "`r"
 Write-Output "`r"
@@ -188,7 +189,7 @@ Write-Output "`r"
 
 Write-Output "--- Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
-$gem_path = [string]$temp.path + "vendor\bundle\ruby\3.0.0"
+$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
 [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
@@ -198,9 +199,9 @@ Write-Output "`r"
 Write-Output "`r"
 Write-Output "`r"
 Write-Output "+++ Checking for other Ruby env +++"
-[Environment]::GetEnvironmentVariable("GEM_PATH")
-[Environment]::GetEnvironmentVariable("GEM_ROOT")
-[Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE")
+Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
+Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
+Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
 Write-Output "+++ Checking for other Ruby env +++"
 Write-Output "`r"
 Write-Output "`r"
