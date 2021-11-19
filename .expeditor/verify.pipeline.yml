@@ -62,3 +62,13 @@ steps:
       docker:
         host_os: windows
         shell: [ "powershell", "-Command" ]
+
+- label: ":windows: pre-build-verify-windows-gem"
+  commands:
+    - .expeditor/build_gems.ps1
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        image: rubydistros/windows-2019:3.0
+        shell: [ "powershell", "-Command" ]

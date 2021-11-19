@@ -1,10 +1,14 @@
 # chef-powershell-shim
 
-A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform
+A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform. This repo now also contains the chef-powershell Ruby gem which consumes the the .NET Assembly and provides the interface between Chef and PowerShell via ffi.
 
 ### Development Prerequisites
 
-Binaries can be built with Habitat.
+Binaries can be built with Habitat. See the PowerShell script .\.expeditor\build_gems.ps1 to test your changes
+Then run .\.expeditor\manual_gem_release.ps1 to build the gem and push it out. Releng does not have a Windows centric
+facility to build and push gems to Artifactory automatically. You will need:
+1) Access to the Chef internal Artifactory repo
+2) a Windows build system
 
 ## Contributing/Development
 
