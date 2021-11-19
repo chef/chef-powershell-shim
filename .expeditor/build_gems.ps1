@@ -104,6 +104,8 @@ Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
 $x64 = hab pkg path ci/chef-powershell-shim
+Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
+Test-Path -Path $x64
 Write-Output "`r"
 
 Write-Output "--- :construction: Building 32-bit PowerShell DLL's"
@@ -125,12 +127,15 @@ Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x86 installation path"
 $x86 = hab pkg path ci/chef-powershell-shim-x86
+Write-Output "Hab thinks it installed my 32-bit dlls here : $x86"
+Test-Path -Path $x86
 Write-Output "`r"
 
 Write-Output "--- :muscle: cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
-$x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
-$x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
+$x64_bin_path = $("$project_root\chef-powershell\bin\ruby_bin_folder\AMD64")
+$x86_bin_path = $("$project_root\chef-powershell\bin\ruby_bin_folder\x86")
 if (Test-Path -PathType Container $x64_bin_path) {
+  Write-Output "My 64-bit path WAS found here : $x64_bin_path"
   Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
