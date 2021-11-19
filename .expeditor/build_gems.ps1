@@ -11,26 +11,12 @@
 
 $ErrorActionPreference = "Stop"
 
-# The contents of the repo sit in a folder called c:\workdir
-
-$project_name = "chef-powershell"
-
 Write-Output "--- :ruby: Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
   Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
 }
-Write-Output "`r"
-
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "--- :mag: Checking for the Ruby Directory and can I access crap from it +++"
-Get-ChildItem -Path C:\Ruby*
-Get-Command -Name Bundle -ErrorAction Continue
-Write-Output "`r"
-Write-Output "`r"
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing Habitat via Choco"
@@ -47,16 +33,6 @@ Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab b
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
-
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "--- :mag: Checking my Path +++"
-$env:Path
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-
 
 Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
 $filename = "ansidecl.h"
@@ -113,7 +89,7 @@ hab pkg build -R Habitat-x86
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
-Write-Output "--- :canofworms: Loading Details of 32-bit build "
+Write-Output "--- :hammer_and_wrench: Loading Details of 32-bit build "
 . results/last_build.ps1
 if (-not $?) { throw "unable to determine details about this build"}
 Write-Output "`r"
@@ -200,15 +176,6 @@ if (-not(Test-Path env:CHEF_POWERSHELL_BIN)){
 }
 Write-Output "`r"
 
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "--- :mag: Checking for The Chef PowerShell Bin env +++"
-Write-Output $([Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_BIN"))
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-
 Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
 $gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
@@ -216,34 +183,6 @@ $gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.0.0"
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
 Write-Output "`r"
-
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "--- :mag: Checking for other Ruby env +++"
-Write-Output $([Environment]::GetEnvironmentVariable("GEM_PATH"))
-Write-Output $([Environment]::GetEnvironmentVariable("GEM_ROOT"))
-Write-Output $([Environment]::GetEnvironmentVariable("BUNDLE_GEMFILE"))
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-
-
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "--- :mag: Checking for other ALL env +++"
-dir env:
-Write-Output "`r"
-Write-Output "`r"
-Write-Output "`r"
-
-# Write-Output "--- :screwdriver: Updating Gem Configuration in the Chef-PowerShell child directory"
-# bundle config set --local without omnibus_package
-# bundle config set --local path 'vendor/bundle'
-# bundle install --jobs=3 --retry=3
-# if (-not $?) { throw "Unable to install gem configuration" }
-# Write-Output "`r"
 
 Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
 # remove the existing chef.powershell.dll and chef.powershell.wrapper.dll files under embedded\bin
