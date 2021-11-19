@@ -240,6 +240,12 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
+Write-Output "--- :mag: Where are all the Chef PowerShell DLLs located?"
+$files = Get-ChildItem -Path c:\ -Name "Chef.PowerShell.Wrapper.dll" -Recurse
+foreach($file in $files){
+  Write-Output "I found a copy here: $file"
+}
+
 Write-Output "--- :point_right: finally verifying the gem code"
 bundle update
 bundle exec rake gem_check
