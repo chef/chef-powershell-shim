@@ -140,8 +140,19 @@ if (Test-Path -PathType Container $x64_bin_path) {
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
+else{
+  Write-Output "My 64-bit path was NOT found, now building here : $x64_bin_path"
+  New-Item -Path $x64_bin_path -ItemType Directory -Force
+  Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
+}
 if (Test-Path -PathType Container $x86_bin_path) {
+  Write-Output "My 32-bit path WAS found here : $x86_bin_path"
   Get-ChildItem -Path $x86_bin_path -Recurse| Foreach-object {Remove-item -Recurse -path $_.FullName -Force }
+  New-Item -Path $x86_bin_path -ItemType Directory -Force
+  Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
+}
+else{
+  Write-Output "My 64-bit path was NOT found, now building here : $x86_bin_path"
   New-Item -Path $x86_bin_path -ItemType Directory -Force
   Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
 }
