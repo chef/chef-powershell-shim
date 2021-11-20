@@ -1,0 +1,17 @@
+name: Chef-PowerShell Builder
+# on: [push]
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+jobs:
+  Build-And-Push-Chef-PowerShell-Gem:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+      - run: Write-Output "Hello World"
+      - run: Get-Location
