@@ -20,7 +20,7 @@ jobs:
       - name: Install Habitat
         run: choco install habitat -y
         shell: powershell
-      - name: Install Chef Client
+      - name: Install Habitat
         run: choco install chef-client -y
         shell: powershell
       - name: Update Version Stamps
@@ -39,6 +39,20 @@ jobs:
 
           if ($LocalVersion -eq $rubygemsversion) {
               . $("$project_root\.expeditor\update_version.ps1")
+          }
+        shell: powershell
+      - name: Setup Habitat Environment
+        run: |
+          $env:HAB_ORIGIN = "ci"
+          $env:HAB_LICENSE = "accept-no-persist"
+          $env:FORCE_FFI_YAJL = "ext"
+
+          if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
+              Write-Output "--- Using existing fake '$env:HAB_ORIGIN' origin key"
+          }
+          else {
+              Write-Output "--- Generating fake '$env:HAB_ORIGIN' origin key"
+              hab origin key generate $env:HAB_ORIGIN
           }
         shell: powershell
 
