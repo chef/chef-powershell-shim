@@ -4,12 +4,12 @@ on:
 
 jobs:
   Build-And-Push-Chef-PowerShell-Gem:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
-      - run: .\.expeditor\manual-gem-release.ps1
+      - run: . .\.expeditor\manual-gem-release.ps1
       - name: basic powershell commands
         env:
           MY_NAME: John McCrae
