@@ -43,9 +43,10 @@ jobs:
         shell: powershell
       - name: Setup Habitat Environment
         run: |
-          $env:HAB_ORIGIN = "ci"
-          $env:HAB_LICENSE = "accept-no-persist"
-          $env:FORCE_FFI_YAJL = "ext"
+
+          [Environment]::SetEnvironmentVariable('HAB_ORIGIN', "ci", [System.EnvironmentVariableTarget]::Machine)
+          [Environment]::SetEnvironmentVariable('HAB_LICENSE', "accept-no-persist", [System.EnvironmentVariableTarget]::Machine)
+          [Environment]::SetEnvironmentVariable('FORCE_FFI_YAJL', "ext", [System.EnvironmentVariableTarget]::Machine)
 
           if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
               Write-Output "--- Using existing fake '$env:HAB_ORIGIN' origin key"
@@ -56,5 +57,7 @@ jobs:
           }
         shell: powershell
       - name: Building 64-bit PowerShell DLL's
-        run: hab pkg build Habitat
+        run: |
+          refreshenv
+          hab pkg build Habitat
         shell: powershell
