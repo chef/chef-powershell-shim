@@ -26,11 +26,6 @@ jobs:
 
             $project_name = "chef-powershell"
 
-            # install choco
-            Write-Output "--- Installing Chocolatey"
-            Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-            Write-Output "`r"
-
             Write-Output "--- Making sure we're in the correct spot"
             $project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
             Set-Location -Path $project_root
