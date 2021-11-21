@@ -9,7 +9,6 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
-      - run: . .\.expeditor\manual-gem-release.ps1
       - name: basic powershell commands
         env:
           MY_NAME: John McCrae
@@ -17,3 +16,33 @@ jobs:
           Get-Date
           Write-Output $env:MY_NAME
         shell: powershell
+      - name: Manually Build Gem
+        uses: Amadevus/pwsh-script@v2
+        id: script
+        with:
+          script: |
+
+            $ErrorActionPreference = "Stop"
+
+            $project_name = "chef-powershell"
+
+            # install choco
+            Write-Output "--- Installing Chocolatey"
+            Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+            Write-Output "`r"
+
+            Write-Output "--- Making sure we're in the correct spot"
+            $project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
+            Set-Location -Path $project_root
+            Get-Location
+            Write-Output "`r"
+
+            Write-Output "-- Is Habitat actually installed?"
+            # Is hab installed?
+            if (-not (Get-Command -Name Hab -ErrorAction SilentlyContinue)) {
+                Write-Output "--- No, Installing Habitat via Choco"
+                choco install habitat -y
+                if (-not $?) { throw "unable to install Habitat" }
+                Write-Output "`r"
+            }
+            Write-Output "`r"
