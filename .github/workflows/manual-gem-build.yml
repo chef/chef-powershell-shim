@@ -20,3 +20,25 @@ jobs:
       - name: Install Habitat
         run: choco install habitat -y
         shell: powershell
+      - name: Install Chef Client
+        run: choco install chef-client -y
+        shell: powershell
+      - name: Update Version Stamps
+        run: |
+          $project_root = $pwd
+          try {
+            $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+          }
+          catch {
+              Write-Error "Failed to Get the Version from version.rb"
+          }
+          [version]$LocalVersion = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
+
+          $rubygem = gem search chef-powershell
+          [version]$rubygemsversion = [regex]::matches($rubygem, "\s*chef-powershell\s*\((\d*.\d*.\d*)\)\s*").groups[1].value
+
+          if ($LocalVersion -eq $rubygemsversion) {
+              . $("$project_root\.expeditor\update_version.ps1")
+          }
+        shell: powershell
+
