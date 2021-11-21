@@ -20,7 +20,7 @@ jobs:
       - name: Install Habitat
         run: choco install habitat -y
         shell: powershell
-      - name: Install Habitat
+      - name: Install Chef Client
         run: choco install chef-client -y
         shell: powershell
       - name: Update Version Stamps
@@ -55,4 +55,6 @@ jobs:
               hab origin key generate $env:HAB_ORIGIN
           }
         shell: powershell
-
+      - name: Building 64-bit PowerShell DLL's
+        run: hab pkg build Habitat
+        shell: powershell
