@@ -112,6 +112,7 @@ jobs:
         shell: powershell
       - name: Building the Gem
         run: |
+          $project_name = "chef-powershell"
           $project_root = $pwd
           Set-Location "$project_root\chef-powershell"
           gem build $("$project_name.gemspec")
