@@ -123,7 +123,12 @@ jobs:
         run: |
           $project_name = "chef-powershell"
           $project_root = $pwd
-          Write-Output "I am located here: $pwd"
+          try {
+            $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+          }
+          catch {
+            Write-Error "Failed to Get the Version from version.rb"
+          }
           [string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
           $gemfIle = $($project_root + "\" + $project_name + "\" + $project_name + "-" + $Version + ".gem" )
           gem push $($gemfIle)
