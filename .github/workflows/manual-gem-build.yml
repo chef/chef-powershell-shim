@@ -1,11 +1,15 @@
-name: Chef-PowerShell Builder
-# on: [push]
-# working dir : D:\a\chef-powershell-shim\chef-powershell-shim
+name: Manually triggered workflow
 on:
-  pull_request:
-    branches:
-      - main
-    types: [closed]
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+        default: 'Mona the Octocat'
+      home:
+        description: 'location'
+        required: false
+        default: 'The Octoverse'
 
 jobs:
   Build-And-Push-Chef-PowerShell-Gem:
