@@ -1,5 +1,6 @@
 name: Chef-PowerShell Builder
 # on: [push]
+# working dir : D:\a\chef-powershell-shim\chef-powershell-shim
 on:
   pull_request:
     branches:
@@ -13,5 +14,11 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
-      - run: Write-Output "Hello World"
-      - run: Get-Location
+      - run: .\.expeditor\manual-gem-release.ps1
+      - name: basic powershell commands
+        env:
+          MY_NAME: John McCrae
+        run: |
+          Get-Date
+          Write-Output $env:MY_NAME
+        shell: powershell
