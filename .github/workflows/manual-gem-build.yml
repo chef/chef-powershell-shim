@@ -1,0 +1,28 @@
+name: Manually triggered workflow
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+        default: 'Mona the Octocat'
+      home:
+        description: 'location'
+        required: false
+        default: 'The Octoverse'
+
+jobs:
+  Build-And-Push-Chef-PowerShell-Gem:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+      - run: .\.expeditor\manual-gem-release.ps1
+      - name: basic powershell commands
+        env:
+          MY_NAME: John McCrae
+        run: |
+          Get-Date
+          Write-Output $env:MY_NAME
+        shell: powershell
