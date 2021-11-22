@@ -17,3 +17,14 @@ jobs:
           $foo = Get-Childitem -path .
           Write-Output $foo
         shell: powershell
+  Test-More-Crap:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - name: Am I on the same server?
+        run: |
+          $project_root = $pwd
+          Write-Output $project_root
+          $foo = Get-Childitem -path .
+          Write-Output $foo
+        shell: powershell
