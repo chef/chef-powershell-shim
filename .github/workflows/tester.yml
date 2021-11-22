@@ -1,5 +1,5 @@
 # working dir : D:\a\chef-powershell-shim\chef-powershell-shim
-name: Manually triggered workflow
+name: Test Mule
 on:
   workflow_dispatch:
 
