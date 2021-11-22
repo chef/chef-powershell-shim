@@ -1,0 +1,16 @@
+# working dir : D:\a\chef-powershell-shim\chef-powershell-shim
+name: Manually triggered workflow
+on:
+  workflow_dispatch:
+
+jobs:
+  Test-Crap:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - name: Run the PowerShell Script to Update the Gem version, maybe
+        run: |
+          $project_root = $pwd
+          Write-Output $project_root
+          Get-Childitem -path .
+        shell: powershell
