@@ -12,9 +12,10 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
-      - name: Run the PowerShell Script to Update
+      - name: Run the PowerShell Script to update the Gem version
         run: |
-          .\.expeditor\update_version.ps1
+          $project_root = $pwd
+          . $("$project_root\.expeditor\update_version.ps1")
         shell: powershell
   Build-And-Push-Chef-PowerShell-Gem:
     if: github.event.pull_request.merged == true
