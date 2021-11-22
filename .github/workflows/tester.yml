@@ -10,6 +10,11 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
+      - name: Run the PowerShell Script to Update the Gem version
+        run: |
+          $project_root = $pwd
+          . $("$project_root\.expeditor\update_version.ps1")
+        shell: powershell
       - name: Run the PowerShell Script to Update the Gem version, maybe
         run: |
           $project_root = $pwd
@@ -17,14 +22,4 @@ jobs:
           $foo = Get-Childitem -path .
           Write-Output $foo
         shell: powershell
-  Test-More-Crap:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: windows-latest
-    steps:
-      - name: Am I on the same server?
-        run: |
-          $project_root = $pwd
-          Write-Output $project_root
-          $foo = Get-Childitem -path .
-          Write-Output $foo
-        shell: powershell
+
