@@ -8,6 +8,14 @@ on:
     types: [closed]
 
 jobs:
+  Bump-Version:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    steps:
+      - name: Run the PowerShell Script to Update
+        run: |
+          .\.expeditor\update_version.ps1
+        shell: powershell
   Build-And-Push-Chef-PowerShell-Gem:
     if: github.event.pull_request.merged == true
     runs-on: windows-latest
