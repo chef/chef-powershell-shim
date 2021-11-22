@@ -12,5 +12,6 @@ jobs:
         run: |
           $project_root = $pwd
           Write-Output $project_root
-          Get-Childitem -path .
+          $foo = Get-Childitem -path .
+          Write-Output $foo
         shell: powershell
