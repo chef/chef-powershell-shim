@@ -4,15 +4,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  Bump-Version:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: windows-latest
-    steps:
-      - name: Run the PowerShell Script to Update the Gem version
-        run: |
-          $project_root = $pwd
-          . $("$project_root\.expeditor\update_version.ps1")
-        shell: powershell
   Build-And-Push-Chef-PowerShell-Gem:
     if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
@@ -25,22 +16,39 @@ jobs:
       - name: Install Chef Client
         run: choco install chef-client -y
         shell: powershell
-      - name: Update Version Stamps
+      - name: Update the Gem version
         run: |
           $project_root = $pwd
+          $update_type = $null
           try {
-            $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+              $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
           }
           catch {
               Write-Error "Failed to Get the Version from version.rb"
           }
-          [version]$LocalVersion = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
-
-          $rubygem = gem search chef-powershell
-          [version]$rubygemsversion = [regex]::matches($rubygem, "\s*chef-powershell\s*\((\d*.\d*.\d*)\)\s*").groups[1].value
-
-          if ($LocalVersion -eq $rubygemsversion) {
-              . $("$project_root\.expeditor\update_version.ps1")
+          [version]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
+          $update_type = [System.Environment]::GetEnvironmentVariable("CHEF_POWERSHELL_VERSION_UPDATE", "Machine")
+          # Add one to the build of the version number
+          if ($update_type -eq "Major") {
+              [version]$NewVersion = "{0}.{1}.{2}" -f ($Version.Major + 1), $Version.Minor, $Version.Build
+          }
+          elseif ($update_type -eq "Minor") {
+              [version]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, ($Version.Minor + 1), $Version.Build
+          }
+          elseif (([string]::IsNullOrEmpty($update_type)) -or ($update_type -eq "Version")) {
+              [version]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1)
+          }
+          else {
+              Write-Error "failed to update the version string"
+          }
+          # Replace Old Version Number with New Version number in the file
+          try {
+              (Get-Content .\chef-powershell\lib\chef-powershell\version.rb) -replace $version, $NewVersion | Out-File .\chef-powershell\lib\chef-powershell\version.rb
+              Write-Output "Updated Module Version from $Version to $NewVersion"
+          }
+          catch {
+              $_
+              Write-Error "failed to set file"
           }
         shell: powershell
       - name: Setup Habitat Environment
