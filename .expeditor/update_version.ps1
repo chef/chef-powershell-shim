@@ -39,7 +39,7 @@ if ($update_type -eq "Major") {
 elseif ($update_type -eq "Minor") {
     [version]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, ($Version.Minor + 1), $Version.Build
 }
-elseif ([string]::IsNullOrEmpty($update_type) || $update_type -eq "Version") {
+elseif (([string]::IsNullOrEmpty($update_type)) -or ($update_type -eq "Version")) {
     [version]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1)
 }
 else {

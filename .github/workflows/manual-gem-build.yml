@@ -8,9 +8,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
-      - name: Run the PowerShell Script to Update
+      - name: Run the PowerShell Script to Update the Gem version
         run: |
-          .\.expeditor\update_version.ps1
+          $project_root = $pwd
+          . $("$project_root\.expeditor\update_version.ps1")
         shell: powershell
   Build-And-Push-Chef-PowerShell-Gem:
     if: github.event_name == 'workflow_dispatch'

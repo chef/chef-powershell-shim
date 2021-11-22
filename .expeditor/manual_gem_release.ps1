@@ -155,7 +155,7 @@ catch {
     Write-Error "Failed to Get the Version from version.rb"
 }
 [string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
-$gemfIle = $($project_root + "\" + $project_name + "\" + $project_name + "-" + $Version + ".gem" )
+$gemfIle = $([string]$project_root + "\" + [string]$project_name + "\" + [string]$project_name + "-" + [string]$Version + ".gem" )
 gem push $($gemfIle)
 if (-not $?) { throw "Gem Push failed" }
 Write-Output "`r"
