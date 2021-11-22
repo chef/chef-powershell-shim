@@ -8,6 +8,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
       - name: Run the PowerShell Script to Update the Gem version, maybe
         run: |
           $project_root = $pwd
