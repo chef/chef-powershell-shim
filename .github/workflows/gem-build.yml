@@ -8,17 +8,143 @@ on:
     types: [closed]
 
 jobs:
+  Bump-Version:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    steps:
+      - name: Run the PowerShell Script to Update
+        run: |
+          .\.expeditor\update_version.ps1
+        shell: powershell
   Build-And-Push-Chef-PowerShell-Gem:
     if: github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
-      - run: .\.expeditor\manual-gem-release.ps1
-      - name: basic powershell commands
-        env:
-          MY_NAME: John McCrae
+      - name: Install Habitat
+        run: choco install habitat -y
+        shell: powershell
+      - name: Install Chef Client
+        run: choco install chef-client -y
+        shell: powershell
+      - name: Update Version Stamps
         run: |
-          Get-Date
-          Write-Output $env:MY_NAME
+          $project_root = $pwd
+          try {
+            $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+          }
+          catch {
+              Write-Error "Failed to Get the Version from version.rb"
+          }
+          [version]$LocalVersion = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
+
+          $rubygem = gem search chef-powershell
+          [version]$rubygemsversion = [regex]::matches($rubygem, "\s*chef-powershell\s*\((\d*.\d*.\d*)\)\s*").groups[1].value
+
+          if ($LocalVersion -eq $rubygemsversion) {
+              . $("$project_root\.expeditor\update_version.ps1")
+          }
+        shell: powershell
+      - name: Setup Habitat Environment
+        env:
+          HAB_ORIGIN: ci
+          HAB_LICENSE: accept-no-persist
+          FORCE_FFI_YAJL: ext
+        run: |
+          if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
+              Write-Output "--- Using existing fake '$env:HAB_ORIGIN' origin key"
+          }
+          else {
+              Write-Output "--- Generating fake '$env:HAB_ORIGIN' origin key"
+              hab origin key generate $env:HAB_ORIGIN
+          }
+        shell: powershell
+      - name: Building 64-bit PowerShell DLL's
+        env:
+          HAB_ORIGIN: ci
+          HAB_LICENSE: accept-no-persist
+          FORCE_FFI_YAJL: ext
+        run: hab pkg build Habitat
+        shell: powershell
+      - name: Installing the 64-bit DLL's
+        env:
+          HAB_ORIGIN: ci
+          HAB_LICENSE: accept-no-persist
+          FORCE_FFI_YAJL: ext
+        run: |
+          $project_root = $pwd
+          . results/last_build.ps1
+          hab pkg install results/$pkg_artifact
+          $x64 = hab pkg path ci/chef-powershell-shim
+          $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
+          if (Test-Path -PathType Container $x64_bin_path) {
+            Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
+            Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
+          }
+          else {
+            New-Item -Path $x64_bin_path -ItemType Directory -Force
+            Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
+          }
+        shell: powershell
+      - name: Building the 32-bit DLL's
+        env:
+          HAB_ORIGIN: ci
+          HAB_LICENSE: accept-no-persist
+          FORCE_FFI_YAJL: ext
+        run: hab pkg build -R Habitat-x86
+        shell: powershell
+      - name: Installing 32-bit DLL's
+        env:
+          HAB_ORIGIN: ci
+          HAB_LICENSE: accept-no-persist
+          FORCE_FFI_YAJL: ext
+        run: |
+          $project_root = $pwd
+          . results/last_build.ps1
+          Start-Sleep -Seconds 5
+          hab pkg install results/$pkg_artifact
+          $x86 = hab pkg path ci/chef-powershell-shim-x86
+          $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
+          if (Test-Path -PathType Container $x86_bin_path) {
+            Get-ChildItem -Path $x86_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
+            Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
+          }
+          else {
+              New-Item -Path $x86_bin_path -ItemType Directory -Force
+              Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
+          }
+        shell: powershell
+      - name: Building the Gem
+        run: |
+          $project_name = "chef-powershell"
+          $project_root = $pwd
+          Set-Location "$project_root\chef-powershell"
+          gem build $("$project_name.gemspec")
+        shell: powershell
+
+      - name: Pushing the gem to RubyGems.org
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
+        run: |
+          $project_name = "chef-powershell"
+          $project_root = $pwd
+          Set-Location "$project_root\chef-powershell"
+          $api_key = $env:GEM_HOST_API_KEY
+          $content = ":rubygems_api_key: $api_key"
+          if(-not(Test-Path -path ~/.gem)){
+            New-Item -Path ~/ -Name .gem -ItemType Directory
+          }
+          if(-not(Test-Path -path ~/.gem/credentials)){
+            New-Item -Path ~/.gem/credentials -ItemType File -Value $content
+          }
+          try {
+            $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+          }
+          catch {
+            Write-Error "Failed to Get the Version from version.rb"
+          }
+          [string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
+          $gemfIle = $([string]$project_root + "\" + [string]$project_name + "\" + [string]$project_name + "-" + [string]$Version + ".gem" )
+          gem push $($gemfIle)
         shell: powershell
