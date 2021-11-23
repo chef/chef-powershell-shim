@@ -43,7 +43,7 @@ jobs:
           }
           # Replace Old Version Number with New Version number in the file
           try {
-              (Get-Content .\chef-powershell\lib\chef-powershell\version.rb) -replace $version, $NewVersion | Out-File .\chef-powershell\lib\chef-powershell\version.rb
+              (Get-Content .\chef-powershell\lib\chef-powershell\version.rb) -replace $version, $NewVersion | Out-File .\chef-powershell\lib\chef-powershell\version.rb -Encoding utf8
               Write-Output "Updated Module Version from $Version to $NewVersion"
           }
           catch {
