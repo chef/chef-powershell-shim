@@ -52,4 +52,4 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add -u
           git commit -sm "Automated version update PR"
-          git push origin/version_pr
+          git push origin version_pr
