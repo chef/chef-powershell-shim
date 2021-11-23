@@ -43,8 +43,3 @@ subscriptions:
   - workload: project_promoted:{{agent_id}}:*
     actions:
       - built_in:rollover_changelog
-
-pipelines:
-  - verify:
-      description: Pull Request validation tests
-      public: true
