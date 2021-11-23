@@ -46,12 +46,12 @@ jobs:
           }
         shell: powershell
       - name: Commit changes to the Version file
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "Updating the version file in Main" -a
-      - name: Push Updated Version file back to main
-        uses: ad-m/github-push-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          git push
+
