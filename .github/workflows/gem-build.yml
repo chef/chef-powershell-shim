@@ -131,7 +131,6 @@ jobs:
           Set-Location "$project_root\chef-powershell"
           gem build $("$project_name.gemspec")
         shell: powershell
-
       - name: Pushing the gem to RubyGems.org
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
