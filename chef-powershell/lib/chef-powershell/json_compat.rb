@@ -30,7 +30,7 @@ class Chef
       def parse(source, opts = {})
         FFI_Yajl::Parser.parse(source, opts)
       rescue FFI_Yajl::ParseError => e
-        raise Chef::PowerShellExceptions::JSON::ParseError, e.message
+        raise Chef_PowerShell::PowerShellExceptions::JSON::ParseError, e.message
       end
 
       def from_json(source, opts = {})
@@ -40,7 +40,7 @@ class Chef
         # you get the "must contain two octets" error). Yajl doesn't impose the
         # same limitation. For compatibility, we re-impose this condition.
         unless obj.is_a?(Hash) || obj.is_a?(Array)
-          raise Chef::PowerShellExceptions::JSON::ParseError, "Top level JSON object must be a Hash or Array. (actual: #{obj.class})"
+          raise Chef_PowerShell::PowerShellExceptions::JSON::ParseError, "Top level JSON object must be a Hash or Array. (actual: #{obj.class})"
         end
 
         obj
@@ -49,7 +49,7 @@ class Chef
       def to_json(obj, opts = nil)
         FFI_Yajl::Encoder.encode(obj, opts)
       rescue FFI_Yajl::EncodeError => e
-        raise Chef::PowerShellExceptions::JSON::EncodeError, e.message
+        raise Chef_PowerShell::PowerShellExceptions::JSON::EncodeError, e.message
       end
 
       def to_json_pretty(obj, opts = nil)
