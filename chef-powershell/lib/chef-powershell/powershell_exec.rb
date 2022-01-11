@@ -23,7 +23,7 @@ require_relative "./pwsh"
 # powershell_exec is initialized with a string that should be set to the script
 # to run and also takes an optional interpreter argument which must be either
 # :powershell (Windows PowerShell which is the default) or :pwsh (PowerShell
-# Core). It will return a Chef_PowerShell::PowerShell object that provides 5 methods:
+# Core). It will return a ChefPowerShell::PowerShell object that provides 5 methods:
 #
 # .result - returns a hash representing the results returned by executing the
 #           PowerShell script block
@@ -95,8 +95,8 @@ require_relative "./pwsh"
 #   credentials of the user running Chef Client are used.
 #
 
-class Chef_PowerShell
-  module ChefPowerShell
+class ChefPowerShell
+  module ChefPowerShellModule
     module PowerShellExec
       # The Chef.PowerShell.Wrapper.dll file looks in the same folder as ruby.exe OR in the folder specified by the environment variable CHEF_POWERSHELL_BIN for other chef powershell dll's
       # We don't want to move files around so we're setting the variable here to keep everything tidy.
@@ -113,16 +113,16 @@ class Chef_PowerShell
       def powershell_exec(script, interpreter = :powershell, timeout: -1)
         case interpreter
         when :powershell
-          Chef_PowerShell::PowerShell.new(script, timeout: timeout)
+          ChefPowerShell::PowerShell.new(script, timeout: timeout)
         when :pwsh
-          Chef_PowerShell::Pwsh.new(script, timeout: timeout)
+          ChefPowerShell::Pwsh.new(script, timeout: timeout)
         else
           raise ArgumentError, "Expected interpreter of :powershell or :pwsh"
         end
       end
 
       # The same as the #powershell_exec method except this will raise
-      # Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed if the command fails
+      # ChefPowerShell::PowerShellExceptions::PowerShellCommandFailed if the command fails
       def powershell_exec!(script, interpreter = :powershell, **options)
         cmd = powershell_exec(script, interpreter, **options)
         cmd.error!

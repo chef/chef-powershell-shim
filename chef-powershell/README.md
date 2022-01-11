@@ -23,7 +23,7 @@ The Chef-PowerShell gem provides in-process access to the PowerShell engine.
 `powershell_exec` is initialized with a string that should be set to the script
 to run and also takes an optional interpreter argument which must be either
 :powershell (Windows PowerShell which is the default) or :pwsh (PowerShell
-Core). It will return a Chef_PowerShell::PowerShell object that provides 5 methods:
+Core). It will return a ChefPowerShell::PowerShell object that provides 5 methods:
 
 .result - returns a hash representing the results returned by executing the
           PowerShell script block
@@ -37,7 +37,7 @@ Core). It will return a Chef_PowerShell::PowerShell object that provides 5 metho
 .error? - returns true if there were error messages written to the PowerShell
           error stream during execution
 
-.error! - raise Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed if there was an error
+.error! - raise ChefPowerShell::PowerShellExceptions::PowerShellCommandFailed if there was an error
 
 Some examples of usage:
 
@@ -85,7 +85,7 @@ WIN32OLERuntimeError: (in OLE method `ExecuteScript': )
 ```ruby
 require "chef-powershell"
 ...
-include Chef_PowerShell::ChefPowerShell::PowerShellExec
+include ChefPowerShell::ChefPowerShell::PowerShellExec
 ...
 def join_command
   cmd = ""

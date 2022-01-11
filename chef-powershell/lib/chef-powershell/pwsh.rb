@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Chef_PowerShell
-  class Pwsh < Chef_PowerShell::PowerShell
+class ChefPowerShell
+  class Pwsh < ChefPowerShell::PowerShell
     # Run a command under pwsh (powershell core) via FFI
     # This implementation requires the managed dll, native wrapper and a
     # published, self contained dotnet core directory tree to exist in the

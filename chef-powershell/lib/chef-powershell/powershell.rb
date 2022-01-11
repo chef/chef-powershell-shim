@@ -21,7 +21,7 @@ require_relative "exceptions"
 require_relative "unicode"
 # require "chef-powershell"
 
-class Chef_PowerShell
+class ChefPowerShell
   class PowerShell
 
     attr_reader :result
@@ -58,10 +58,10 @@ class Chef_PowerShell
     end
 
     #
-    # @raise [Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed] raise if the command failed
+    # @raise [ChefPowerShell::PowerShellExceptions::PowerShellCommandFailed] raise if the command failed
     #
     def error!
-      raise Chef_PowerShell::PowerShellExceptions::PowerShellCommandFailed, "Unexpected exit in PowerShell command: #{@errors}" if error?
+      raise ChefPowerShell::PowerShellExceptions::PowerShellCommandFailed, "Unexpected exit in PowerShell command: #{@errors}" if error?
     end
 
     module PowerMod

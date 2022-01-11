@@ -1,0 +1,5 @@
+# hide vendor files
+[Vv]endor/
+
+# No gem files either!
+*.gem
