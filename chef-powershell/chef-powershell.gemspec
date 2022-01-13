@@ -7,7 +7,7 @@ require "chef-powershell/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "chef-powershell"
-  spec.version       = ChefPowerShell::VERSION
+  spec.version       = ChefPowerShellModule::VERSION
   spec.authors       = ["Chef Software, Inc"]
   spec.email         = ["oss@chef.io"]
 

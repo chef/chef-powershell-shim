@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Chef_PowerShell
+class ChefPowerShell
   class PowerShellExceptions
     class PowerShellCommandFailed < RuntimeError; end
 

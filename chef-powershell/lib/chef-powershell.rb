@@ -18,6 +18,6 @@
 
 require_relative "chef-powershell/powershell_exec"
 
-module ChefPowerShell
-  include Chef_PowerShell::ChefPowerShell::PowerShellExec
+module ChefPowerShellModule
+  include ChefPowerShell::ChefPowerShellModule::PowerShellExec
 end
