@@ -16,10 +16,9 @@
 # limitations under the License.
 
 require "ffi" unless defined?(FFI)
-require_relative "json_compat"
+autoload :FFI_Yajl, "ffi_yajl"
 require_relative "exceptions"
 require_relative "unicode"
-# require "chef-powershell"
 
 class ChefPowerShell
   class PowerShell
@@ -98,8 +97,8 @@ class ChefPowerShell
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
       output = execution.read_utf16string
-      hashed_outcome = Chef::JSONCompat.parse(output)
-      @result = Chef::JSONCompat.parse(hashed_outcome["result"])
+      hashed_outcome = FFI_Yajl::Parser.parse(output)
+      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
     end
