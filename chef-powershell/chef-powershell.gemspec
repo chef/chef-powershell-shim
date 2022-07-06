@@ -23,9 +23,9 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/chef/chef/issues",
     "changelog_uri" => "https://github.com/chef/chef-powershell-shim/CHANGELOG.md",
-    "documentation_uri" => "https://github.com/chef/chef-powershell-shim/chef-powershell/README.md",
-    "homepage_uri" => "https://github.com/chef/chef/tree/main/chef-powershell",
-    "source_code_uri" => "https://github.com/chef/chef-powershell-shim/chef-powershell",
+    "documentation_uri" => "https://github.com/chef/chef-powershell-shim/blob/main/chef-powershell/README.md",
+    "homepage_uri" => "https://github.com/chef/chef-powershell-shim",
+    "source_code_uri" => "https://github.com/chef/chef-powershell-shim/tree/main/chef-powershell",
   }
 
   spec.require_paths = %w{lib bin}
