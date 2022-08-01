@@ -91,18 +91,22 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
+      puts "===== in PowerShell#exec script: #{script.inspect}"
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
+      puts "======= in PowerShell#exec execution: #{execution.inspect}"
       output = execution.read_utf16string
+      puts "======= in PowerShell#exec output: #{output.inspect}"
       begin
         hashed_outcome = FFI_Yajl::Parser.parse(output)
+        puts "======= in PowerShell#exec hashed_outcome: #{hashed_outcome.inspect}"
+        @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       rescue StandardError => e
-        puts "Failed to parse output using FFI_Yajl::Parser error: #{e.message}"
+        puts "==== Failed to parse output using FFI_Yajl::Parser error: #{e.message}"
       end
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
     end
