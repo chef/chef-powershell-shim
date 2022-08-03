@@ -99,7 +99,7 @@ class ChefPowerShell
       output = execution.read_utf16string
       begin
         hashed_outcome = FFI_Yajl::Parser.parse(output)
-        puts "\n======= in PowerShell#exec hashed_outcome: #{hashed_outcome.inspect}"
+        puts "\n======= in PowerShell#exec script: #{script} \n********output: #{output.inspect} \n**********hashed_outcome: #{hashed_outcome.inspect}"
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       rescue StandardError => e
         puts "\n==== Failed to parse output using FFI_Yajl::Parser error: #{e.message} ******* script: #{script} \n****** output: #{output.inspect}"
