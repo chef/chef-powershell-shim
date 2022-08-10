@@ -41,7 +41,7 @@ module FFI
 
     def read_utf16string
       offset = 0
-      offset += 2 while get_bytes(offset, 2) != "\x00\x00"
+      while get_bytes(offset, 2) != "\x00\x00"
       get_bytes(0, offset).force_encoding("utf-16le").encode("utf-8")
     end
   end
