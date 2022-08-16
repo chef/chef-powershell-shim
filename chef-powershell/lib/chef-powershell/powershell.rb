@@ -104,8 +104,12 @@ class ChefPowerShell
       rescue StandardError => e
         puts "\n==== Failed to parse output using FFI_Yajl::Parser error: #{e.message}.\n******* script: #{script}\n****** output: #{output.inspect}"
       end
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
+      begin
+        @errors = hashed_outcome["errors"]
+        @verbose = hashed_outcome["verbose"]
+      rescue StandardError => e
+        puts "====== In powershell.rb error = #{e.message}"
+      end
     end
   end
 end
