@@ -94,9 +94,10 @@ class ChefPowerShell
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
+      script = "$outputEncoding = [System.Text.Encoding]::UTF8; " + script
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
-      output = execution.read_utf16string
+      output = execution #execution.read_utf16string
       begin
         hashed_outcome = FFI_Yajl::Parser.parse(output)
         #puts "\n======= in PowerShell#exec script: #{script}\n********output: #{output.inspect}\n**********hashed_outcome: #{hashed_outcome.inspect}"
@@ -104,12 +105,12 @@ class ChefPowerShell
       rescue StandardError => e
         puts "\n==== Failed to parse output using FFI_Yajl::Parser error: #{e.message}.\n******* script: #{script}\n****** output: #{output.inspect}"
       end
-      begin
+      #begin
         @errors = hashed_outcome["errors"]
         @verbose = hashed_outcome["verbose"]
-      rescue StandardError => e
-        puts "====== In powershell.rb error = #{e.message}"
-      end
+      # rescue StandardError => e #Adding rescue here bcz I want a code block in authenticator.rb to run after this
+      #   puts "====== In powershell.rb error = #{e.message}"
+      # end
     end
   end
 end
