@@ -94,10 +94,15 @@ class ChefPowerShell
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
-      script = "$outputEncoding = [System.Text.Encoding]::UTF8; " + script
+      #script = "$outputEncoding = [System.Text.Encoding]::UTF8; " + script
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
-      output = execution #execution.read_utf16string
+      
+      #output = execution.read_string.force_encoding('UTF-8')
+      #output = execution.read_s
+      output = execution.read_utf16string
+      
+      puts "=======output: #{output.inspect}"
       begin
         hashed_outcome = FFI_Yajl::Parser.parse(output)
         #puts "\n======= in PowerShell#exec script: #{script}\n********output: #{output.inspect}\n**********hashed_outcome: #{hashed_outcome.inspect}"
