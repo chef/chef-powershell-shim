@@ -41,8 +41,14 @@ module FFI
 
     def read_utf16string
       offset = 0
-      offset += 2 while get_bytes(offset, 2) != "\x00\x00"
+      offset += 2 while get_bytes(offset, 2) != "\000\000"
       get_bytes(0, offset).force_encoding("utf-16le").encode("utf-8")
+    end
+
+    #Ref https://github.com/ffi/ffi/blob/master/lib/ffi/pointer.rb#L57 and https://github.com/ffi/ffi/wiki/Examples#single-string
+    #Does not work, still returns garbage
+    def read_s
+      read_string.force_encoding('UTF-8')
     end
   end
 end
