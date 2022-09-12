@@ -41,8 +41,22 @@ module FFI
 
     def read_utf16string
       offset = 0
-      offset += 2 while get_bytes(offset, 2) != "\000\000"
+      offset += 2 while get_bytes(offset, 2) != "\x00\x00"
       get_bytes(0, offset).force_encoding("utf-16le").encode("utf-8")
+    end
+
+    def read_string_dn
+      cont_nullcount = 0
+      offset = 0
+      # Determine the offset in memory of the expected double-null
+      until cont_nullcount == 2
+        byte = get_bytes(offset,1)
+        cont_nullcount += 1 if byte == "\000"
+        cont_nullcount = 0 if byte != "\000"
+        offset += 1
+      end
+      # Return string with calculated length (offset) including terminator
+      get_bytes(0,offset+1)
     end
 
     #Ref https://github.com/ffi/ffi/blob/master/lib/ffi/pointer.rb#L57 and https://github.com/ffi/ffi/wiki/Examples#single-string
