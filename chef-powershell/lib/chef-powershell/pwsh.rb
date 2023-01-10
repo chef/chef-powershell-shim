@@ -26,7 +26,8 @@ class ChefPowerShell
     # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
     def initialize(script, timeout: -1)
-      @dll = Pwsh.dll
+      dll = Pwsh.dll
+      @dll = dll
       super
     end
 
