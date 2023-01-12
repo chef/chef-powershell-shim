@@ -101,6 +101,15 @@ class ChefPowerShell
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
+    rescue FFI_Yajl::ParseError => e
+      puts "FFI_Yajl::ParseError: #{e.message} ====> "
+      p execution.debug_bytes
+      string = execution.pack("C*")
+      p string
+      p string.force_encoding("UTF-16LE")
+      p string.force_encoding("UTF-16LE").encode("UTF-8")
+      puts " <===="
+      raise
     end
   end
 end

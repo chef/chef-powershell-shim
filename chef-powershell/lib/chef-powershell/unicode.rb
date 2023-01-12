@@ -23,6 +23,7 @@ module FFI
   class Pointer
     include Chef::Mixin::WideString
 
+    attr_reader :debug_bytes
     def read_wstring(num_wchars = nil)
       if num_wchars.nil?
         # Find the length of the string
@@ -40,10 +41,10 @@ module FFI
     end
 
     def read_utf16string
-      debug_bytes = []
+      @debug_bytes = []
       offset = 0
-      offset += 2 while get_bytes(offset, 2).tap { |n| debug_bytes += n.each_byte.map(&:to_i) } != "\x00\x00"
-      get_bytes(0, offset).tap { |n| debug_bytes += n.each_byte.map(&:to_i); p debug_bytes }.force_encoding("utf-16le").encode("utf-8")
+      offset += 2 while get_bytes(offset, 2).tap { |n| @debug_bytes += n.each_byte.map(&:to_i) } != "\x00\x00"
+      get_bytes(0, offset).tap { |n| @debug_bytes += n.each_byte.map(&:to_i) }.force_encoding("utf-16le").encode("utf-8")
     end
   end
 end
