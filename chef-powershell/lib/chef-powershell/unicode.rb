@@ -42,7 +42,12 @@ module FFI
 
     def read_utf16string
       length = 0
-      length += 2 while get_bytes(length, 2) != "\x00\x00"
+      loop do
+        if (get_bytes(length, 1).bytes[0] == 0 && get_bytes(length + 1, 1).bytes[0] == 0)
+          break
+        end
+        length += 2
+      end
       @byte_length = length
       get_bytes(0, length).dup.tap {|b| @debug_bytes = b.bytes }.force_encoding("utf-16le").encode("utf-8")
     end
