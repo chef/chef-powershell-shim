@@ -111,6 +111,10 @@ class ChefPowerShell
       p string.force_encoding("UTF-16LE").encode("UTF-8")
       puts " <===="
       raise
+    rescue => e
+      puts "Something else! =>>"
+      p e
+      puts "<<=="
     end
   end
 end
