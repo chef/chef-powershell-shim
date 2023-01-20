@@ -105,7 +105,7 @@ class ChefPowerShell
       puts "FFI_Yajl::ParseError: #{e.message} ====> "
       p execution.debug_bytes
       p execution.byte_length
-      string = execution.pack("C*")
+      string = execution.debug_bytes.pack("C*")
       p string
       p string.force_encoding("UTF-16LE")
       p string.force_encoding("UTF-16LE").encode("UTF-8")
