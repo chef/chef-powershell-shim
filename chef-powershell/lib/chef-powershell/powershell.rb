@@ -91,6 +91,7 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
+      is_retry = false
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
@@ -114,7 +115,12 @@ class ChefPowerShell
       p string.force_encoding("UTF-16LE")
       p string.force_encoding("UTF-16LE").encode("UTF-8")
       puts " <===="
+      if !is_retry
+        is_retry = true
+        retry
+      end
       raise
+
     rescue => e
       puts "Something else! =>>"
       p e
