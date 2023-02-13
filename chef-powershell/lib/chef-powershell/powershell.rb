@@ -97,6 +97,10 @@ class ChefPowerShell
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
       output = execution.read_utf16string
+
+      puts "::: Pre fail output :::"
+      p execution.debug_bytes
+      puts "::: End Pre fail output :::"
       hashed_outcome = FFI_Yajl::Parser.parse(output)
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
