@@ -126,5 +126,6 @@ class ChefPowerShell
         raise
         puts "<<=="
       end
+    end
   end
 end
