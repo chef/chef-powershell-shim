@@ -90,41 +90,41 @@ class ChefPowerShell
 
     private
 
+
     def exec(script, timeout: -1)
       is_retry = false
-      timeout = -1 if timeout == 0 || timeout.nil?
-      PowerMod.set_ps_dll(@powershell_dll)
-      PowerMod.set_ps_timeout(timeout)
-      PowerMod.set_ps_command(script)
-      execution = PowerMod.do_work
-      output = execution.read_utf16string
+      loop do
+        timeout = -1 if timeout == 0 || timeout.nil?
+        PowerMod.set_ps_dll(@powershell_dll)
+        PowerMod.set_ps_timeout(timeout)
+        PowerMod.set_ps_command(script)
+        execution = PowerMod.do_work
+        output = execution.read_utf16string
 
-      puts "::: Pre fail output :::"
-      p execution.debug_bytes
-      puts "::: End Pre fail output :::"
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
-    rescue FFI_Yajl::ParseError => e
-      puts "FFI_Yajl::ParseError: #{e.message} ====> "
-      p execution.debug_bytes
-      p execution.byte_length
-      string = execution.debug_bytes.pack("C*")
-      p string
-      p string.force_encoding("UTF-16LE")
-      p string.force_encoding("UTF-16LE").encode("UTF-8")
-      puts " <===="
-      if !is_retry
+        puts "::: Pre fail output :::"
+        p execution.debug_bytes
+        puts "::: End Pre fail output :::"
+        hashed_outcome = FFI_Yajl::Parser.parse(output)
+        @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+        @errors = hashed_outcome["errors"]
+        @verbose = hashed_outcome["verbose"]
+        break
+      rescue FFI_Yajl::ParseError => e
+        puts "FFI_Yajl::ParseError: #{e.message} ====> "
+        p execution.debug_bytes
+        p execution.byte_length
+        string = execution.debug_bytes.pack("C*")
+        p string
+        p string.force_encoding("UTF-16LE")
+        p string.force_encoding("UTF-16LE").encode("UTF-8")
+        puts " <===="
+        raise if is_retry
         is_retry = true
-        retry
+      rescue => e
+        puts "Something else! =>>"
+        p e
+        raise
+        puts "<<=="
       end
-      raise
-
-    rescue => e
-      puts "Something else! =>>"
-      p e
-      puts "<<=="
-    end
   end
 end
