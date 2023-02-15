@@ -41,15 +41,16 @@ module FFI
     end
 
     def read_utf16string
+      # get_bytes is ffi/ext/ffi_c/AbstractMemory.c's memory_get_bytes
+      # https://github.com/ffi/ffi/blob/master/ext/ffi_c/AbstractMemory.c#L532
       length = 0
-      loop do
-        if (get_bytes(length, 1).bytes[0] == 0 && get_bytes(length + 1, 1).bytes[0] == 0)
-          break
-        end
-        length += 2
-      end
-      @byte_length = length
-      get_bytes(0, length).dup.tap {|b| @debug_bytes = b.bytes }.force_encoding("utf-16le").encode("utf-8")
+
+      # assume UTF-16LE encoding and look for the double-null termination
+      # to determine the length of the string
+      length += 2 while get_bytes(length, 2) != "\x00\x00"
+
+      # duplicate the string prior to returning it
+      get_bytes(0, length).dup.force_encoding("utf-16le").encode("utf-8")
     end
   end
 end
