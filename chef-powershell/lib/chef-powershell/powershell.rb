@@ -90,7 +90,6 @@ class ChefPowerShell
 
     private
 
-
     def exec(script, timeout: -1)
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
