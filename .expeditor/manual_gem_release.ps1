@@ -24,7 +24,7 @@ if (Test-Path -Path c:\hab) {
 Write-Output "`r"
 
 Write-Output "--- Making sure we're in the correct spot"
-$project_root = (Get-ChildItem c:\ -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
+$project_root = (Get-ChildItem c:\ -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
 Set-Location -Path $project_root
 Write-Output "`r"
 
