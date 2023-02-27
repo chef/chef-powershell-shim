@@ -47,12 +47,10 @@ module FFI
 
       # assume UTF-16LE encoding and look for the double-null termination
       # to determine the length of the string
-      while get_bytes(length, 2) != "\x00\x00"
-        length += 2
-        puts "Length => #{length}"
-      end
+      length += 2 while get_bytes(length, 2) != "\x00\x00"
+
       # duplicate the string prior to returning it
-      get_bytes(0, length).dup.force_encoding("utf-16le").encode("utf-8")
+      get_bytes(0, length).force_encoding("utf-16le").encode("utf-8")
     end
   end
 end

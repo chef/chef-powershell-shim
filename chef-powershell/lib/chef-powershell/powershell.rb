@@ -96,10 +96,18 @@ class ChefPowerShell
       PowerMod.set_ps_timeout(timeout)
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
-      output = execution.read_utf16string
 
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+      is_retry = false
+      loop do
+        begin
+          hashed_outcome = FFI_Yajl::Parser.parse(output)
+
+          @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+        rescue FFI_Yajl::ParseError
+          raise if is_retry
+          is_retry = true
+        end
+      end
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
     end
