@@ -104,6 +104,7 @@ class ChefPowerShell
           hashed_outcome = FFI_Yajl::Parser.parse(output)
 
           @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+          break
         rescue FFI_Yajl::ParseError
           raise if is_retry
           is_retry = true
