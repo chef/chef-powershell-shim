@@ -100,6 +100,7 @@ class ChefPowerShell
       is_retry = false
       loop do
         begin
+          output = execution.read_utf16string
           hashed_outcome = FFI_Yajl::Parser.parse(output)
 
           @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
