@@ -97,21 +97,14 @@ class ChefPowerShell
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
 
-      is_retry = false
-      loop do
-        begin
-          output = execution.read_utf16string
-          hashed_outcome = FFI_Yajl::Parser.parse(output)
+      output = execution.read_utf16string
+      #      hashed_outcome = FFI_Yajl::Parser.parse(output)
+      hashed_outcome = JSON.parse(output)
 
-          @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-          @errors = hashed_outcome["errors"]
-          @verbose = hashed_outcome["verbose"]
-          break
-        rescue FFI_Yajl::ParseError
-          raise if is_retry
-          is_retry = true
-        end
-      end
+      #      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+      @result = JSON.parse(hashed_outcome["result"])
+      @errors = hashed_outcome["errors"]
+      @verbose = hashed_outcome["verbose"]
     end
   end
 end

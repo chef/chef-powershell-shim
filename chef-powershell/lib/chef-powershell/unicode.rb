@@ -49,7 +49,7 @@ module FFI
       utf16_length += 2 while get_bytes(utf16_length, 2) != "\x00\x00"
 
       # duplicate the string prior to returning it
-      get_bytes(0, utf16_length).dup.force_encoding("utf-16le").encode("utf-8")
+      get_bytes(0, utf16_length).force_encoding("utf-16le").encode("utf-8")
     end
   end
 end
