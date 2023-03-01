@@ -27,14 +27,14 @@ module FFI
     def read_wstring(num_wchars = nil)
       if num_wchars.nil?
         # Find the length of the string
-        length = 0
+        wstring_length = 0
         last_char = nil
         while last_char != "\000\000"
-          length += 1
-          last_char = get_bytes(0, length * 2)[-2..]
+          wstring_length += 1
+          last_char = get_bytes(0, wstring_length * 2)[-2..]
         end
 
-        num_wchars = length
+        num_wchars = wstring_length
       end
 
       wide_to_utf8(get_bytes(0, num_wchars * 2))
@@ -50,7 +50,7 @@ module FFI
       length += 2 while get_bytes(length, 2) != "\x00\x00"
 
       # duplicate the string prior to returning it
-      get_bytes(0, length).force_encoding("utf-16le").encode("utf-8")
+      get_bytes(0, length).dup.force_encoding("utf-16le").encode("utf-8")
     end
   end
 end
