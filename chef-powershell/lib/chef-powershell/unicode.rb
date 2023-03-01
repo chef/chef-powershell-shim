@@ -23,18 +23,17 @@ module FFI
   class Pointer
     include Chef::Mixin::WideString
 
-    attr_reader :byte_length, :debug_bytes
     def read_wstring(num_wchars = nil)
       if num_wchars.nil?
         # Find the length of the string
-        wstring_length = 0
+        length = 0
         last_char = nil
         while last_char != "\000\000"
-          wstring_length += 1
-          last_char = get_bytes(0, wstring_length * 2)[-2..]
+          length += 1
+          last_char = get_bytes(0, length * 2)[-2..]
         end
 
-        num_wchars = wstring_length
+        num_wchars = length
       end
 
       wide_to_utf8(get_bytes(0, num_wchars * 2))
@@ -43,14 +42,15 @@ module FFI
     def read_utf16string
       # get_bytes is ffi/ext/ffi_c/AbstractMemory.c's memory_get_bytes
       # https://github.com/ffi/ffi/blob/master/ext/ffi_c/AbstractMemory.c#L532
-      length = 0
+
+      padding_bytes = 0
 
       # assume UTF-16LE encoding and look for the double-null termination
       # to determine the length of the string
-      length += 2 while get_bytes(length, 2) != "\x00\x00"
+      padding_bytes += 1 while get_bytes(size - padding_bytes, 2)[-2..-1] != "\x00\x00"
 
       # duplicate the string prior to returning it
-      get_bytes(0, length).dup.force_encoding("utf-16le").encode("utf-8")
+      get_bytes(0, size - padding_bytes).dup.force_encoding("utf-16le").encode("utf-8")
     end
   end
 end
