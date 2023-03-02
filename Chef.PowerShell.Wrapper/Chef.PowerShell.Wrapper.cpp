@@ -6,7 +6,6 @@
 using namespace System;
 using namespace System::IO;
 using namespace System::Reflection;
-using namespace msclr::interop;
 
 // By default, .net will load assemblies from
 // the GAC or from the same directory as the running application - ruby.exe in this case.
@@ -35,11 +34,26 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
     return nullptr;
 }
 
-const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
+// This is the entry point for the DLL. It is called from ruby with the powershell script to execute.
+// Note that this is for "PowerShell" (5.1 and earlier) and not "PowerShell Core" (6.0 and later).
+// You likely want to make similiar changes to the Chef.PowerShell.Core.Wrapper.cpp file.
+const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocation_function* ruby_allocate)
 {
     String^ wPowerShellScript = gcnew String(powershellScript);
     String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
-    pin_ptr<const wchar_t> result = PtrToStringChars(output);
+
+    // Callback to the ruby function passed to us... need to free in ruby.
+    wchar_t *result = (wchar_t*) ruby_allocate((output->Length + 1) * sizeof(wchar_t));
+
+    // PtrToStringChars returns interior_ptr<const wchar_t>
+    // which can be implicitly cast to pin_ptr<const wchar_t>
+    pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
+
+    // but you have to separately cast to (const wchar_t*) after saving to a
+    // pin_ptr<const wchar_t> variable.
+    wcscpy(result, (const wchar_t*)pinned_result);
+
+    // Again, this is our callback allocated memory, so we need to free it in ruby.
     return result;
 }
 
