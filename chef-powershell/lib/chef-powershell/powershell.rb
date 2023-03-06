@@ -107,6 +107,14 @@ class ChefPowerShell
           @errors = hashed_outcome["errors"]
           @verbose = hashed_outcome["verbose"]
           break
+        rescue ArgumentError => e
+          raise if is_retry || e.message !~ /Invalid Memory object/
+          puts "<<== ArgumentError/Invalid Memory object, retrying ==>>"
+          is_retry = true
+        rescue NoMethodError
+          raise if is_retry || !hashed_outcome.nil?
+          puts "<<== NoMethodError, retrying ==>>"
+          is_retry = true
         rescue FFI_Yajl::ParseError
           raise if is_retry
           puts "<<== FFI_Yajl::ParseError, retrying ==>>"
