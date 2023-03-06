@@ -127,15 +127,15 @@ else {
 }
 Write-Output "`r"
 
-if (Test-Path -PathType Container $x86_bin_path) {
-    Get-ChildItem -Path $x86_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
-    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-}
-else {
-    New-Item -Path $x86_bin_path -ItemType Directory -Force
-    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-}
-Write-Output "`r"
+#if (Test-Path -PathType Container $x86_bin_path) {
+#    Get-ChildItem -Path $x86_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
+#    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
+#}
+#else {
+#    New-Item -Path $x86_bin_path -ItemType Directory -Force
+#    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
+#}
+#Write-Output "`r"
 
 Write-Output "--- :Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
