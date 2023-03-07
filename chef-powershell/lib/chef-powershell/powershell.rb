@@ -108,9 +108,9 @@ class ChefPowerShell
 =end
 
       loop do
-        @last_execution = PowerMod.do_work
-        @last_output = @last_execution.read_utf16string
-        hashed_outcome = FFI_Yajl::Parser.parse(@last_output)
+        execution = PowerMod.do_work
+        output = execution.read_utf16string
+        hashed_outcome = FFI_Yajl::Parser.parse(output)
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
         @errors = hashed_outcome["errors"]
         @verbose = hashed_outcome["verbose"]
