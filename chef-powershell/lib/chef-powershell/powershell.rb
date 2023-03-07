@@ -116,6 +116,7 @@ class ChefPowerShell
         break
       end
 =end
+      is_retry = false
       loop do
         begin
           execution = PowerMod.do_work
