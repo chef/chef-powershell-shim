@@ -100,7 +100,7 @@ class ChefPowerShell
       # the data is being prematurely marked for garbage collection
       @last_execution = PowerMod.do_work
       @last_output = @last_execution.read_utf16string
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
+      hashed_outcome = FFI_Yajl::Parser.parse(@last_output)
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
