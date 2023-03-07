@@ -96,7 +96,15 @@ class ChefPowerShell
       PowerMod.set_ps_timeout(timeout)
       PowerMod.set_ps_command(script)
 
-      is_retry = false
+      # using instance variables for execution and output because I suspect
+      # the data is being prematurely marked for garbage collection
+      @last_execution = PowerMod.do_work
+      @last_output = @last_execution.read_utf16string
+      hashed_outcome = FFI_Yajl::Parser.parse(output)
+      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+      @errors = hashed_outcome["errors"]
+      @verbose = hashed_outcome["verbose"]
+=begin
       loop do
         begin
           execution = PowerMod.do_work
@@ -121,6 +129,7 @@ class ChefPowerShell
           is_retry = true
         end
       end
+=end
     end
   end
 end
