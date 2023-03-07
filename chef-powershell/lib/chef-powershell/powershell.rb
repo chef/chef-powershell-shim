@@ -105,7 +105,6 @@ class ChefPowerShell
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
-=end
 
       loop do
         execution = PowerMod.do_work
@@ -116,7 +115,7 @@ class ChefPowerShell
         @verbose = hashed_outcome["verbose"]
         break
       end
-=begin
+=end
       loop do
         begin
           execution = PowerMod.do_work
@@ -141,7 +140,6 @@ class ChefPowerShell
           is_retry = true
         end
       end
-=end
     end
   end
 end
