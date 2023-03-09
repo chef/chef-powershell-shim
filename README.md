@@ -4,11 +4,22 @@ A .NET Assembly to facilitate communication between Chef and PowerShell on the W
 
 ### Development Prerequisites
 
-Binaries can be built with Habitat. See the PowerShell script .\.expeditor\build_gems.ps1 to test your changes
-Then run .\.expeditor\manual_gem_release.ps1 to build the gem and push it out. Releng does not have a Windows centric
-facility to build and push gems to Artifactory automatically. You will need:
-1) Access to the Chef internal Artifactory repo
-2) a Windows build system
+* Windows 2019 Server or later ideally, but Windows 10 or 11 will work
+* Install chocolatey with the following command:
+  * `Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))`
+* Install git via chocolatey with the following command:
+  * `choco install git -y`
+* Install Habitat via chocolatey with the following command:
+  * `choco install habitat -y`
+
+### Building and Testing Chef-Powershell
+* Use `.\.expeditor\build_gems.ps1` to build the gem and run tests
+  * `windows.h` errors may indicate an issue with the Windows SDK in habitat. Verify that the files are in `c:\hab` with `Get-ChildItem -Path C:\hab\ -Include windows.h -Recurse`
+* Remove the `*chef-powershell-shim` from `C:\hab\studios` ... Windows 10 may require restart before this will work
+
+### Publishing Chef-Powershell
+* Again, remove the `*chef-powershell-shim` from `C:\hab\studios` ... Windows 10 may require restart before this will work
+* Run `.\.expeditor\manual_gem_release.ps1` to build the gem and push to RubyGems.
 
 ## Contributing/Development
 

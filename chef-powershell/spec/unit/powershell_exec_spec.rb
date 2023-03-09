@@ -90,5 +90,34 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
     it "raises an error if the interpreter is invalid" do
       expect { object.powershell_exec!("this-should-error", :power_mistake) }.to raise_error(ArgumentError)
     end
+
+    let(:cert_script) do
+      <<~EOH
+        $serverauth = New-SelfSignedCertificate -Subject "chef-Server2019DC" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy 'Exportable'#-Type SSLServerAuthentication
+        $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root","LocalMachine")
+        ## Open the root certificate store for reading and writing.
+        $rootStore.Open("ReadWrite")
+        ## Add the certificate stored in the $authenticode variable.
+        $rootStore.Add($serverauth)
+        ## Close the root certificate store.
+        $rootStore.Close()
+
+        $publisherStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("TrustedPublisher","LocalMachine")
+        # Open the TrustedPublisher certificate store for reading and writing.
+        $publisherStore.Open("ReadWrite")
+        ## Add the certificate stored in the $authenticode variable.
+        $publisherStore.Add($serverauth)
+        ## Close the TrustedPublisher certificate store.
+        $publisherStore.Close()
+
+        # Get the code-signing certificate from the local computer's certificate store with the name *ATA Authenticode* and store it to the $codeCertificate variable.
+        $codeCertificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -eq "CN=Microsoft Graph Service Principle"}
+        Export-Certificate -Cert $codeCertificate -FilePath c:\localrepo\AzureGraphSP.cer
+      EOH
+    end
+    it "runs a command to create and retrieve a certificate" do
+      expect { object.powershell_exec!(cert_script) }.not_to raise_error
+    end
   end
+
 end
