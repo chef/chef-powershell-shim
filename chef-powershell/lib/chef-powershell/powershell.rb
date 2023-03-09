@@ -116,6 +116,7 @@ class ChefPowerShell
         break
       end
 =end
+      puts "<><><> executing powershell script"
       is_retry = false
       loop do
         begin
