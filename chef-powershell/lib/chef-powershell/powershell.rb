@@ -131,6 +131,10 @@ class ChefPowerShell
           raise if is_retry || e.message !~ /Invalid Memory object/
           puts "<<== ArgumentError/Invalid Memory object, retrying ==>>"
           is_retry = true
+        rescue Encoding::InvalidByteSequenceError
+          raise if is_retry
+          puts "<<== Encoding::InvalidByteSequenceError, retrying ==>>"
+          is_retry = true
         rescue NoMethodError
           raise if is_retry || !hashed_outcome.nil?
           puts "<<== NoMethodError, retrying ==>>"
