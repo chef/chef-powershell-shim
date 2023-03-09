@@ -93,7 +93,7 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
 
     let(:cert_script) do
       %q~
-        $serverauth = New-SelfSignedCertificate -Subject "chef-Server2019DC" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy 'Exportable'#-Type SSLServerAuthentication
+        $serverauth = New-SelfSignedCertificate -Subject "chef-Server2019DC" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy 'Exportable' #-Type SSLServerAuthentication
         $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root","LocalMachine")
         ## Open the root certificate store for reading and writing.
         $rootStore.Open("ReadWrite")
@@ -111,8 +111,12 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
         $publisherStore.Close()
 
         # Get the code-signing certificate from the local computer's certificate store with the name *ATA Authenticode* and store it to the $codeCertificate variable.
-        $codeCertificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -eq "CN=Microsoft Graph Service Principle"}
-        Export-Certificate -Cert $codeCertificate -FilePath c:\localrepo\AzureGraphSP.cer
+        $codeCertificate = Get-ChildItem Cert:\CurrentUser\My | Where-Object {$_.Subject -eq "CN=chef-Server2019DC"}
+        if(($codeCertificate[0].HasPrivateKey) -eq $true) -and ($codeCertificate[0].PrivateKey.Key.ExportPolicy -ne "NonExportable")) {
+          return $true
+        } else {
+          return $false
+        }
       ~
     end
     it "runs a command to create and retrieve a certificate" do
