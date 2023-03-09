@@ -92,7 +92,7 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
     end
 
     let(:cert_script) do
-      <<~EOH
+      %q~
         $serverauth = New-SelfSignedCertificate -Subject "chef-Server2019DC" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy 'Exportable'#-Type SSLServerAuthentication
         $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root","LocalMachine")
         ## Open the root certificate store for reading and writing.
@@ -113,7 +113,7 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
         # Get the code-signing certificate from the local computer's certificate store with the name *ATA Authenticode* and store it to the $codeCertificate variable.
         $codeCertificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -eq "CN=Microsoft Graph Service Principle"}
         Export-Certificate -Cert $codeCertificate -FilePath c:\localrepo\AzureGraphSP.cer
-      EOH
+      ~
     end
     it "runs a command to create and retrieve a certificate" do
       expect { object.powershell_exec!(cert_script) }.not_to raise_error
