@@ -41,7 +41,6 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      PowerMod.powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @ps_timeout = (timeout == 0 || timeout.nil?) ? -1 : timeout
 
       exec(script)
@@ -66,10 +65,12 @@ class ChefPowerShell
     module PowerMod
       extend FFI::Library
 
-      attr_accessor :powershell_dll
+      def self.powershell_dll
+        @powershell_dll ||= PowerMod.powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      end
 
-      def do_work(ps_command, ps_timeout=-1)
-        ffi_lib powershell_dll
+      def self.do_work(ps_command, ps_timeout=-1)
+        ffi_lib self.powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
         execute_powershell(ps_command, ps_timeout)
       end
@@ -79,7 +80,7 @@ class ChefPowerShell
 
     def exec(script)
       begin
-        @execution = do_work(script, @ps_timeout)
+        @execution = PowerMod.do_work(script, @ps_timeout)
         @output = @execution.read_utf16string
         @hashed_outcome = FFI_Yajl::Parser.parse(@output)
         @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
