@@ -42,12 +42,12 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
     pin_ptr<const wchar_t> result = PtrToStringChars(output);
 
     // open file for writing append result here
-    StreamWriter *pwriter = new StreamWriter("C:\\chef-powershell-output.txt", false);
-    pwriter->WriteLine("output::");
-    pwriter->WriteLine(output);
-    pwriter->WriteLine("result::");
-    pwriter->Write(result);
-    pwriter->Close();
+    StreamWriter^ writer = new StreamWriter("C:\\chef-powershell-output.txt", false);
+    writer->WriteLine("output::");
+    writer->WriteLine(output);
+    writer->WriteLine("result::");
+    writer->Write(result);
+    writer->Close();
     return result;
 }
 
