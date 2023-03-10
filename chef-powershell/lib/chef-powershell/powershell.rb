@@ -42,7 +42,6 @@ class ChefPowerShell
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
       @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
-      PowerMod.powershell_dll= @powershell_dll
       timeout = -1 if timeout.nil? || timeout == 0
 
       exec(script, timeout: timeout)
@@ -68,7 +67,7 @@ class ChefPowerShell
       extend FFI::Library
 
       def self.powershell_dll=(powershell_dll)
-        @powershell_dll ||= powershell_dll
+        @powershell_dll = powershell_dll
       end
 
       def self.powershell_dll
@@ -76,7 +75,7 @@ class ChefPowerShell
       end
 
       def self.do_work(ps_command, timeout=-1)
-        ffi_lib self.powershell_dll
+        ffi_lib PowerMod.powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
         execute_powershell(ps_command, timeout)
       end
@@ -85,6 +84,7 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
+      PowerMod.powershell_dll= @powershell_dll
       @execution = PowerMod.do_work(script, timeout)
       @output = @execution.read_utf16string
       @hashed_outcome = FFI_Yajl::Parser.parse(@output)
