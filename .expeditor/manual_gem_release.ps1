@@ -94,11 +94,6 @@ Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
 $x64 = hab pkg path ci/chef-powershell-shim
 Write-Output "`r"
 
-#Write-Output "--- :construction: Building 32-bit PowerShell DLL's"
-#hab pkg build -R Habitat-x86
-#if (-not $?) { throw "unable to build" }
-#Write-Output "`r"
-
 . results/last_build.ps1
 if (-not $?) { throw "unable to determine details about this build" }
 
@@ -109,13 +104,8 @@ hab pkg install results/$pkg_artifact
 if (-not $?) { throw "unable to install this build" }
 Write-Output "`r"
 
-#Write-Output "--- :hammer_and_wrench: Capturing the x86 installation path"
-#$x86 = hab pkg path ci/chef-powershell-shim-x86
-#Write-Output "`r"
-
 Write-Output "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
 $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
-#$x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
 
 if (Test-Path -PathType Container $x64_bin_path) {
     Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
@@ -126,16 +116,6 @@ else {
     Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
 Write-Output "`r"
-
-#if (Test-Path -PathType Container $x86_bin_path) {
-#    Get-ChildItem -Path $x86_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
-#    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-#}
-#else {
-#    New-Item -Path $x86_bin_path -ItemType Directory -Force
-#    Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-#}
-#Write-Output "`r"
 
 Write-Output "--- :Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
