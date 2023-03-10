@@ -90,7 +90,7 @@ class ChefPowerShell
 
     private
 
-    def log(message, level = :debug
+    def log(message, level = :debug)
       if defined?(Chef::Log)
         Chef::Log.send(level, message)
       end
