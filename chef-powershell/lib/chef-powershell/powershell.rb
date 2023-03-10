@@ -43,7 +43,7 @@ class ChefPowerShell
       # Bundle install ensures that the correct architecture binaries are installed into the path.
       timeout = -1 if timeout.nil? || timeout == 0
 
-      exec(script, timeout)
+      exec(script, timeout: timeout)
     end
 
     #
@@ -78,7 +78,7 @@ class ChefPowerShell
 
     private
 
-    def exec(script, timeout)
+    def exec(script, timeout: timeout)
       @execution = PowerMod.do_work(script, timeout)
       @output = @execution.read_utf16string
       @hashed_outcome = FFI_Yajl::Parser.parse(@output)
