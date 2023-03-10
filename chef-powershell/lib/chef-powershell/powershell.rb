@@ -90,67 +90,31 @@ class ChefPowerShell
 
     private
 
-    def log(message, level = :debug)
-      if defined?(Chef::Log)
-        Chef::Log.send(level, message)
-      end
-    end
-
     def exec(script, timeout: -1)
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
       PowerMod.set_ps_command(script)
 
-=begin
-      # using instance variables for execution and output because I suspect
-      # the data is being prematurely marked for garbage collection
-      @last_execution = PowerMod.do_work
-      @last_output = @last_execution.read_utf16string
-      hashed_outcome = FFI_Yajl::Parser.parse(@last_output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
-
-      loop do
-        execution = PowerMod.do_work
-        output = execution.read_utf16string
-        hashed_outcome = FFI_Yajl::Parser.parse(output)
-        @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-        @errors = hashed_outcome["errors"]
-        @verbose = hashed_outcome["verbose"]
+      begin
+        @output = nil
+        @hashed_outcome = nil
+        @execution = nil
+        @execution = PowerMod.do_work
+        @output = execution.read_utf16string
+        @hashed_outcome = FFI_Yajl::Parser.parse(@output)
+        @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
+        @errors = @hashed_outcome["errors"]
+        @verbose = @hashed_outcome["verbose"]
         break
-      end
-=end
-      log "<><><> executing powershell script"
-      is_retry = false
-      loop do
-        begin
-          execution = PowerMod.do_work
-
-          output = execution.read_utf16string
-          hashed_outcome = FFI_Yajl::Parser.parse(output)
-          @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-          @errors = hashed_outcome["errors"]
-          @verbose = hashed_outcome["verbose"]
-          break
-        rescue ArgumentError => e
-          raise if is_retry || e.message !~ /Invalid Memory object/
-          log "<<== ArgumentError/Invalid Memory object, retrying ==>>"
-          is_retry = true
-        rescue Encoding::InvalidByteSequenceError
-          raise if is_retry
-          log "<<== Encoding::InvalidByteSequenceError, retrying ==>>"
-          is_retry = true
-        rescue NoMethodError
-          raise if is_retry || !hashed_outcome.nil?
-          log "<<== NoMethodError, retrying ==>>"
-          is_retry = true
-        rescue FFI_Yajl::ParseError
-          raise if is_retry
-          log "<<== FFI_Yajl::ParseError, retrying ==>>"
-          is_retry = true
+      rescue => e
+        details = "<<== FFI_Yajl::ParseError ==>>"
+        is_retry = true
+        details += " #{e.message}"
+        if File.exist?("c://chef-powershell-output.txt")
+          details += File.read("c://chef-powershell-output.txt")
         end
+        raise details
       end
     end
   end
