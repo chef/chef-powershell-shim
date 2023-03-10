@@ -97,16 +97,17 @@ class ChefPowerShell
       PowerMod.set_ps_command(script)
 
       begin
+        # yes, none of these should be necessary
         @output = nil
         @hashed_outcome = nil
         @execution = nil
+
         @execution = PowerMod.do_work
-        @output = execution.read_utf16string
+        @output = @execution.read_utf16string
         @hashed_outcome = FFI_Yajl::Parser.parse(@output)
         @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
         @errors = @hashed_outcome["errors"]
         @verbose = @hashed_outcome["verbose"]
-        break
       rescue => e
         details = "<<== FFI_Yajl::ParseError ==>>"
         is_retry = true
