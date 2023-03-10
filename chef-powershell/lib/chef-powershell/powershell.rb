@@ -22,7 +22,6 @@ require_relative "unicode"
 
 class ChefPowerShell
   class PowerShell
-    include FFI::Library
 
     attr_reader :result
     attr_reader :errors
@@ -42,9 +41,9 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
-      @ps_command = script
+      PowerMod.powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @ps_timeout = (timeout == 0 || timeout.nil?) ? -1 : timeout
+
       exec(script)
     end
 
@@ -54,8 +53,7 @@ class ChefPowerShell
     # @return [Boolean]
     #
     def error?
-      return true if errors.count > 0
-      false
+      errors.count > 0
     end
 
     #
@@ -65,17 +63,23 @@ class ChefPowerShell
       raise ChefPowerShell::PowerShellExceptions::PowerShellCommandFailed, "Unexpected exit in PowerShell command: #{@errors}" if error?
     end
 
-    def do_work
-      ffi_lib @powershell_dll
-      attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
-      execute_powershell(@ps_command, @ps_timeout)
+    module PowerMod
+      extend FFI::Library
+
+      attr_accessor :powershell_dll
+
+      def do_work(ps_command, ps_timeout=-1)
+        ffi_lib powershell_dll
+        attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+        execute_powershell(ps_command, ps_timeout)
+      end
     end
 
     private
 
     def exec(script)
       begin
-        @execution = do_work
+        @execution = do_work(script, @ps_timeout)
         @output = @execution.read_utf16string
         @hashed_outcome = FFI_Yajl::Parser.parse(@output)
         @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
