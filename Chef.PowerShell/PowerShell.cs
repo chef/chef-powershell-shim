@@ -18,6 +18,7 @@ namespace Chef
         /// Executes a PowerShell script via Windows PowerShell. Requires PowerShell 3.0 or above.
         /// </summary>
         /// <param name="powershellScript">String. Script to execute.</param>
+        /// <param name="timeout">Int. Defaults to -1, indefinite</param>
         /// <returns>A string containing either a Json representation of the resultset, or an empty Json object "{}" if no results are returned.</returns>
         public static string ExecuteScript(string powershellScript, int timeout)
         {

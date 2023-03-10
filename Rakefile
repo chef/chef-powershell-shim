@@ -35,19 +35,15 @@ task :update_chef_powershell_dlls do
   raise "Unable to locate Habitat cli. Please install Habitat cli before invoking this task!" unless find_executable "hab"
 
   sh("hab pkg build Habitat")
-  sh("hab pkg build Habitat-x86")
 
   sh("hab pkg install chef/chef-powershell-shim")
-  sh("hab pkg install chef/chef-powershell-shim-x86")
 
   x64 = `hab pkg path chef/chef-powershell-shim`.chomp.tr("\\", "/")
-  x86 = `hab pkg path chef/chef-powershell-shim-x86`.chomp.tr("\\", "/")
+
   FileUtils.rm_rf(Dir["bin/ruby_bin_folder/AMD64/*"])
-  FileUtils.rm_rf(Dir["bin/ruby_bin_folder/x86/*"])
+
   puts "Copying #{x64}/bin/* to chef-powershell/bin/ruby_bin_folder/AMD64"
   FileUtils.cp_r(Dir["#{x64}/bin/*"], "chef-powershell/bin/ruby_bin_folder/AMD64")
-  puts "Copying #{x86}/bin/* to chef-powershell/bin/ruby_bin_folder/x86"
-  FileUtils.cp_r(Dir["#{x86}/bin/*"], "chef-powershell/bin/ruby_bin_folder/x86")
 end
 
 task all: %w{update_chef_powershell_dlls}.freeze

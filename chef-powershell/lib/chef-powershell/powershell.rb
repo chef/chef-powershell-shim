@@ -42,6 +42,8 @@ class ChefPowerShell
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
       @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      timeout = -1 if timeout.nil? || timeout == 0
+
       exec(script, timeout: timeout)
     end
 
@@ -51,9 +53,7 @@ class ChefPowerShell
     # @return [Boolean]
     #
     def error?
-      return true if errors.count > 0
-
-      false
+      errors.count > 0
     end
 
     #
@@ -65,42 +65,32 @@ class ChefPowerShell
 
     module PowerMod
       extend FFI::Library
-      @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
-      @@ps_command = ""
-      @@ps_timeout = -1
 
-      def self.set_ps_dll(value)
-        @@powershell_dll = value
+      def self.powershell_dll=(powershell_dll)
+        @powershell_dll = powershell_dll
       end
 
-      def self.set_ps_command(value)
-        @@ps_command = value
+      def self.powershell_dll
+        @powershell_dll
       end
 
-      def self.set_ps_timeout(value)
-        @@ps_timeout = value
-      end
-
-      def self.do_work
-        ffi_lib @@powershell_dll
+      def self.do_work(ps_command, timeout = -1)
+        ffi_lib PowerMod.powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
-        execute_powershell(@@ps_command, @@ps_timeout)
+        execute_powershell(ps_command, timeout)
       end
     end
 
     private
 
     def exec(script, timeout: -1)
-      timeout = -1 if timeout == 0 || timeout.nil?
-      PowerMod.set_ps_dll(@powershell_dll)
-      PowerMod.set_ps_timeout(timeout)
-      PowerMod.set_ps_command(script)
-      execution = PowerMod.do_work
-      output = execution.read_utf16string
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
+      PowerMod.powershell_dll = @powershell_dll
+      @execution = PowerMod.do_work(script, timeout)
+      @output = @execution.read_utf16string
+      @hashed_outcome = FFI_Yajl::Parser.parse(@output)
+      @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
+      @errors = @hashed_outcome["errors"]
+      @verbose = @hashed_outcome["verbose"]
     end
   end
 end

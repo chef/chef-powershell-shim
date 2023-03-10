@@ -40,6 +40,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
     String^ wPowerShellScript = gcnew String(powershellScript);
     String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
     pin_ptr<const wchar_t> result = PtrToStringChars(output);
+
     return result;
 }
 
