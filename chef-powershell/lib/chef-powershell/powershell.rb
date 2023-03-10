@@ -74,7 +74,7 @@ class ChefPowerShell
         @powershell_dll
       end
 
-      def self.do_work(ps_command, timeout=-1)
+      def self.do_work(ps_command, timeout = -1)
         ffi_lib PowerMod.powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
         execute_powershell(ps_command, timeout)
@@ -84,7 +84,7 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
-      PowerMod.powershell_dll= @powershell_dll
+      PowerMod.powershell_dll = @powershell_dll
       @execution = PowerMod.do_work(script, timeout)
       @output = @execution.read_utf16string
       @hashed_outcome = FFI_Yajl::Parser.parse(@output)
