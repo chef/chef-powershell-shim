@@ -78,7 +78,7 @@ class ChefPowerShell
 
     private
 
-    def exec(script, timeout: timeout)
+    def exec(script, timeout: -1)
       @execution = PowerMod.do_work(script, timeout)
       @output = @execution.read_utf16string
       @hashed_outcome = FFI_Yajl::Parser.parse(@output)
