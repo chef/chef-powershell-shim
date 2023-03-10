@@ -90,6 +90,12 @@ class ChefPowerShell
 
     private
 
+    def log(message, level = :debug
+      if defined?(Chef::Log)
+        Chef::Log.send(level, message)
+      end
+    end
+
     def exec(script, timeout: -1)
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
@@ -116,7 +122,7 @@ class ChefPowerShell
         break
       end
 =end
-      puts "<><><> executing powershell script"
+      log "<><><> executing powershell script"
       is_retry = false
       loop do
         begin
@@ -130,19 +136,19 @@ class ChefPowerShell
           break
         rescue ArgumentError => e
           raise if is_retry || e.message !~ /Invalid Memory object/
-          puts "<<== ArgumentError/Invalid Memory object, retrying ==>>"
+          log "<<== ArgumentError/Invalid Memory object, retrying ==>>"
           is_retry = true
         rescue Encoding::InvalidByteSequenceError
           raise if is_retry
-          puts "<<== Encoding::InvalidByteSequenceError, retrying ==>>"
+          log "<<== Encoding::InvalidByteSequenceError, retrying ==>>"
           is_retry = true
         rescue NoMethodError
           raise if is_retry || !hashed_outcome.nil?
-          puts "<<== NoMethodError, retrying ==>>"
+          log "<<== NoMethodError, retrying ==>>"
           is_retry = true
         rescue FFI_Yajl::ParseError
           raise if is_retry
-          puts "<<== FFI_Yajl::ParseError, retrying ==>>"
+          log "<<== FFI_Yajl::ParseError, retrying ==>>"
           is_retry = true
         end
       end

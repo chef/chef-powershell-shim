@@ -112,11 +112,7 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
 
         # Get the code-signing certificate from the local computer's certificate store with the name *ATA Authenticode* and store it to the $codeCertificate variable.
         $codeCertificate = Get-ChildItem Cert:\CurrentUser\My | Where-Object {$_.Subject -eq "CN=chef-Server2019DC"}
-        if(($codeCertificate[0].HasPrivateKey) -eq $true) -and ($codeCertificate[0].PrivateKey.Key.ExportPolicy -ne "NonExportable")) {
-          return $true
-        } else {
-          return $false
-        }
+        return [convert]::tobase64string($codeCertificate[0].rawdata)
       ~
     end
     it "runs a command to create and retrieve a certificate" do
