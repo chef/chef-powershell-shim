@@ -66,7 +66,7 @@ class ChefPowerShell
       extend FFI::Library
 
       def self.powershell_dll
-        @powershell_dll ||= PowerMod.powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+        @powershell_dll ||= Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       end
 
       def self.do_work(ps_command, ps_timeout=-1)
