@@ -81,7 +81,7 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
-      load_powershell_dll(@powershell_dll)
+      PowerMod.load_powershell_dll(@powershell_dll)
       execution = PowerMod.do_work(script, timeout)
       output = execution.read_utf16string
       hashed_outcome = FFI_Yajl::Parser.parse(output)
