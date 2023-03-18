@@ -15,7 +15,7 @@ GEM
     diff-lcs (1.5.0)
     fauxhai-ng (9.1.0)
       net-ssh
-    ffi (1.15.5-x64-mingw32)
+    ffi (1.15.5-x64-mingw-ucrt)
     ffi-yajl (2.4.0)
       libyajl2 (>= 1.2)
     libyajl2 (2.1.0)

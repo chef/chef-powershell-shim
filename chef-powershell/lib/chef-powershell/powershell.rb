@@ -66,16 +66,13 @@ class ChefPowerShell
     module PowerMod
       extend FFI::Library
 
-      def self.powershell_dll=(powershell_dll)
-        @powershell_dll = powershell_dll
-      end
-
-      def self.powershell_dll
-        @powershell_dll
+      def self.load_powershell_dll(powershell_dll)
+        @dlls ||= []
+        return if @dlls.include?(powershell_dll)
+        @dlls << powershell_dll
       end
 
       def self.do_work(ps_command, timeout = -1)
-        ffi_lib PowerMod.powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
         execute_powershell(ps_command, timeout)
       end
@@ -84,13 +81,13 @@ class ChefPowerShell
     private
 
     def exec(script, timeout: -1)
-      PowerMod.powershell_dll = @powershell_dll
-      @execution = PowerMod.do_work(script, timeout)
-      @output = @execution.read_utf16string
-      @hashed_outcome = FFI_Yajl::Parser.parse(@output)
-      @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
-      @errors = @hashed_outcome["errors"]
-      @verbose = @hashed_outcome["verbose"]
+      load_powershell_dll(@powershell_dll)
+      execution = PowerMod.do_work(script, timeout)
+      output = execution.read_utf16string
+      hashed_outcome = FFI_Yajl::Parser.parse(output)
+      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+      @errors = hashed_outcome["errors"]
+      @verbose = hashed_outcome["verbose"]
     end
   end
 end
