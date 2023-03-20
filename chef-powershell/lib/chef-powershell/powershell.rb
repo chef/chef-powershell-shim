@@ -69,6 +69,7 @@ class ChefPowerShell
       def self.load_powershell_dll(powershell_dll)
         @dlls ||= []
         return if @dlls.include?(powershell_dll)
+        ffi_lib powershell_dll
         @dlls << powershell_dll
       end
 
