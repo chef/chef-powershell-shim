@@ -16,5 +16,5 @@
 
 module ChefPowerShellModule
   CHEFPOWERSHELL_ROOT = File.expand_path("..", __dir__)
-  VERSION = "3.0.17".freeze
+  VERSION = "3.0.18".freeze
 end
