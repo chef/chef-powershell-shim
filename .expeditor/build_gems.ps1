@@ -85,32 +85,8 @@ Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
 Test-Path -Path $x64
 Write-Output "`r"
 
-# Write-Output "--- :construction: Building 32-bit PowerShell DLL's"
-# hab pkg build -R Habitat-x86
-# if (-not $?) { throw "unable to build"}
-# Write-Output "`r"
-
-# Write-Output "--- :hammer_and_wrench: Loading Details of 32-bit build "
-# . results/last_build.ps1
-# if (-not $?) { throw "unable to determine details about this build"}
-# Write-Output "`r"
-
-# Write-Output "--- :hammer_and_wrench: Installing 32-bit $pkg_ident"
-# # Hab throws an Access Denied sometimes if we install immediately after the build. 5 seconds seems to be enough.
-# Start-Sleep -Seconds 5
-# hab pkg install results/$pkg_artifact
-# if (-not $?) { throw "unable to install this build"}
-# Write-Output "`r"
-
-# Write-Output "--- :hammer_and_wrench: Capturing the x86 installation path"
-# $x86 = hab pkg path ci/chef-powershell-shim-x86
-# Write-Output "Hab thinks it installed my 32-bit dlls here : $x86"
-# Test-Path -Path $x86
-# Write-Output "`r"
-
 Write-Output "--- :muscle: cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
 $x64_bin_path = $("$project_root\chef-powershell\bin\ruby_bin_folder\AMD64")
-# $x86_bin_path = $("$project_root\chef-powershell\bin\ruby_bin_folder\x86")
 if (Test-Path -PathType Container $x64_bin_path) {
   Write-Output "My 64-bit path WAS found here : $x64_bin_path"
   Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
@@ -122,17 +98,6 @@ else{
   New-Item -Path $x64_bin_path -ItemType Directory -Force
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
-# if (Test-Path -PathType Container $x86_bin_path) {
-#   Write-Output "My 32-bit path WAS found here : $x86_bin_path"
-#   Get-ChildItem -Path $x86_bin_path -Recurse| Foreach-object {Remove-item -Recurse -path $_.FullName -Force }
-#   New-Item -Path $x86_bin_path -ItemType Directory -Force
-#   Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-# }
-# else{
-#   Write-Output "My 32-bit path was NOT found, now building here : $x86_bin_path"
-#   New-Item -Path $x86_bin_path -ItemType Directory -Force
-#   Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-# }
 Write-Output "`r"
 
 Write-Output "--- :truck: Moving to the chef-powershell gem directory"
