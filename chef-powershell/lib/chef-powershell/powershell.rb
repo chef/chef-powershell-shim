@@ -37,7 +37,7 @@ class ChefPowerShell
     # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
     def initialize(script, timeout: -1)
-      @power_mod = 'PowerShellMod'
+      @power_mod = 'ChefPowerShell::PowerShell::PowerShellMod'
       # This Powershell DLL source lives here: https://github.com/chef/chef-powershell-shim
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
