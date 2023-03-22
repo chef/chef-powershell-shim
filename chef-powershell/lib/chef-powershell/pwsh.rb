@@ -26,11 +26,28 @@ class ChefPowerShell
     # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
     def initialize(script, timeout: -1)
+      @power_mod = 'PwshMod'
       @dll = Pwsh.dll
       super
     end
 
     protected
+
+    module PwshMod
+      extend FFI::Library
+
+      def self.load_powershell_dll(powershell_dll)
+        @dlls ||= []
+        return if @dlls.include?(powershell_dll)
+        ffi_lib powershell_dll
+        @dlls << powershell_dll
+      end
+
+      def self.do_work(ps_command, timeout = -1)
+        attach_function(:execute_powershell, :ExecuteScript, %i{string int}, :pointer) unless method_defined?(:execute_powershell)
+        execute_powershell(ps_command, timeout)
+      end
+    end
 
     def exec(script, timeout: -1)
       # Note that we need to override the location of the shared dotnet core library
