@@ -74,7 +74,7 @@ class ChefPowerShell
       end
 
       def self.do_work(ps_command, timeout = -1)
-        attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+        attach_function(:execute_powershell, :ExecuteScript, %i{string int}, :pointer) unless method_defined?(:execute_powershell)
         execute_powershell(ps_command, timeout)
       end
     end
