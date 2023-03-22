@@ -26,12 +26,13 @@ class ChefPowerShell
     # @param timeout [Integer, nil] timeout in seconds.
     # @return [Object] output
     def initialize(script, timeout: -1)
-      @power_mod = 'ChefPowerShell::Pwsh::PwshMod'
       @dll = Pwsh.dll
       super
     end
 
-    protected
+    def power_mod
+      ChefPowerShell::Pwsh::PwshMod
+    end
 
     module PwshMod
       extend FFI::Library
