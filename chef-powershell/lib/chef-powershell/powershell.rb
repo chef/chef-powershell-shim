@@ -86,12 +86,21 @@ class ChefPowerShell
 
     def exec(script, timeout: -1)
       power_mod.load_powershell_dll(@powershell_dll)
-      execution = power_mod.do_work(script, timeout)
-      output = execution.read_utf16string
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
+      begin
+        execution = power_mod.do_work(script, timeout)
+        output = execution.read_utf16string
+        hashed_outcome = FFI_Yajl::Parser.parse(output)
+        @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+        @errors = hashed_outcome["errors"]
+        @verbose = hashed_outcome["verbose"]
+      rescue => e
+        if File.exist?("C:\\chef-powershell-output.txt")
+          message=[e.inspect, File.read("C:\\chef-powershell-output.txt")].join("\n")
+          raise message
+        else
+          raise
+        end
+      end
     end
   end
 end
