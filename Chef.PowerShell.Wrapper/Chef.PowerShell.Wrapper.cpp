@@ -38,20 +38,33 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
 
 const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
 {
-    String^ wPowerShellScript = gcnew String(powershellScript);
-    String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
-    pin_ptr<const wchar_t> result = PtrToStringChars(output);
+    StreamWriter^ prewriter = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+    prewriter->WriteLine("no output yet");
+    prewriter->Close();
 
-    // open file for writing append result here
-    StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
-    writer->WriteLine("script::");
-    writer->WriteLine(wPowerShellScript);
-    writer->WriteLine("output::");
-    writer->WriteLine(output);
-    writer->WriteLine("result::");
-    writer->Write(result);
-    writer->Close();
-    return result;
+    try {
+        String^ wPowerShellScript = gcnew String(powershellScript);
+        String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
+        pin_ptr<const wchar_t> result = PtrToStringChars(output);
+
+        // open file for writing append result here
+        StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+        writer->WriteLine("script::");
+        writer->WriteLine(wPowerShellScript);
+        writer->WriteLine("output::");
+        writer->WriteLine(output);
+        writer->WriteLine("result::");
+        writer->Write(result);
+        writer->Close();
+        return result;
+    } catch (Exception^ e) {
+        StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+        writer->WriteLine("script::");
+        writer->WriteLine(wPowerShellScript);
+        writer->WriteLine("We are encountering a " + e->GetType()->ToString() + " exception!!!");
+        writer->Close();
+        throw e;
+    }
 }
 
 // This initializes the DLL with an assembly Resolve Handler. Note that we are initializing
