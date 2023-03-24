@@ -93,11 +93,13 @@ class ChefPowerShell
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
         @errors = hashed_outcome["errors"]
         @verbose = hashed_outcome["verbose"]
+=begin
         if File.exist?("C:\\chef-powershell-output.txt")
           STDERR.puts "<<== normal output ==>>"
           STDERR.puts File.read("C:\\chef-powershell-output.txt")
           STDERR.puts "<</== normal output ==>>"
         end
+=end
       rescue => e
         if File.exist?("C:\\chef-powershell-output.txt")
           message=[e.inspect, File.read("C:\\chef-powershell-output.txt")].join("\n")

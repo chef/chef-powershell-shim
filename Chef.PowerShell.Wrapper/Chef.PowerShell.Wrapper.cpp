@@ -45,7 +45,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
     try {
         String^ wPowerShellScript = gcnew String(powershellScript);
         String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
-        pin_ptr<const wchar_t> result = PtrToStringChars(output);
+        static pin_ptr<const wchar_t> result = PtrToStringChars(output);
 
         // open file for writing append result here
         StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
