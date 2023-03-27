@@ -35,37 +35,15 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
     return nullptr;
 }
 
-
 const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
 {
-    StreamWriter^ prewriter = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
-    prewriter->WriteLine("no output yet");
-    prewriter->Close();
-
-    try {
-        String^ wPowerShellScript = gcnew String(powershellScript);
-        String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
-        // pin_ptr<const wchar_t> result = PtrToStringChars(output);
-
-        // open file for writing append result here
-        StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
-        writer->WriteLine("script::");
-        writer->WriteLine(wPowerShellScript);
-        writer->WriteLine("output::");
-        writer->WriteLine(output);
-        writer->WriteLine("mashaled output::");
-        writer->WriteLine(mashal_as<std::wstring>(output));
-        writer->Close();
-        return mashal_as<std::wstring>(output);
-    } catch (Exception^ e) {
-        StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
-        String^ wPowerShellScript = gcnew String(powershellScript);
-        writer->WriteLine("script::");
-        writer->WriteLine(wPowerShellScript);
-        writer->WriteLine("We are encountering a " + e->GetType()->ToString() + " exception!!!");
-        writer->Close();
-        throw e;
-    }
+    String^ wPowerShellScript = gcnew String(powershellScript);
+    String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
+    pin_ptr<const wchar_t> result = PtrToStringChars(output);
+    static wchar_t* returnedString = NULL;
+    if (returnedString) { free(returnedString); }
+    returnedString = _wcsdup(result);
+    return returnedString;
 }
 
 // This initializes the DLL with an assembly Resolve Handler. Note that we are initializing
