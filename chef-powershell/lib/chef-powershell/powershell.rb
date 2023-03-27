@@ -90,16 +90,10 @@ class ChefPowerShell
         execution = power_mod.do_work(script, timeout)
         output = execution.read_utf16string
         hashed_outcome = FFI_Yajl::Parser.parse(output)
+        STDERR.puts "result data size: #{hashed_outcome["result"].size}"
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
         @errors = hashed_outcome["errors"]
         @verbose = hashed_outcome["verbose"]
-=begin
-        if File.exist?("C:\\chef-powershell-output.txt")
-          STDERR.puts "<<== normal output ==>>"
-          STDERR.puts File.read("C:\\chef-powershell-output.txt")
-          STDERR.puts "<</== normal output ==>>"
-        end
-=end
       rescue => e
         if File.exist?("C:\\chef-powershell-output.txt")
           message=[e.inspect, File.read("C:\\chef-powershell-output.txt")].join("\n")

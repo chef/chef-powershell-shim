@@ -41,8 +41,21 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
     String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
     pin_ptr<const wchar_t> result = PtrToStringChars(output);
     static wchar_t* returnedString = NULL;
-    if (returnedString) { free(returnedString); }
+    StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+    if (returnedString) {
+        writer->Write("freed returnedString ");
+        writer->WriteLine(returnedString);
+        free(returnedString);
+    }
     returnedString = _wcsdup(result);
+
+    writer->WriteLine("script::");
+    writer->WriteLine(wPowerShellScript);
+    writer->WriteLine("output::");
+    writer->WriteLine(output);
+    writer->Write("returnedString::");
+    writer->WriteLine(returnedString);
+    writer->Close();
     return returnedString;
 }
 
