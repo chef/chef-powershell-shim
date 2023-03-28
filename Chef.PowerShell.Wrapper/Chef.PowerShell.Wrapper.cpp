@@ -35,28 +35,25 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
     return nullptr;
 }
 
-const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
+const wchar_t* ExecuteScript(const char* powershellScript, void *returnPtr, int memorySize, int timeout)
 {
     String^ wPowerShellScript = gcnew String(powershellScript);
     String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
     pin_ptr<const wchar_t> result = PtrToStringChars(output);
-    static wchar_t* returnedString = NULL;
+
     StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
-    if (returnedString) {
-        writer->Write("freed returnedString ");
-        writer->WriteLine(returnedString);
-        free(returnedString);
-    }
-    returnedString = _wcsdup(result);
 
     writer->WriteLine("script::");
     writer->WriteLine(wPowerShellScript);
     writer->WriteLine("output::");
     writer->WriteLine(output);
     writer->Write("returnedString::");
-    writer->WriteLine(returnedString);
+
+    wcsncpy((wchar_t*) returnPtr, result, memorySize / 2);
+
+    writer->WriteLine(returnPtr);
     writer->Close();
-    return returnedString;
+    return (wchar_t*) returnPtr;
 }
 
 // This initializes the DLL with an assembly Resolve Handler. Note that we are initializing

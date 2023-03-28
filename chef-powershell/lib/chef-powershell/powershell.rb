@@ -76,21 +76,23 @@ class ChefPowerShell
         @dlls << powershell_dll
       end
 
-      def self.do_work(ps_command, timeout = -1)
-        attach_function(:execute_powershell, :ExecuteScript, %i{string int}, :pointer) unless method_defined?(:execute_powershell)
-        execute_powershell(ps_command, timeout)
+      def self.do_work(ps_command, p_output, memory_size = MEMORY_SIZE, timeout = -1)
+        attach_function(:execute_powershell, :ExecuteScript, %i{string pointer int int}, :pointer) unless method_defined?(:execute_powershell)
+        execute_powershell(ps_command, p_output, memory_size, timeout)
       end
     end
 
+    MEMORY_SIZE = 1024 * 1024 * 10
     private
 
     def exec(script, timeout: -1)
       power_mod.load_powershell_dll(@powershell_dll)
       begin
-        execution = power_mod.do_work(script, timeout)
+        p_output = FFI::MemoryPointer.new(:uchar, MEMORY_SIZE)
+        execution = power_mod.do_work(script, p_output, MEMORY_SIZE, timeout)
         output = execution.read_utf16string
         hashed_outcome = FFI_Yajl::Parser.parse(output)
-        STDERR.puts "result data size: #{hashed_outcome["result"].size}"
+
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
         @errors = hashed_outcome["errors"]
         @verbose = hashed_outcome["verbose"]
@@ -101,6 +103,8 @@ class ChefPowerShell
         else
           raise
         end
+      ensure
+        p_output.free
       end
     end
   end
