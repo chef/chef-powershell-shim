@@ -1,7 +1,11 @@
 #include "Chef.PowerShell.Wrapper.Core.h"
 #include "msclr\marshal.h"
 
+#include <iostream>
+
 using namespace System;
+using namespace System::IO;
+using namespace System::Reflection;
 
 const wchar_t* ExecuteScript(const char* powershellScript, void *returnPtr, int memorySize, int timeout)
 {
@@ -25,7 +29,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, void *returnPtr, int 
         return (wchar_t*) returnPtr;
     } catch(Exception^ e){
         // Any managed(.net) exception thrown from this native function will
-        // be raised to the user as an unintilligible SEHException. So we provide the
+        // be raised to the user as an unintelligible SEHException. So we provide the
         // courtesy of writing out the original exception details
         Console::WriteLine(e->ToString());
         throw;

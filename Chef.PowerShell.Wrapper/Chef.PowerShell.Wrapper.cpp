@@ -6,7 +6,6 @@
 using namespace System;
 using namespace System::IO;
 using namespace System::Reflection;
-using namespace msclr::interop;
 
 // By default, .net will load assemblies from
 // the GAC or from the same directory as the running application - ruby.exe in this case.
