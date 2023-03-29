@@ -95,6 +95,11 @@ class ChefPowerShell
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
+      # HACK: This is to attempt to signal to Windows that we really
+      # want the powershell dll to stay loaded??
+      PowerMod.set_ps_command("echo Loading PowerShell...")
+      execution = PowerMod.do_work
+      # /END HACK
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
       output = execution.read_utf16string
