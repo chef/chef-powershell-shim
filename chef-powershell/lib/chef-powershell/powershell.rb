@@ -98,7 +98,7 @@ class ChefPowerShell
         @verbose = hashed_outcome["verbose"]
       rescue => e
         if File.exist?("C:\\chef-powershell-output.txt")
-          message=[e.inspect, File.read("C:\\chef-powershell-output.txt")].join("\n")
+          message=[e.inspect, e.backtrace.join(';'), File.read("C:\\chef-powershell-output.txt")].join("\n")
           raise message
         else
           raise
