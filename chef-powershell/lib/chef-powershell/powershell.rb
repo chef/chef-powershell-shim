@@ -82,7 +82,7 @@ class ChefPowerShell
       end
 
       def self.do_work
-        ffi_lib_flags :now, :global
+        ffi_lib_flags :now, :local
         ffi_lib @@powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
         execute_powershell(@@ps_command, @@ps_timeout)
