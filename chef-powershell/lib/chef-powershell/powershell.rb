@@ -68,6 +68,12 @@ class ChefPowerShell
       @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @@ps_command = ""
       @@ps_timeout = -1
+      ffi_lib @@powershell_dll
+      attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+
+      AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
+        FFI::MemoryPointer.new(:uchar, size)
+      end
 
       def self.set_ps_dll(value)
         @@powershell_dll = value
@@ -82,10 +88,7 @@ class ChefPowerShell
       end
 
       def self.do_work
-        ffi_lib_flags :now, :local
-        ffi_lib @@powershell_dll
-        attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
-        execute_powershell(@@ps_command, @@ps_timeout)
+        execute_powershell(@@ps_command, @@ps_timeout, AllocateCallback)
       end
     end
 
@@ -95,11 +98,7 @@ class ChefPowerShell
       timeout = -1 if timeout == 0 || timeout.nil?
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
-      # HACK: This is to attempt to signal to Windows that we really
-      # want the powershell dll to stay loaded??
-      PowerMod.set_ps_command("echo 'Loading PowerShell...'")
-      execution = PowerMod.do_work
-      # /END HACK
+
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
       output = execution.read_utf16string

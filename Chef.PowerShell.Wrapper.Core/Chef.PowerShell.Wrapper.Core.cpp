@@ -3,12 +3,14 @@
 
 using namespace System;
 
-const wchar_t* ExecuteScript(const char* powershellScript, int timeout)
+const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocation_function* ruby_allocate)
 {
     try {
         String^ wPowerShellScript = gcnew String(powershellScript);
         String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
-        pin_ptr<const wchar_t> result = PtrToStringChars(output);
+        wchar_t *result = (wchar_t*) ruby_allocate(output->Length * 2 + 2);
+        pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
+        wcscpy(result, (const wchar_t*)pinned_result);
         return result;
     }
     catch(Exception^ e){
