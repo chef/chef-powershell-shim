@@ -107,6 +107,7 @@ class ChefPowerShell
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
+      execution&.free
     end
   end
 end
