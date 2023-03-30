@@ -68,8 +68,6 @@ class ChefPowerShell
       @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @@ps_command = ""
       @@ps_timeout = -1
-      ffi_lib @@powershell_dll
-      attach_function :execute_powershell, :ExecuteScript, %i{string int pointer}, :pointer
 
       AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
         FFI::MemoryPointer.new(:uchar, size)
@@ -88,6 +86,9 @@ class ChefPowerShell
       end
 
       def self.do_work
+        ffi_lib @@powershell_dll
+        attach_function :execute_powershell, :ExecuteScript, %i{string int pointer}, :pointer
+
         execute_powershell(@@ps_command, @@ps_timeout, AllocateCallback)
       end
     end
