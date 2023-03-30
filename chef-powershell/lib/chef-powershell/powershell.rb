@@ -69,7 +69,7 @@ class ChefPowerShell
       @@ps_command = ""
       @@ps_timeout = -1
       ffi_lib @@powershell_dll
-      attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
+      attach_function :execute_powershell, :ExecuteScript, %i{string int pointer}, :pointer
 
       AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
         FFI::MemoryPointer.new(:uchar, size)
