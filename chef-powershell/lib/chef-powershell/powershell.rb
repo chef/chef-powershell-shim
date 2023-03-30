@@ -70,9 +70,13 @@ class ChefPowerShell
       @@ps_timeout = -1
 
       AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
-        FFI::MemoryPointer.new(:uchar, size)
+        @@pointer = FFI::MemoryPointer.new(:uchar, size)
       end
 
+      def self.free_pointer
+        @@pointer&.free
+        @@pointer = nil
+      end
       def self.set_ps_dll(value)
         @@powershell_dll = value
       end
@@ -107,7 +111,7 @@ class ChefPowerShell
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
-      execution&.free
+      PowerMod.free_pointer
     end
   end
 end
