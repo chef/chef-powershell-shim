@@ -65,9 +65,25 @@ class ChefPowerShell
 
     module PowerMod
       extend FFI::Library
+      # FFI requires attaching to modules, not classes, so we need to
+      # have a module here. The module level variables *could* be refactored
+      # out here, but still 100% of the work still goes through the module.
       @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @@ps_command = ""
       @@ps_timeout = -1
+
+      AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
+        # Capture the pointer here so that Ruby knows that it is an
+        # FFI::MemoryPointer that can receive &.free. If you try to
+        # free the pointer from execute_powershell, Ruby will not have
+        # access to the type information and will core dump spectacularly.
+        @@pointer = FFI::MemoryPointer.new(:uchar, size)
+      end
+
+      def self.free_pointer
+        @@pointer&.free
+        @@pointer = nil
+      end
 
       def self.set_ps_dll(value)
         @@powershell_dll = value
@@ -83,8 +99,9 @@ class ChefPowerShell
 
       def self.do_work
         ffi_lib @@powershell_dll
-        attach_function :execute_powershell, :ExecuteScript, %i{string int}, :pointer
-        execute_powershell(@@ps_command, @@ps_timeout)
+        attach_function :execute_powershell, :ExecuteScript, %i{string int pointer}, :pointer
+
+        execute_powershell(@@ps_command, @@ps_timeout, AllocateCallback)
       end
     end
 
@@ -92,8 +109,12 @@ class ChefPowerShell
 
     def exec(script, timeout: -1)
       timeout = -1 if timeout == 0 || timeout.nil?
+
+      # Set it every time because the test suite actually switches
+      # the DLL pointed to.
       PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
+
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
       output = execution.read_utf16string
@@ -101,6 +122,8 @@ class ChefPowerShell
       @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
       @errors = hashed_outcome["errors"]
       @verbose = hashed_outcome["verbose"]
+    ensure
+      PowerMod.free_pointer
     end
   end
 end
