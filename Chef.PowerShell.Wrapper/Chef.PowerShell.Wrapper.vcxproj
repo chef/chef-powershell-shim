@@ -124,7 +124,6 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalUsingDirectories>C:\projects\chef\chef-powershell-shim\Chef.PowerShell\bin\Release;C:\projects\chef-powershell-shim\Chef.PowerShell\bin\Release\;..\Chef.PowerShell\bin\release;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
