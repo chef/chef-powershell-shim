@@ -71,6 +71,7 @@ class ChefPowerShell
       @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
       @@ps_command = ""
       @@ps_timeout = -1
+      @@pointer = nil
 
       AllocateCallback = FFI::Function.new(:pointer, [:size_t]) do |size|
         # Capture the pointer here so that Ruby knows that it is an
