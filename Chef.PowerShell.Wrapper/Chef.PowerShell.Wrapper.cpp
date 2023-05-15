@@ -49,9 +49,20 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // which can be implicitly cast to pin_ptr<const wchar_t>
     pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
 
+    StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+    writer->WriteLine("script::");
+    writer->WriteLine(wPowerShellScript);
+    writer->WriteLine("output::");
+    writer->WriteLine(output);
+    writer->Write("returnedString::");
+
+
     // but you have to separately cast to (const wchar_t*) after saving to a
     // pin_ptr<const wchar_t> variable.
     wcscpy(result, (const wchar_t*)pinned_result);
+
+    writer->WriteLine(returnPtr);
+    writer->Close();
 
     // Again, this is our callback allocated memory, so we need to free it in ruby.
     return result;

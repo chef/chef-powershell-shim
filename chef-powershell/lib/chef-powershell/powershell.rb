@@ -78,6 +78,8 @@ class ChefPowerShell
         # free the pointer from execute_powershell, Ruby will not have
         # access to the type information and will core dump spectacularly.
         @@pointer = FFI::MemoryPointer.new(:uchar, size)
+        STDERR.puts @@pointer.inspect
+
       end
 
       def self.free_pointer
@@ -116,12 +118,31 @@ class ChefPowerShell
       PowerMod.set_ps_timeout(timeout)
 
       PowerMod.set_ps_command(script)
-      execution = PowerMod.do_work
-      output = execution.read_utf16string
-      hashed_outcome = FFI_Yajl::Parser.parse(output)
-      @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
-      @errors = hashed_outcome["errors"]
-      @verbose = hashed_outcome["verbose"]
+
+      begin
+        execution = PowerMod.do_work
+
+        if File.exist?("C:\\chef-powershell-output.txt")
+          STDERR.puts "DEBUG Powershell output:"
+          STDERR.puts File.read("C:\\chef-powershell-output.txt")
+          STDERR.puts "END DEBUG Powershell output"
+        end
+
+        output = execution.read_utf16string
+        hashed_outcome = FFI_Yajl::Parser.parse(output)
+        @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
+        @errors = hashed_outcome["errors"]
+        @verbose = hashed_outcome["verbose"]
+      rescue => e
+        if File.exist?("C:\\chef-powershell-output.txt")
+          STDERR.puts "RESCUE Powershell output:"
+          message=[e.inspect, e.backtrace.join(';'), File.read("C:\\chef-powershell-output.txt")].join("\n")
+          STDERR.puts "END RESCUE Powershell output:"
+          raise message
+        else
+          raise
+        end
+      end
     ensure
       PowerMod.free_pointer
     end
