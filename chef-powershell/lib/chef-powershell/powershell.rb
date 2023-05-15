@@ -77,9 +77,7 @@ class ChefPowerShell
         # FFI::MemoryPointer that can receive &.free. If you try to
         # free the pointer from execute_powershell, Ruby will not have
         # access to the type information and will core dump spectacularly.
-        @@pointer = FFI::MemoryPointer.new(:uchar, size)
-        STDERR.puts @@pointer.inspect
-
+        @@pointer = FFI::MemoryPointer.new(:uchar, size).tap { |ptr| STDERR.puts ptr.inspect }
       end
 
       def self.free_pointer
