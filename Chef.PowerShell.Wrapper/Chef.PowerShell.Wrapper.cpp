@@ -55,14 +55,14 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     writer->WriteLine(wPowerShellScript);
     writer->WriteLine("output::");
     writer->WriteLine(output);
-    writer->Write("returnedString::");
 
-
+    writer->WriteLine("Preparing to output string");
     // but you have to separately cast to (const wchar_t*) after saving to a
     // pin_ptr<const wchar_t> variable.
     wcscpy(result, (const wchar_t*)pinned_result);
 
-    writer->WriteLine(result);
+    writer->Write("returnedString::");
+    writer->WriteLine(gcnew String(result));
     writer->WriteLine((long long)result);
     writer->Close();
 
