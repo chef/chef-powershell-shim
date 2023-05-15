@@ -2,6 +2,7 @@
 #include "msclr\marshal.h"
 
 using namespace System;
+using namespace System::IO;
 
 // This is the entry point for the DLL. It is called from ruby with the powershell script to execute.
 // Note that this is for "PowerShell Core" (6.0 and later) and not "PowerShell" (5.1 and earlier).
