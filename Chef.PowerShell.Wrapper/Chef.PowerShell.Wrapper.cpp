@@ -61,7 +61,8 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // pin_ptr<const wchar_t> variable.
     wcscpy(result, (const wchar_t*)pinned_result);
 
-    writer->WriteLine(returnPtr);
+    writer->WriteLine(result);
+    writer->WriteLine((long long)result);
     writer->Close();
 
     // Again, this is our callback allocated memory, so we need to free it in ruby.
