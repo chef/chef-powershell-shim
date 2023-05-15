@@ -49,7 +49,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // which can be implicitly cast to pin_ptr<const wchar_t>
     pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
 
-    StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", false);
+    StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", true);
     writer->AutoFlush = true;
     writer->WriteLine("script::");
     writer->WriteLine(wPowerShellScript);
