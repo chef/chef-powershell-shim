@@ -45,9 +45,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // Callback to the ruby function passed to us... need to free in ruby.
     wchar_t *result = (wchar_t*) ruby_allocate((output->Length + 1) * sizeof(wchar_t));
 
-    // PtrToStringChars returns interior_ptr<const wchar_t>
-    // which can be implicitly cast to pin_ptr<const wchar_t>
-    pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
+
 
     StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", true);
     writer->AutoFlush = true;
@@ -57,6 +55,11 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     writer->WriteLine(output);
 
     writer->WriteLine("Preparing to output string");
+
+    // PtrToStringChars returns interior_ptr<const wchar_t>
+    // which can be implicitly cast to pin_ptr<const wchar_t>
+    pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
+
     // but you have to separately cast to (const wchar_t*) after saving to a
     // pin_ptr<const wchar_t> variable.
     wcscpy(result, (const wchar_t*)pinned_result);
