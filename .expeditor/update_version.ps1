@@ -6,7 +6,7 @@
 ##
 #############################
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "SilentlyContinue"
 
 # get the contents of the gem version file
 try {
