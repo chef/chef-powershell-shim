@@ -49,6 +49,8 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
 
     StreamWriter^ writer = gcnew StreamWriter("C:\\chef-powershell-output.txt", true);
     writer->AutoFlush = true;
+    writer->WriteLine("Chef.PowerShell.Wrapper.cpp");
+
     writer->WriteLine("script::");
     writer->WriteLine(wPowerShellScript);
     writer->WriteLine("output::");
