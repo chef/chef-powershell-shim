@@ -61,9 +61,12 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // PtrToStringChars returns interior_ptr<const wchar_t>
     // which can be implicitly cast to pin_ptr<const wchar_t>
     pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
-
+    writer->Write("pinned_result::");
+    writer->WriteLine(pinned_result);
     // but you have to separately cast to (const wchar_t*) after saving to a
     // pin_ptr<const wchar_t> variable.
+
+    writer->Write("wcscpy");
     wcscpy(result, (const wchar_t*)pinned_result);
 
     writer->Write("returnedString::");
