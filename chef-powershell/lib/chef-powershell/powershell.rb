@@ -120,12 +120,6 @@ class ChefPowerShell
       begin
         execution = PowerMod.do_work
 
-        if File.exist?("C:\\chef-powershell-output.txt")
-          STDERR.puts "DEBUG Powershell output:"
-          STDERR.puts File.read("C:\\chef-powershell-output.txt")
-          STDERR.puts "END DEBUG Powershell output"
-        end
-
         output = execution.read_utf16string
         hashed_outcome = FFI_Yajl::Parser.parse(output)
         @result = FFI_Yajl::Parser.parse(hashed_outcome["result"])
