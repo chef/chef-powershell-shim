@@ -67,7 +67,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
     // pin_ptr<const wchar_t> variable.
 
     writer->Write("wcscpy");
-    wcscpy(result, (const wchar_t*)pinned_result);
+    wcscpy(result, output->Length + 1, (const wchar_t*)pinned_result);
 
     writer->Write("returnedString::");
     writer->WriteLine(gcnew String(result));
