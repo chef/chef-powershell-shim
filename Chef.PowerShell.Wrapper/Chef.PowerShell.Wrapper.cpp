@@ -51,7 +51,7 @@ const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocati
 
     // but you have to separately cast to (const wchar_t*) after saving to a
     // pin_ptr<const wchar_t> variable.
-    wcscpy(result, (const wchar_t*)pinned_result);
+    wcscpy_s(result, output->Length + 1, (const wchar_t*)pinned_result);
 
     // Again, this is our callback allocated memory, so we need to free it in ruby.
     return result;
