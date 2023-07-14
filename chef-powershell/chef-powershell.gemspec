@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.6"
 
   spec.add_runtime_dependency "ffi", "~> 1.15"
-  spec.add_runtime_dependency "ffi-yajl", "~> 3.0"
+  spec.add_runtime_dependency "ffi-yajl", "~> 2.2.4"
 
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/chef/chef/issues",
