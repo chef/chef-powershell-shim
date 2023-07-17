@@ -76,7 +76,7 @@ class ChefPowerShell
       @@ps_command = ""
       @@ps_timeout = -1
 
-      StoreResultCallback = FFI::Function.new(:bool, %i[pointer size_t]) do |data, size|
+      StoreResultCallback = FFI::Function.new(:bool, %i{pointer size_t}) do |data, size|
         # try parsing the result *first* before returning from the function, and if it fails,
         # return false so that the function can be retried from the C++ side.
         @result_string = data.get_bytes(0, size).force_encoding("UTF-16LE").encode("UTF-8")

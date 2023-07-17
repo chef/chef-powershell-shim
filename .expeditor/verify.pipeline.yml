@@ -45,15 +45,6 @@ steps:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: chef-powershell-shim-x86"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-x86
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
 - label: ":windows: pre-build-verify-windows-gem"
   commands:
     - .expeditor/build_gems.ps1
