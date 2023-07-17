@@ -76,30 +76,29 @@ class ChefPowerShell
       @@ps_command = ""
       @@ps_timeout = -1
 
-      StoreResultCallback = FFI::Function.new(:bool, [:pointer, :size_t]) do |data, size|
+      StoreResultCallback = FFI::Function.new(:bool, %i[pointer size_t]) do |data, size|
         # try parsing the result *first* before returning from the function, and if it fails,
         # return false so that the function can be retried from the C++ side.
-        begin
-          @result_string = data.get_bytes(0, size).force_encoding("UTF-16LE").encode("UTF-8")
-          @hashed_outcome = FFI_Yajl::Parser.parse(@result_string)
-          @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
-          @errors = @hashed_outcome["errors"]
-          @verbose = @hashed_outcome["verbose"]
-          true
-        rescue NoMethodError, FFI_Yajl::ParseError => e
-          @retry_count += 1
-          # capture exception so that it can be raised later, since otherwise
-          # we will be raising back to C++.
-          @exception = e
-          return true if @retry_count > 3
-          puts "Retrying PowerShell command execution #{@retry_count}"
-          sleep 1
-          false
-        rescue => e
-          # no retry for other exceptions
-          @exception = e
-          true
-        end
+        @result_string = data.get_bytes(0, size).force_encoding("UTF-16LE").encode("UTF-8")
+        @hashed_outcome = FFI_Yajl::Parser.parse(@result_string)
+        @result = FFI_Yajl::Parser.parse(@hashed_outcome["result"])
+        @errors = @hashed_outcome["errors"]
+        @verbose = @hashed_outcome["verbose"]
+        true
+      rescue NoMethodError, FFI_Yajl::ParseError => e
+        @retry_count += 1
+        # capture exception so that it can be raised later, since otherwise
+        # we will be raising back to C++.
+        @exception = e
+        return true if @retry_count > 3
+
+        puts "Retrying PowerShell command execution #{@retry_count}"
+        sleep 1
+        false
+      rescue => e
+        # no retry for other exceptions
+        @exception = e
+        true
       end
 
       def self.set_ps_dll(value)
@@ -136,7 +135,10 @@ class ChefPowerShell
 
       PowerMod.set_ps_command(script)
       execution = PowerMod.do_work
+      # we returned "true" to escape retry, but we still need to check the
+      # exception and raise it if it exists.
       raise PowerMod.exception if PowerMod.exception
+
       @result = PowerMod.result
       @errors = PowerMod.errors
       @verbose = PowerMod.verbose
