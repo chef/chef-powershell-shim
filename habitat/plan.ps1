@@ -36,7 +36,7 @@ function Invoke-Install {
   Copy-Item "$env:VCToolsInstallDir_160\x64\Microsoft.VC142.CRT\*.dll" "$pkg_prefix/bin"
 
   dotnet publish --output $pkg_prefix/bin/shared/Microsoft.NETCore.App/5.0.0 --self-contained --configuration Release --runtime win10-x64 $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj
-  
+
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/x64/release/*.dll $pkg_prefix/bin/shared/Microsoft.NETCore.App/5.0.0
   Copy-Item $PLAN_CONTEXT/../Chef.PowerShell.Wrapper.Core/Chef.PowerShell.Wrapper.Core.runtimeconfig.json $pkg_prefix/bin/shared/Microsoft.NETCore.App/5.0.0/Chef.Powershell.Wrapper.Core.runtimeconfig.json
   Rename-Item $pkg_prefix/bin/shared/Microsoft.NETCore.App/5.0.0/Chef.Powershell.Core.deps.json $pkg_prefix/bin/shared/Microsoft.NETCore.App/5.0.0/Microsoft.NETCore.App.deps.json

@@ -167,8 +167,9 @@ foreach($file in $files){
   Write-Output "I found a copy here: $file"
 }
 
-Write-Output "--- :point_right: finally verifying the gem code"
+Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
+
 Write-Output "`r"

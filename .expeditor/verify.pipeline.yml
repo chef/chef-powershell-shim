@@ -9,15 +9,6 @@ expeditor:
 
 steps:
 
-- label: ":windows: chef-powershell-shim"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
 - label: ":windows: dotnet-45-dev-pack-x86"
   commands:
     - .expeditor/test_plan.ps1 -Plan habitat-dotnet-45-dev-pack-x86
@@ -48,15 +39,6 @@ steps:
 - label: ":windows: win-10-sdk-x86"
   commands:
     - .expeditor/test_plan.ps1 -Plan habitat-win-10-sdk-x86
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
-- label: ":windows: chef-powershell-shim-x86"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-x86
   expeditor:
     executor:
       docker:

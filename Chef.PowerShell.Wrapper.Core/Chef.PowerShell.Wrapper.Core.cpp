@@ -6,29 +6,26 @@ using namespace System;
 // This is the entry point for the DLL. It is called from ruby with the powershell script to execute.
 // Note that this is for "PowerShell Core" (6.0 and later) and not "PowerShell" (5.1 and earlier).
 // You likely want to make similar changes to the Chef.PowerShell.Wrapper.cpp file.
-const wchar_t* ExecuteScript(const char* powershellScript, int timeout, allocation_function* ruby_allocate)
+bool ExecuteScript(const char* powershellScript, int timeout, store_result_function* store_result)
 {
     try {
         String^ wPowerShellScript = gcnew String(powershellScript);
         String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
 
-        // Callback to the ruby function passed to us... need to free in ruby.
-        wchar_t *result = (wchar_t*) ruby_allocate((output->Length + 1) * sizeof(wchar_t));
+        pin_ptr<const wchar_t> pinned_result;
+        bool success;
 
-        // PtrToStringChars returns interior_ptr<const wchar_t>
-        // which can be implicitly cast to pin_ptr<const wchar_t>
-        pin_ptr<const wchar_t> pinned_result = PtrToStringChars(output);
-
-        // but you have to separately cast to (const wchar_t*) after saving to a
-        // pin_ptr<const wchar_t> variable.
-        wcscpy_s(result, output->Length + 1, (const wchar_t*)pinned_result);
-
-        // Again, this is our callback allocated memory, so we need to free it in ruby.
-        return result;
+        do {
+            pinned_result = PtrToStringChars(output);
+            // just pass the string length, not the string size including (two byte) \0
+            success = store_result(pinned_result, output->Length * sizeof(wchar_t));
+        } while(!success);
+            
+        return success;
     }
     catch(Exception^ e){
         // Any managed(.net) exception thrown from this native function will
-        // be raised to the user as an unintilligible SEHException. So we provide the
+        // be raised to the user as an unintelligible SEHException. So we provide the
         // courtesy of writing out the original exception details
         Console::WriteLine(e->ToString());
         throw;
