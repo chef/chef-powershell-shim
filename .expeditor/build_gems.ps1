@@ -171,4 +171,9 @@ Write-Output "--- :point_right: finally verifying the gem code"
 bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
+
+Write-Output "--- :point_right: run rake spec"
+bundle exec rake spec
+if (-not $?) { throw "Rake Spec failed"}
+
 Write-Output "`r"
