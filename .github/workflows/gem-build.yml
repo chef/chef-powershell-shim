@@ -96,34 +96,6 @@ jobs:
             Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
           }
         shell: powershell
-      - name: Building the 32-bit DLL's
-        env:
-          HAB_ORIGIN: ci
-          HAB_LICENSE: accept-no-persist
-          FORCE_FFI_YAJL: ext
-        run: hab pkg build -R Habitat-x86
-        shell: powershell
-      - name: Installing 32-bit DLL's
-        env:
-          HAB_ORIGIN: ci
-          HAB_LICENSE: accept-no-persist
-          FORCE_FFI_YAJL: ext
-        run: |
-          $project_root = $pwd
-          . results/last_build.ps1
-          Start-Sleep -Seconds 5
-          hab pkg install results/$pkg_artifact
-          $x86 = hab pkg path ci/chef-powershell-shim-x86
-          $x86_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/x86")
-          if (Test-Path -PathType Container $x86_bin_path) {
-            Get-ChildItem -Path $x86_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
-            Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-          }
-          else {
-              New-Item -Path $x86_bin_path -ItemType Directory -Force
-              Copy-Item "$x86\bin\*" -Destination $x86_bin_path -Force -Recurse
-          }
-        shell: powershell
       - name: Building the Gem
         run: |
           $project_name = "chef-powershell"
