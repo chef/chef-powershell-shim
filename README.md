@@ -8,6 +8,8 @@ Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\buil
 
 ### Build on merge
 
+(Broken due to credentials for pushing gem, but also `.\.expeditor\update_version.sh` appears to be broken as well.
+
 `workflows/gem-build.yml` should normally build on merge to `main`
 
 ### Manual build
