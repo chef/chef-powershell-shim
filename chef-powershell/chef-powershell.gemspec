@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 2.6"
 
-  spec.add_runtime_dependency "ffi", "~> 1.16"
+  spec.add_runtime_dependency "ffi", "~> 1.15.5"
   spec.add_runtime_dependency "ffi-yajl", "~> 3.0"
   # spec.add_runtime_dependency "ffi", "~> 1.15"
   # spec.add_runtime_dependency "ffi-yajl", "~> 2.4"
