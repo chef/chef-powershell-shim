@@ -5,8 +5,8 @@ $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
-  # "core/dotnet-481-dev-pack", As of August 2024, this pacakge should be installed by default on all Windows devices.
-  "core/windows-10-sdk",
+  "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
+  "core/windows-10-sdk", #,updated the 
   "core/visual-build-tools-2022",
   "core/dotnet-8-sdk"
 )
