@@ -18,6 +18,11 @@ function Invoke-SetupEnvironment {
 }
 
 function Invoke-Unpack {
+    $x64_bin_path = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+    if (-not( Test-Path -PathType Container $x64_bin_path)) {
+        Write-Output "My 64-bit path was NOT found, now building here : $x64_bin_path"
+        New-Item -Path $x64_bin_path -ItemType Directory -Force
+      }
     Start-Process "$HAB_CACHE_SRC_PATH/$pkg_filename" -Wait -ArgumentList "/features OptionId.NetFxSoftwareDevelopmentKit /layout $HAB_CACHE_SRC_PATH/$pkg_dirname /quiet"
     Push-Location "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     try {
