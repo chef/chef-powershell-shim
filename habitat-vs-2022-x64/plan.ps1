@@ -7,28 +7,28 @@ $pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for
 $pkg_license=@("Microsoft Software License")
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_source="https://aka.ms/vs/17/release/vs_BuildTools.exe"
-$pkg_shasum="d3ffaa4ec21a06d29b773e544c0c613df65b270ad30c036b623188a8b12dd745"
+$pkg_shasum="02f7788cb00c9e0aa87ce0c1e923f7b12921aa1f06d9f78261ee0e3e5c794332"
 $pkg_build_deps=@("core/7zip")
 
 $pkg_bin_dirs=@(
-    "Contents\VC\Tools\MSVC\14.40.33810\bin\HostX64\x64",
-    "Contents\VC\Redist\MSVC\14.40.33810\x86\Microsoft.VC142.CRT",
+    "Contents\VC\Tools\MSVC\14.41.34120\bin\HostX64\x64",
+    "Contents\VC\Redist\MSVC\14.40.33807\x64\Microsoft.VC143.CRT",
     "Contents\MSBuild\Current\Bin"
 )
 $pkg_lib_dirs=@(
-    "Contents\VC\Tools\MSVC\14.40.33810\atlmfc\lib\x86",
-    "Contents\VC\Tools\MSVC\14.40.33810\lib\x86"
+    "Contents\VC\Tools\MSVC\14.41.34120\atlmfc\lib\x64",
+    "Contents\VC\Tools\MSVC\14.41.34120\lib\x64"
 )
 $pkg_include_dirs=@(
-    "Contents\VC\Tools\MSVC\14.40.33810\atlmfc\include",
-    "Contents\VC\Tools\MSVC\14.40.33810\include"
+    "Contents\VC\Tools\MSVC\14.41.34120\atlmfc\include",
+    "Contents\VC\Tools\MSVC\14.41.34120\include"
 )
 
 function Invoke-SetupEnvironment {
     Set-RuntimeEnv "DisableRegistryUse" "true"
     Set-RuntimeEnv "UseEnv" "true"
-    Set-RuntimeEnv "VCToolsVersion" "14.40.33810"
-    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.29.30133"
+    Set-RuntimeEnv "VCToolsVersion" "14.41.34120"
+    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.41.34120"
 }
 
 function Invoke-Unpack {
@@ -53,7 +53,8 @@ function Invoke-Unpack {
         "Microsoft.VisualStudio.Component.SQL.SSDTBuildSku",
         "Microsoft.VisualStudio.Component.VC.ATLMFC",
         "Microsoft.VisualStudio.Component.NuGet.BuildTools",
-        "Microsoft.VisualStudio.Component.VC.CLI.Support"
+        "Microsoft.VisualStudio.Component.VC.CLI.Support",
+        "Microsoft.VisualStudio.Component.Windows11SDK.26100"
     )
     foreach ($component in $components) {
         $installArgs += " --add $component"
