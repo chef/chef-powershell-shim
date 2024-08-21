@@ -28,7 +28,8 @@ function Invoke-SetupEnvironment {
     Set-RuntimeEnv "DisableRegistryUse" "true"
     Set-RuntimeEnv "UseEnv" "true"
     Set-RuntimeEnv "VCToolsVersion" "14.41.34120"
-    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.41.34120"
+    Set-RuntimeEnv "VisualStudioVersion" "17.0"
+    Set-RuntimeEnv -IsPath "VCToolsInstallDir_170" "$pkg_prefix\Contents\VC\Redist\MSVC\14.41.34120"
 }
 
 function Invoke-Unpack {
@@ -54,7 +55,8 @@ function Invoke-Unpack {
         "Microsoft.VisualStudio.Component.VC.ATLMFC",
         "Microsoft.VisualStudio.Component.NuGet.BuildTools",
         "Microsoft.VisualStudio.Component.VC.CLI.Support",
-        "Microsoft.VisualStudio.Component.Windows11SDK.26100"
+        "Microsoft.VisualStudio.Component.Windows11SDK.26100",
+        "Microsoft.VisualStudio.Component.VC.CMake.Project"
     )
     foreach ($component in $components) {
         $installArgs += " --add $component"
