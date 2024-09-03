@@ -19,6 +19,11 @@ foreach ($ruby in $rubies){
 }
 Write-Output "`r"
 
+# setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
+Write-Output "--- :shovel: Setting the BLDR Channel to LTS"
+$env:HAB_BLDR_CHANNEL="LTS-2024"
+Write-Output "`r"
+
 Write-Output "--- :screwdriver: Installing Habitat via Choco"
 choco install habitat -y
 if (-not $?) { throw "unable to install Habitat"}

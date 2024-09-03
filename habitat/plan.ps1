@@ -5,8 +5,8 @@ $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
-  # "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/windows-10-sdk", 
+  "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
+  "core/windows-11-sdk", 
   "core/visual-build-tools-2022",
   "core/dotnet-core-sdk" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
