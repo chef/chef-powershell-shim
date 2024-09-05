@@ -50,7 +50,7 @@ class ChefPowerShell
       ENV["DOTNET_ROOT"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/AMD64"
       ENV["DOTNET_ROOT(x86)"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/x86"
 
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/5.0.0/Chef.PowerShell.Wrapper.Core.dll"
+      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/8.0.0/Chef.PowerShell.Wrapper.Core.dll"
 
       super
     ensure
@@ -67,7 +67,7 @@ class ChefPowerShell
       # ensures that the correct architecture binaries are installed into the path.
       # Also note that the version of pwsh is determined by which assemblies the dll was
       # built with. To update powershell, those dependencies must be bumped.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/5.0.0/Chef.PowerShell.Wrapper.Core.dll"
+      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/8.0.0/Chef.PowerShell.Wrapper.Core.dll"
       @dll ||= @powershell_dll
     end
   end

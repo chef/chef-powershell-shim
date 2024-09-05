@@ -32,10 +32,18 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
+  # This blob here is admittedly insanity. We end up disconnected from the VCToolsDir but we know where it lives in relation to where we are currently.
+  # This block crawls back up 3 levels to where all the tools folders live. Then traverses down 2 levels into
+  # the msbuild tools so that we can finally add the correct path to the end and extract the MSVCT dll's we need. 
+  # I making this way too hard. Someone throw me a bone here. 
+  $basedir = (get-item $pkg_prefix).Parent.Parent.Parent.ToString()
+  $temp = $($basedir + '\visual-build-tools-2022')
+  $temp2 = (Get-Childitem -path $(Get-Childitem -path $temp).FullName).FullName
+  $VCToolsInstallDir_170 = "$temp2\Contents\VC\Redist\MSVC\14.40.33807"
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/x64/release/*.dll "$pkg_prefix/bin"
-  Copy-Item "$env:VCToolsInstallDir_160\x64\Microsoft.VC143.CRT\*.dll" "$pkg_prefix/bin"
+  Copy-Item "$VCToolsInstallDir_170\x64\Microsoft.VC143.CRT\*.dll" "$pkg_prefix/bin"
 
-  dotnet publish --output $pkg_prefix/bin/shared/Microsoft.NETCore.App/8.0.0 --self-contained --configuration Release --runtime win10-x64 $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj
+  dotnet publish --output $pkg_prefix/bin/shared/Microsoft.NETCore.App/8.0.0 --self-contained --configuration Release --runtime win-x64 $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj
 
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/x64/release/*.dll $pkg_prefix/bin/shared/Microsoft.NETCore.App/8.0.0
   Copy-Item $PLAN_CONTEXT/../Chef.PowerShell.Wrapper.Core/Chef.PowerShell.Wrapper.Core.runtimeconfig.json $pkg_prefix/bin/shared/Microsoft.NETCore.App/8.0.0/Chef.Powershell.Wrapper.Core.runtimeconfig.json
