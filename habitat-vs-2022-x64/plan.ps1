@@ -7,7 +7,7 @@ $pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for
 $pkg_license=@("Microsoft Software License")
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_source="https://aka.ms/vs/17/release/vs_BuildTools.exe"
-$pkg_shasum="02f7788cb00c9e0aa87ce0c1e923f7b12921aa1f06d9f78261ee0e3e5c794332"
+$pkg_shasum="751FC7138FACFE9A7D846945E4643FB592562964C2A3A4C6336B192D61913F5A"
 $pkg_build_deps=@("core/7zip")
 
 $pkg_bin_dirs=@(
