@@ -9,36 +9,36 @@ expeditor:
 
 steps:
 
-- label: ":windows: dotnet-45-dev-pack-x86"
+- label: ":windows: dotnet-481-dev-pack-x64"
   commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-45-dev-pack-x86
+    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-481-dev-pack-x64
   expeditor:
     executor:
       docker:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: dotnet-5-sdk-x86"
+- label: ":windows: dotnet-8-sdk-x64"
   commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-5-sdk-x86
+    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-8-sdk-x64
   expeditor:
     executor:
       docker:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: vs-2019-x86"
+- label: ":windows: vs-2022-x64"
   commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-vs-2019-x86
+    - .expeditor/test_plan.ps1 -Plan habitat-vs-2022-x64
   expeditor:
     executor:
       docker:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: win-10-sdk-x86"
+- label: ":windows: win-10-sdk-x64"
   commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-win-10-sdk-x86
+    - .expeditor/test_plan.ps1 -Plan habitat-win-10-sdk-x64
   expeditor:
     executor:
       docker:

@@ -19,6 +19,14 @@ foreach ($ruby in $rubies){
 }
 Write-Output "`r"
 
+# Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
+$env:MSBuildEnableWorkloadResolver = "false"
+
+# setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
+Write-Output "--- :shovel: Setting the BLDR Channel to LTS"
+$env:HAB_BLDR_CHANNEL="LTS-2024"
+Write-Output "`r"
+
 Write-Output "--- :screwdriver: Installing Habitat via Choco"
 choco install habitat -y
 if (-not $?) { throw "unable to install Habitat"}
@@ -30,6 +38,7 @@ if (-not $?) { throw "unable to install Chef-Client" }
 Write-Output "`r"
 
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
+Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
@@ -45,10 +54,10 @@ Copy-Item $parent_folder -Destination $child_folder -ErrorAction Continue
 Write-Output "`r"
 
 Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
-$env:HAB_ORIGIN = "ci"
+$env:HAB_ORIGIN = "core"
 $env:HAB_LICENSE= "accept-no-persist"
 $env:FORCE_FFI_YAJL="ext"
-if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
+if (Test-Path -PathType leaf "/hab/cache/keys/core-*.sig.key") {
     Write-Output "--- :key: Using existing fake '$env:HAB_ORIGIN' origin key"
 } else {
     Write-Output "--- :key: Generating fake '$env:HAB_ORIGIN' origin key"
@@ -80,7 +89,7 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path ci/chef-powershell-shim
+$x64 = hab pkg path core/chef-powershell-shim
 Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
 Test-Path -Path $x64
 Write-Output "`r"
@@ -160,12 +169,6 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
   Remove-item -path $($parent_folder + "\chef.powershell.wrapper.dll")
 }
 Write-Output "`r"
-
-Write-Output "--- :mag: Where are all the Chef PowerShell DLLs located?"
-$files = Get-ChildItem -Path c:\ -Name "Chef.PowerShell.Wrapper.dll" -Recurse
-foreach($file in $files){
-  Write-Output "I found a copy here: $file"
-}
 
 Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update

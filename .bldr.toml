@@ -4,32 +4,32 @@ build_targets = [
 ]
 plan_path = "habitat"
 
-[chef-powershell-shim-x86]
+[chef-powershell-shim-x64]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-x86"
+plan_path = "habitat-x64"
 
-[dotnet-45-dev-pack-x86]
+[dotnet-481-dev-pack-x64]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-dotnet-45-dev-pack-x86"
+plan_path = "habitat-dotnet-481-dev-pack-x64"
 
-[dotnet-5-sdk-x86]
+[dotnet-8-sdk-x64]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-dotnet-5-sdk-x86"
+plan_path = "habitat-dotnet-8-sdk-x64"
 
-[visual-build-tools-2019-x86]
+[visual-build-tools-2022-x64]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-vs-2019-x86"
+plan_path = "habitat-vs-2022-x64"
 
-[windows-10-sdk-x86]
+[windows-11-sdk-x64]
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-win-10-sdk-x86"
+plan_path = "habitat-win-11-sdk-x64"
