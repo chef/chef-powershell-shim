@@ -6,6 +6,27 @@ A .NET Assembly to facilitate communication between Chef and PowerShell on the W
 
 Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\build_gems.ps1` to test your changes locally.
 
+You will need to have the following things installed:
+1) .net framework 4.8.1 development pack
+2) Windows 11 SDK build 26100
+3) .net 8.0.303. You can load that from here: https://github.com/dotnet/core/blob/main/release-notes/8.0/8.0.7/8.0.7.md
+4) MS build tools 17.11.2
+
+Then set these envuironment variables:
+
+```
+$env:MSBuildEnableWorkloadResolver = "false";
+$env:HAB_BLDR_CHANNEL = "LTS-2024";
+$env:MSBuildSdksPath = "C:\Program Files\dotnet\sdk";
+$env:HAB_ORIGIN = "core";
+```
+
+Finally, ensure that nuget is correctly setup by adding a repo source
+
+```
+dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
+```
+
 ### Build on merge
 
 (Broken due to credentials for pushing gem, but also `.\.expeditor\update_version.sh` appears to be broken as well.
