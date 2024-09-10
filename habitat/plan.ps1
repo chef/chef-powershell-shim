@@ -32,14 +32,7 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-  # This blob here is admittedly insanity. We end up disconnected from the VCToolsDir but we know where it lives in relation to where we are currently.
-  # This block crawls back up 3 levels to where all the tools folders live. Then traverses down 2 levels into
-  # the msbuild tools so that we can finally add the correct path to the end and extract the MSVCT dll's we need. 
-  # I making this way too hard. Someone throw me a bone here. 
-  $basedir = (get-item $pkg_prefix).Parent.Parent.Parent.ToString()
-  $temp = $($basedir + '\visual-build-tools-2022')
-  $temp2 = (Get-Childitem -path $(Get-Childitem -path $temp).FullName).FullName
-  $VCToolsInstallDir_170 = "$temp2\Contents\VC\Redist\MSVC\14.40.33807"
+  $VCToolsInstallDir_170 = "$(Get-HabPackagePath visual-build-tools-2022)\Contents\VC\Redist\MSVC\14.40.33807"
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/x64/release/*.dll "$pkg_prefix/bin"
   Copy-Item "$VCToolsInstallDir_170\x64\Microsoft.VC143.CRT\*.dll" "$pkg_prefix/bin"
 
