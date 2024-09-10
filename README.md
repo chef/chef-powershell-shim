@@ -18,7 +18,7 @@ Then set these envuironment variables:
 $env:MSBuildEnableWorkloadResolver = "false";
 $env:HAB_BLDR_CHANNEL = "LTS-2024";
 $env:MSBuildSdksPath = "C:\Program Files\dotnet\sdk";
-$env:HAB_ORIGIN = "core";
+$env:HAB_ORIGIN = "chef";
 ```
 
 Finally, ensure that nuget is correctly setup by adding a repo source
