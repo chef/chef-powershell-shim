@@ -1,3 +1,4 @@
+$env:HAB_BLDR_CHANNEL = "LTS-2024"
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
 $pkg_version="0.4.0"
