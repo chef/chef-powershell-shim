@@ -85,7 +85,7 @@ WIN32OLERuntimeError: (in OLE method `ExecuteScript': )
 ```ruby
 require "chef-powershell"
 ...
-include ChefPowerShell::ChefPowerShell::PowerShellExec
+include ChefPowerShell::ChefPowerShellModule::PowerShellExec
 ...
 def join_command
   cmd = ""
@@ -97,7 +97,7 @@ def join_command
   cmd
 end
 ...
-my_result = powershell_exec!(join_command)
+my_result = powershell_exec!(join_command).result
 ```
 
 ## Getting Involved
