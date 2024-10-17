@@ -43,7 +43,7 @@ function Invoke-Unpack {
     7z x "$HAB_CACHE_SRC_PATH/$pkg_filename" -o"$HAB_CACHE_SRC_PATH/$pkg_dirname"
     $opcInstaller = (Get-Content "$HAB_CACHE_SRC_PATH\$pkg_dirname\vs_bootstrapper_d15\vs_setup_bootstrapper.config")[0].Split("=")[-1]
     Invoke-RestMethod $opcInstaller -Outfile "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc"
-    7z x "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc" -o"$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Expand-Archive "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc" -DestinationPath "$HAB_CACHE_SRC_PATH\$pkg_dirname"
 
     $installArgs =  "layout --quiet --layout $HAB_CACHE_SRC_PATH/products --lang en-US --in $HAB_CACHE_SRC_PATH/$pkg_dirname/vs_bootstrapper_d15/vs_setup_bootstrapper.json"
     $components = @(
