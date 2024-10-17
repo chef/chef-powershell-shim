@@ -16,7 +16,6 @@ Then set these envuironment variables:
 
 ```
 $env:MSBuildEnableWorkloadResolver = "false";
-$env:HAB_BLDR_CHANNEL = "LTS-2024";
 $env:MSBuildSdksPath = "C:\Program Files\dotnet\sdk";
 $env:HAB_ORIGIN = "chef";
 ```
@@ -31,7 +30,7 @@ dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
 
 (Broken due to credentials for pushing gem, but also `.\.expeditor\update_version.sh` appears to be broken as well.
 
-`workflows/gem-build.yml` should normally build on merge to `main`
+`workflows/gem-build.yml` should normally build on merge to `18-Stable`
 
 ### Manual build
 
