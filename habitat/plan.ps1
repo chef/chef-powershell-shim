@@ -1,6 +1,4 @@
 $env:HAB_BLDR_CHANNEL="stable"
-$env:MSBuildEnableWorkloadResolver="$false"
-$env:MSBuildSdksPath="C:\Program Files\dotnet\sdk\8.0.403\Sdks"
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
 $pkg_version="0.4.0"
