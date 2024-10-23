@@ -1,4 +1,3 @@
-# $env:HAB_BLDR_CHANNEL="chef-chef-powershell-shim-pipeline-habitat-build"
 $env:HAB_BLDR_CHANNEL="stable"
 $env:MSBuildEnableWorkloadResolver="$false"
 $env:MSBuildSdksPath="C:\Program Files\dotnet\sdk\8.0.403\Sdks"
@@ -10,8 +9,8 @@ $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
   "core/dotnet-481-dev-pack/4.8.1/20241022062559", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/windows-11-sdk/10.0.26100/20241022063945", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/visual-build-tools-2022/17.11.0/20241023134911" #, As of August 2024, this package should be installed by default on all Windows devices.
+  "core/windows-11-sdk/10.0.26100/20241022063945", 
+  "core/visual-build-tools-2022/17.11.0/20241023134911" 
   "core/dotnet-8-sdk/8.0.400/20241022062821" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
 $pkg_bin_dirs=@("bin")
