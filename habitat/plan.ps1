@@ -22,6 +22,9 @@ function Invoke-Build {
   Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force
   nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
 
+  Write-Buildline " ** Where are my SDKs at?"
+  Get-ChildItem -Path $(Get-HabPackagePath dotnet-8-sdk) sdk -Directory -Recurse
+
   Write-Buildline " ** Setting the SDK Path - it gets borked during the nuget restore"
   $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk)\bin\sdk\8.0.400\Sdks"
   $env:MSBuildSdksPath
