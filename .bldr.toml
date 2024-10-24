@@ -8,7 +8,7 @@ plan_path = "habitat"
 build_targets = [
   "x86_64-windows"
 ]
-plan_path = "habitat-x64"
+plan_path = "habitat"
 
 [dotnet-481-dev-pack-x64]
 build_targets = [
