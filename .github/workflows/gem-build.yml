@@ -4,7 +4,7 @@ name: Chef-PowerShell Builder
 on:
   pull_request:
     branches:
-      - main
+      - 18-Stable
     types: [closed]
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
         run: choco install habitat -y
         shell: powershell
       - name: Install Chef Client
-        run: choco install chef-client -y
+        run: choco install chef-client --version=18.5.0 -y
         shell: powershell
       - name: Update the Gem version
         run: |

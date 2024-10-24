@@ -4,12 +4,6 @@ build_targets = [
 ]
 plan_path = "habitat"
 
-[chef-powershell-shim-x64]
-build_targets = [
-  "x86_64-windows"
-]
-plan_path = "habitat-x64"
-
 [dotnet-481-dev-pack-x64]
 build_targets = [
   "x86_64-windows"
