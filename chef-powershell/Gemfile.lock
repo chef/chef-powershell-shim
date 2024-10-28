@@ -19,6 +19,7 @@ GEM
     ffi-yajl (2.6.0)
       libyajl2 (>= 1.2)
     libyajl2 (2.1.0)
+    faraday (2.10.1)
     method_source (1.1.0)
     net-ssh (7.2.3)
     parallel (1.26.3)
