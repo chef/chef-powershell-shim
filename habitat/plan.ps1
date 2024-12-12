@@ -18,11 +18,14 @@ function Invoke-SetupEnvironment {
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
 
   # Begin testing here
-  $sdks = dotnet --list-sdks
-  $latest = $sdks | Select-Object -Last 1
-  # $version = $latest.split(' ')[0]
-  Write-Host "Latest SDK: $latest"
-  Write-Host "`r"
+  $win11SdkPath = "$(Get-HabPackagePath windows-11-sdk)"
+  $dotnetCoreSdkPath = "$(Get-HabPackagePath dotnet-core-sdk)"
+  Write-Host "Here are my paths"
+  Write-Host "win11SdkPath: $win11SdkPath"
+  Write-Host "dotnetCoreSdkPath: $dotnetCoreSdkPath"
+  Write-Host "Testing if the paths exist"
+  Test-Path $win11SdkPath
+  Test-Path $dotnetCoreSdkPath
 }
 
 function Invoke-Build {
