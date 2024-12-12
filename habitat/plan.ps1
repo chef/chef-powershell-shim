@@ -32,9 +32,9 @@ function Invoke-SetupEnvironment {
   Test-Path $win11SdkPath -PathType Container
   Test-Path $dotnetCoreSdkPath -PathType Container
   Write-Host "Finding the missing property file in Habitat"
-  Get-ChildItem -Path $dotnetCoreSdkPath -Recurse -Filter "MMicrosoft.NET.Sdk.ImportWorkloads.props"
+  Get-ChildItem -Path $dotnetCoreSdkPath -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
   Write-Host "Finding the missing property file anywhere on C:"
-  Get-ChildItem -Path C:\ -Recurse -Filter "MMicrosoft.NET.Sdk.ImportWorkloads.props"
+  Get-ChildItem -Path C:\ -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
 }
 
 function Invoke-Build {
