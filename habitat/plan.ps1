@@ -17,24 +17,27 @@ function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
 
+  Set-RuntimeEnv -IsPath "MSBuildSDKsPath" "$(Get-HabPackagePath dotnet-core-sdk)\bin\Sdk\8.0.303\Sdks"
+  Set-RuntimeEnv "MSBuildEnableWorkloadResolver" $false
+
   # Begin testing here
-  Write-Host "What is system path?"
-  $env:Path
-  $win11SdkPath = "$(Get-HabPackagePath windows-11-sdk)"
-  $dotnetCoreSdkPath = "$(Get-HabPackagePath dotnet-core-sdk)"
-  Write-Host "Here are my paths"
-  Write-Host "win11SdkPath: $win11SdkPath"
-  Write-Host "dotnetCoreSdkPath: $dotnetCoreSdkPath"
-  Write-Host "Testing if the paths exist"
-  Test-Path $win11SdkPath
-  Test-Path $dotnetCoreSdkPath
-  Write-Host "Testing if the paths are directories"
-  Test-Path $win11SdkPath -PathType Container
-  Test-Path $dotnetCoreSdkPath -PathType Container
-  Write-Host "Finding the missing property file in Habitat"
-  Get-ChildItem -Path $dotnetCoreSdkPath -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
-  Write-Host "Finding the missing property file anywhere on C:"
-  Get-ChildItem -Path C:\ -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
+  # Write-Host "What is system path?"
+  # $env:Path
+  # $win11SdkPath = "$(Get-HabPackagePath windows-11-sdk)"
+  # $dotnetCoreSdkPath = "$(Get-HabPackagePath dotnet-core-sdk)"
+  # Write-Host "Here are my paths"
+  # Write-Host "win11SdkPath: $win11SdkPath"
+  # Write-Host "dotnetCoreSdkPath: $dotnetCoreSdkPath"
+  # Write-Host "Testing if the paths exist"
+  # Test-Path $win11SdkPath
+  # Test-Path $dotnetCoreSdkPath
+  # Write-Host "Testing if the paths are directories"
+  # Test-Path $win11SdkPath -PathType Container
+  # Test-Path $dotnetCoreSdkPath -PathType Container
+  # Write-Host "Finding the missing property file in Habitat"
+  # Get-ChildItem -Path $dotnetCoreSdkPath -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
+  # Write-Host "Finding the missing property file anywhere on C:"
+  # Get-ChildItem -Path C:\ -Recurse -Filter "Microsoft.NET.Sdk.ImportWorkloads.props" -ErrorAction SilentlyContinue
 }
 
 function Invoke-Build {
