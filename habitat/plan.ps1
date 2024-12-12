@@ -18,6 +18,8 @@ function Invoke-SetupEnvironment {
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
 
   # Begin testing here
+  Write-Host "What is system path?"
+  $env:Path
   $win11SdkPath = "$(Get-HabPackagePath windows-11-sdk)"
   $dotnetCoreSdkPath = "$(Get-HabPackagePath dotnet-core-sdk)"
   Write-Host "Here are my paths"
@@ -26,6 +28,13 @@ function Invoke-SetupEnvironment {
   Write-Host "Testing if the paths exist"
   Test-Path $win11SdkPath
   Test-Path $dotnetCoreSdkPath
+  Write-Host "Testing if the paths are directories"
+  Test-Path $win11SdkPath -PathType Container
+  Test-Path $dotnetCoreSdkPath -PathType Container
+  Write-Host "Finding the missing property file in Habitat"
+  Get-ChildItem -Path $dotnetCoreSdkPath -Recurse -Filter "MMicrosoft.NET.Sdk.ImportWorkloads.props"
+  Write-Host "Finding the missing property file anywhere on C:"
+  Get-ChildItem -Path C:\ -Recurse -Filter "MMicrosoft.NET.Sdk.ImportWorkloads.props"
 }
 
 function Invoke-Build {
