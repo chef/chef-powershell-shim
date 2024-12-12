@@ -16,6 +16,13 @@ $pkg_bin_dirs=@("bin")
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
+
+  # Begin testing here
+  $sdks = dotnet --list-sdks
+  $latest = $sdks | Select-Object -Last 1
+  # $version = $latest.split(' ')[0]
+  Write-Host "Latest SDK: $latest"
+  Write-Host "`r"
 }
 
 function Invoke-Build {
