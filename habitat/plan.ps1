@@ -10,14 +10,13 @@ $pkg_build_deps=@(
   "core/dotnet-481-dev-pack/4.8.1/20241022062559", #, As of August 2024, this package should be installed by default on all Windows devices.
   "core/windows-11-sdk/10.0.26100/20241022063945", 
   "core/visual-build-tools-2022/17.11.0/20241023134911" 
-  "core/dotnet-8-sdk/8.0.400/20241022062821" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
+  "chef/dotnet-8-sdk-x64/8.0.400/20241213183042" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
 $pkg_bin_dirs=@("bin")
 
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
-  Set-RuntimeEnv -IsPath "MSBuildSDKsPath" "$(Get-HabPackagePath dotnet-core-sdk)\bin\Sdk\8.0.303\Sdks"
 }
 
 function Invoke-Build {
@@ -25,7 +24,7 @@ function Invoke-Build {
   nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
 
   Write-Buildline " ** Setting the SDK Path - it gets borked during the nuget restore"
-  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk)\bin\sdk\8.0.400\Sdks"
+  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk-x64)\bin\sdk\8.0.400\Sdks"
   $env:MSBuildSdksPath
 
   MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
