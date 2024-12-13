@@ -17,6 +17,7 @@ $pkg_bin_dirs=@("bin")
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
+  Set-RuntimeEnv -IsPath "MSBuildSDKsPath" "$(Get-HabPackagePath dotnet-core-sdk)\bin\Sdk\8.0.303\Sdks"
 }
 
 function Invoke-Build {
