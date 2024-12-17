@@ -12,8 +12,10 @@ rubygems:
   - chef-powershell
 
 pipelines:
+  - habitat/build:
+      definition: .expeditor/build.habitat.yml
   - verify:
-      description: Pull Request validation tests
+      description: Pull Request validation tests    
 
 github:
   # This deletes the GitHub PR branch after successfully merged into the release branch
