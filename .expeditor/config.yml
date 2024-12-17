@@ -14,6 +14,8 @@ rubygems:
 pipelines:
   - verify:
       description: Pull Request validation tests
+  - habitat/build:
+      definition: .expeditor/build.habitat.yml
 
 github:
   # This deletes the GitHub PR branch after successfully merged into the release branch
@@ -28,6 +30,12 @@ github:
     - "Expeditor: Bump Version Major"
 changelog:
   rollup_header: Changes are already released to RubyGems.org
+
+release_branches:
+  - main:
+      version_constraint: 19.*
+  - chef-18:
+      version_constraint: 18.*
 
 subscriptions:
   # These actions are taken, in order they are specified, anytime a Pull Request is merged.
