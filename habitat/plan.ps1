@@ -1,7 +1,8 @@
 $env:HAB_BLDR_CHANNEL = "LTS-2024"
+$env:MSBuildEnableWorkloadResolver = $false
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
-$pkg_version="0.4.0"
+$pkg_version="19.1.0"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
@@ -16,6 +17,8 @@ $pkg_bin_dirs=@("bin")
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
+
+  Set-RuntimeEnv -IsPath "MSBuildSDKsPath" "$(Get-HabPackagePath dotnet-core-sdk)\bin\Sdk\8.0.303\Sdks"
 }
 
 function Invoke-Build {

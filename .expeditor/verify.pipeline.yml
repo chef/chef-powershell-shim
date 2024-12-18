@@ -36,7 +36,7 @@ steps:
         host_os: windows
         shell: [ "powershell", "-Command" ]
 
-- label: ":windows: win-10-sdk-x64"
+- label: ":windows: win-11-sdk-x64"
   commands:
     - .expeditor/test_plan.ps1 -Plan habitat-win-10-sdk-x64
   expeditor:
