@@ -12,6 +12,8 @@ rubygems:
   - chef-powershell
 
 pipelines:
+  - habitat/build:
+      definition: .expeditor/build.habitat.yml
   - verify:
       description: Pull Request validation tests
   - habitat/build:
