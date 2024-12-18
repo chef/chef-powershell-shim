@@ -7,11 +7,11 @@ $pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for
 $pkg_license=@("Microsoft Software License")
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_source="https://aka.ms/vs/17/release/vs_BuildTools.exe"
-$pkg_shasum="99c7677154366062a43082921f40f3ce00ef2614dbf94db23b244dd13dc9443d"
+$pkg_shasum="ab3cff3d3a8c48804f47eb521cf138480f5ed4fe86476dd449a420777d7f2ead"
 $pkg_build_deps=@("core/7zip")
 
 $pkg_bin_dirs=@(
-    "Contents\VC\Tools\MSVC\14.41.34120\bin\HostX64\x64",
+    "Contents\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64",
     "Contents\VC\Redist\MSVC\14.40.33807\x64\Microsoft.VC143.CRT",
     "Contents\MSBuild\Current\Bin"
 )
@@ -27,9 +27,9 @@ $pkg_include_dirs=@(
 function Invoke-SetupEnvironment {
     Set-RuntimeEnv "DisableRegistryUse" "true"
     Set-RuntimeEnv "UseEnv" "true"
-    Set-RuntimeEnv "VCToolsVersion" "14.41.34120"
+    Set-RuntimeEnv "VCToolsVersion" "14.42.34433"
     Set-RuntimeEnv "VisualStudioVersion" "17.0"
-    Set-RuntimeEnv -IsPath "VCToolsInstallDir_170" "$pkg_prefix\Contents\VC\Redist\MSVC\14.41.34120"
+    Set-RuntimeEnv -IsPath "VCToolsInstallDir_170" "$pkg_prefix\Contents\VC\Redist\MSVC\14.42.34433"
 }
 
 function Invoke-Unpack {
