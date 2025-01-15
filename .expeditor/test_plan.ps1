@@ -20,7 +20,7 @@ if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
 }
 
 Write-Host "--- :construction: Building $Plan"
-hab pkg build $Plan
+hab pkg build $Plan --refresh-channel LTS-2024
 if (-not $?) { throw "unable to build" }
 
 . results/last_build.ps1

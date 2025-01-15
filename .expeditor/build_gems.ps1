@@ -73,7 +73,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat
+hab pkg build Habitat --refresh-channel LTS-2024
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
