@@ -7,6 +7,8 @@ param (
 
 $env:HAB_LICENSE = "accept-no-persist"
 $env:HAB_ORIGIN = 'ci'
+$env:HAB_BLDR_CHANNEL = 'LTS-2024'
+$env:HAB_REFRESH_CHANNEL = 'LTS-2024'
 
 Write-Host "--- :8ball: :windows: Verifying $Plan"
 
