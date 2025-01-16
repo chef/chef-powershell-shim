@@ -7,6 +7,8 @@ param (
 
 $env:HAB_LICENSE = "accept-no-persist"
 $env:HAB_ORIGIN = 'ci'
+$env:HAB_BLDR_CHANNEL = 'LTS-2024'
+$env:HAB_REFRESH_CHANNEL = 'LTS-2024'
 
 Write-Host "--- :8ball: :windows: Verifying $Plan"
 
@@ -20,7 +22,7 @@ if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
 }
 
 Write-Host "--- :construction: Building $Plan"
-hab pkg build $Plan --refresh-channel LTS-2024
+hab pkg build $Plan
 if (-not $?) { throw "unable to build" }
 
 . results/last_build.ps1
