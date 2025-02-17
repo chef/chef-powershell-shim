@@ -24,7 +24,7 @@ jobs:
       uses: chef/common-github-actions/.github/workflows/ci-all-ruby-main.yml@main
       with:
         message: 'hello world'
-        secrets: inherit
+ #       secrets: inherit
 
   # CI-pipeline:
   #   uses: 'chef/common-github-actions/.github/workflows/ci-release-go-cli.yml@main'
