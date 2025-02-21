@@ -4,11 +4,12 @@ name: Run ci-all-ruby-main from chef/common-github-actions
 
 on: 
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    branches: [ main, release/** ]
+      # types: [opened, synchronize, reopened, closed]
   push:
     branches:
       - main
-      - 'releases/**'
+      - 'release/**'
       # - master
       # - develop
       # - 'features/**' 
