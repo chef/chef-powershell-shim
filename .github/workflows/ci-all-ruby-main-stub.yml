@@ -19,4 +19,4 @@ jobs:
       language: 'Ruby'
       visibility: ${{ github.event.repository.visibility }} # optional, defaults to public
       skip-trufflehog: false
-      skip-sonarqube: true
+      skip-sonarqube: false
