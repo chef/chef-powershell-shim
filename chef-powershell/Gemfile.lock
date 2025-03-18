@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     chef-powershell (18.1.0)
-      ffi (~> 1.15)
+      ffi (>= 1.15)
       ffi-yajl (~> 2.4)
 
 GEM
@@ -63,11 +63,13 @@ GEM
 PLATFORMS
   x64-mingw-ucrt
   x64-mingw32
+  x86_64-linux
 
 DEPENDENCIES
   chef-powershell!
   chefstyle
   fauxhai-ng
+  ffi (>= 1.15)
   pry
   rake
   rspec
