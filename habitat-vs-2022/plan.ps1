@@ -1,33 +1,35 @@
-$pkg_name="visual-build-tools-2019-x86"
-$pkg_origin="chef"
-$pkg_version="16.8.1"
+$pkg_name="visual-build-tools-2022"
+$pkg_origin="core"
+$pkg_version="17.11.0"
 $pkg_description="Standalone compiler, libraries and scripts"
-$pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019"
+$pkg_upstream_url="https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022"
+# https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
 $pkg_license=@("Microsoft Software License")
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-$pkg_source="https://download.visualstudio.microsoft.com/download/pr/44fbb1ed-c06e-41c9-bc39-3d7f2083d61b/d3ffaa4ec21a06d29b773e544c0c613df65b270ad30c036b623188a8b12dd745/vs_BuildTools.exe"
-$pkg_shasum="d3ffaa4ec21a06d29b773e544c0c613df65b270ad30c036b623188a8b12dd745"
+$pkg_source="https://aka.ms/vs/17/release/vs_BuildTools.exe"
+$pkg_shasum="ab3cff3d3a8c48804f47eb521cf138480f5ed4fe86476dd449a420777d7f2ead"
 $pkg_build_deps=@("core/7zip")
 
 $pkg_bin_dirs=@(
-    "Contents\VC\Tools\MSVC\14.29.30133\bin\HostX86\x86",
-    "Contents\VC\Redist\MSVC\14.29.30133\x86\Microsoft.VC142.CRT",
+    "Contents\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64",
+    "Contents\VC\Redist\MSVC\14.40.33807\x64\Microsoft.VC143.CRT",
     "Contents\MSBuild\Current\Bin"
 )
 $pkg_lib_dirs=@(
-    "Contents\VC\Tools\MSVC\14.29.30133\atlmfc\lib\x86",
-    "Contents\VC\Tools\MSVC\14.29.30133\lib\x86"
+    "Contents\VC\Tools\MSVC\14.41.34120\atlmfc\lib\x64",
+    "Contents\VC\Tools\MSVC\14.41.34120\lib\x64"
 )
 $pkg_include_dirs=@(
-    "Contents\VC\Tools\MSVC\14.29.30133\atlmfc\include",
-    "Contents\VC\Tools\MSVC\14.29.30133\include"
+    "Contents\VC\Tools\MSVC\14.41.34120\atlmfc\include",
+    "Contents\VC\Tools\MSVC\14.41.34120\include"
 )
 
 function Invoke-SetupEnvironment {
     Set-RuntimeEnv "DisableRegistryUse" "true"
     Set-RuntimeEnv "UseEnv" "true"
-    Set-RuntimeEnv "VCToolsVersion" "14.29.30133"
-    Set-RuntimeEnv -IsPath "VCToolsInstallDir_160" "$pkg_prefix\Contents\VC\Redist\MSVC\14.29.30133"
+    Set-RuntimeEnv "VCToolsVersion" "14.42.34433"
+    Set-RuntimeEnv "VisualStudioVersion" "17.0"
+    Set-RuntimeEnv -IsPath "VCToolsInstallDir_170" "$pkg_prefix\Contents\VC\Redist\MSVC\14.42.34433"
 }
 
 function Invoke-Unpack {
@@ -41,7 +43,7 @@ function Invoke-Unpack {
     7z x "$HAB_CACHE_SRC_PATH/$pkg_filename" -o"$HAB_CACHE_SRC_PATH/$pkg_dirname"
     $opcInstaller = (Get-Content "$HAB_CACHE_SRC_PATH\$pkg_dirname\vs_bootstrapper_d15\vs_setup_bootstrapper.config")[0].Split("=")[-1]
     Invoke-RestMethod $opcInstaller -Outfile "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc"
-    7z x "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc" -o"$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Expand-Archive "$HAB_CACHE_SRC_PATH/$pkg_dirname/vs_installer.opc" -DestinationPath "$HAB_CACHE_SRC_PATH\$pkg_dirname"
 
     $installArgs =  "layout --quiet --layout $HAB_CACHE_SRC_PATH/products --lang en-US --in $HAB_CACHE_SRC_PATH/$pkg_dirname/vs_bootstrapper_d15/vs_setup_bootstrapper.json"
     $components = @(
@@ -52,7 +54,9 @@ function Invoke-Unpack {
         "Microsoft.VisualStudio.Component.SQL.SSDTBuildSku",
         "Microsoft.VisualStudio.Component.VC.ATLMFC",
         "Microsoft.VisualStudio.Component.NuGet.BuildTools",
-        "Microsoft.VisualStudio.Component.VC.CLI.Support"
+        "Microsoft.VisualStudio.Component.VC.CLI.Support",
+        "Microsoft.VisualStudio.Component.Windows11SDK.26100",
+        "Microsoft.VisualStudio.Component.VC.CMake.Project"
     )
     foreach ($component in $components) {
         $installArgs += " --add $component"

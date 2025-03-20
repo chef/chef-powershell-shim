@@ -1,4 +1,4 @@
-$pkg_name="dotnet-481-dev-pack-x64"
+$pkg_name="dotnet-481-dev-pack"
 $pkg_origin="core"
 $pkg_version="4.8.1"
 $pkg_description=".net framework 4.8.1 with dev pack"

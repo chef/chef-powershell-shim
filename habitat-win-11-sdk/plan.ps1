@@ -1,5 +1,5 @@
-$pkg_name="windows-11-sdk-x64"
-$pkg_origin="chef"
+$pkg_name="windows-11-sdk"
+$pkg_origin="core"
 $pkg_version="10.0.26100"
 $pkg_description="The Windows 11 SDK for Windows 11,(servicing release 10.0.26100.1742) provides the latest headers, libraries, metadata, and tools for building Windows 11 apps"
 $pkg_upstream_url="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk"

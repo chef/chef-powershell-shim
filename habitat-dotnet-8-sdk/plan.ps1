@@ -1,5 +1,5 @@
-$pkg_name="dotnet-8-sdk-x64"
-$pkg_origin="chef"
+$pkg_name="dotnet-8-sdk"
+$pkg_origin="core"
 $pkg_version="8.0.400"
 $pkg_license=('MIT')
 $pkg_upstream_url="https://dotnet.microsoft.com/"

@@ -1,5 +1,5 @@
-$pkg_name="windows-10-sdk-x64"
-$pkg_origin="chef"
+$pkg_name="windows-10-sdk"
+$pkg_origin="core"
 $pkg_version="10.0.26100.0"
 $pkg_description="The Windows App SDK provides a unified set of APIs and tools that are decoupled from the OS and released to developers via NuGet packages. These APIs and tools can be used in a consistent way by any desktop app on Windows 11 and downlevel to Windows 10, version 1809"
 $pkg_upstream_url="https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/"
