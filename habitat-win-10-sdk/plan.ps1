@@ -1,28 +1,27 @@
 $pkg_name="windows-10-sdk"
 $pkg_origin="core"
-$pkg_version="10.0.26100.0"
-$pkg_description="The Windows App SDK provides a unified set of APIs and tools that are decoupled from the OS and released to developers via NuGet packages. These APIs and tools can be used in a consistent way by any desktop app on Windows 11 and downlevel to Windows 10, version 1809"
-$pkg_upstream_url="https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/"
+$pkg_version="10.0.22000"
+$pkg_description="The Windows 10 SDK for Windows 10, version 2004 (servicing release 10.0.19041.685) provides the latest headers, libraries, metadata, and tools for building Windows 10 apps"
+$pkg_upstream_url="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk"
 $pkg_license=@("Microsoft Software License")
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-$pkg_source="https://go.microsoft.com/fwlink/?linkid=2272610"
-$pkg_filename="winsdksetup.exe"
-$pkg_shasum="5535188A9AEEA1CEBCBF04DE3C2C37D76F10600A65867FF65F6153D507B60488"
+$pkg_source="https://download.microsoft.com/download/1/0/e/10e6da02-01f7-40d4-8942-b98b53b36cf9/windowssdk/winsdksetup.exe"
+$pkg_shasum="521b6410d3fdd92adbcfe941fc24746ea340288b3767fe39026bc70907ae0322"
 $pkg_build_deps=@("core/lessmsi")
 
 $pkg_bin_dirs=@(
     "Windows Kits\10\bin\x64",
-    "Windows Kits\10\bin\10.0.26100.0\x64"
+    "Windows Kits\10\bin\$pkg_version.0\x64"
 )
 $pkg_lib_dirs=@(
-    "Windows Kits\10\Lib\10.0.26100.0\um\x64",
-    "Windows Kits\10\Lib\10.0.26100.0\ucrt\x64"
+    "Windows Kits\10\Lib\$pkg_version.0\um\x64",
+    "Windows Kits\10\Lib\$pkg_version.0\ucrt\x64"
 )
 $pkg_include_dirs=@(
-    "Windows Kits\10\Include\10.0.26100.0\shared",
-    "Windows Kits\10\Include\10.0.26100.0\ucrt",
-    "Windows Kits\10\Include\10.0.26100.0\um",
-    "Windows Kits\10\Include\10.0.26100.0\winrt"
+    "Windows Kits\10\Include\$pkg_version.0\shared",
+    "Windows Kits\10\Include\$pkg_version.0\ucrt",
+    "Windows Kits\10\Include\$pkg_version.0\um",
+    "Windows Kits\10\Include\$pkg_version.0\winrt"
 )
 
 function Invoke-SetupEnvironment {
@@ -37,7 +36,7 @@ function Invoke-Unpack {
             lessmsi x $_
         }
     } finally { Pop-Location }
-    Get-ChildItem "$HAB_CACHE_SRC_PATH/$pkg_dirname" -Include @("x64", "arm", "arm64") -Recurse | ForEach-Object {
+    Get-ChildItem "$HAB_CACHE_SRC_PATH/$pkg_dirname" -Include @("x86", "arm", "arm64") -Recurse | ForEach-Object {
         Remove-Item $_ -Recurse -Force
     }
 }
