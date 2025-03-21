@@ -9,7 +9,7 @@ expeditor:
 
 steps:
 
-- label: ":windows: dotnet-481-dev-pack-x64"
+- label: ":windows: dotnet-481-dev-pack"
   commands:
     - .expeditor/test_plan.ps1 -Plan habitat-dotnet-481-dev-pack
   expeditor:
