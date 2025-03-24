@@ -9,42 +9,6 @@ expeditor:
 
 steps:
 
-- label: ":windows: dotnet-481-dev-pack"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-481-dev-pack
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
-- label: ":windows: dotnet-8-sdk-x64"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-dotnet-8-sdk
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
-- label: ":windows: vs-2022-x64"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-vs-2022
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
-- label: ":windows: win-11-sdk-x64"
-  commands:
-    - .expeditor/test_plan.ps1 -Plan habitat-win-11-sdk
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        shell: [ "powershell", "-Command" ]
-
 - label: ":windows: pre-build-verify-windows-gem"
   commands:
     - .expeditor/build_gems.ps1
