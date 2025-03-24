@@ -8,7 +8,7 @@ $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
   "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/windows-11-sdk", 
+  "core/windows-10-sdk", 
   "core/visual-build-tools-2022" 
   "core/dotnet-8-sdk" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
@@ -24,7 +24,7 @@ function Invoke-Build {
   nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
 
   Write-Buildline " ** Setting the SDK Path - it gets borked during the nuget restore"
-  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk-x64)\bin\sdk\8.0.400\Sdks"
+  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk)\bin\sdk\8.0.400\Sdks"
   $env:MSBuildSdksPath
 
   MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
