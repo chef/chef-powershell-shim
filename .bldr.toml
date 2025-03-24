@@ -3,27 +3,3 @@ build_targets = [
   "x86_64-windows"
 ]
 plan_path = "habitat"
-
-[dotnet-481-dev-pack-x64]
-build_targets = [
-  "x86_64-windows"
-]
-plan_path = "habitat-dotnet-481-dev-pack-x64"
-
-[dotnet-8-sdk-x64]
-build_targets = [
-  "x86_64-windows"
-]
-plan_path = "habitat-dotnet-8-sdk-x64"
-
-[visual-build-tools-2022-x64]
-build_targets = [
-  "x86_64-windows"
-]
-plan_path = "habitat-vs-2022-x64"
-
-[windows-11-sdk-x64]
-build_targets = [
-  "x86_64-windows"
-]
-plan_path = "habitat-win-11-sdk-x64"
