@@ -1,16 +1,16 @@
 $env:HAB_BLDR_CHANNEL="stable"
 $env:MSBuildEnableWorkloadResolver = $false
 $pkg_name="chef-powershell-shim"
-$pkg_origin="chef"
+$pkg_origin="core"
 $pkg_version="18.6.2"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
-  "core/dotnet-481-dev-pack/4.8.1/20241022062559", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/windows-11-sdk/10.0.26100/20241022063945", 
-  "core/visual-build-tools-2022/17.11.0/20241023134911" 
-  "chef/dotnet-8-sdk-x64/8.0.400/20241213183042" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
+  "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
+  "core/windows-10-sdk", 
+  "core/visual-build-tools-2022" 
+  "core/dotnet-8-sdk" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
 $pkg_bin_dirs=@("bin")
 
@@ -24,7 +24,7 @@ function Invoke-Build {
   nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
 
   Write-Buildline " ** Setting the SDK Path - it gets borked during the nuget restore"
-  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk-x64)\bin\sdk\8.0.400\Sdks"
+  $env:MSBuildSdksPath="$(Get-HabPackagePath dotnet-8-sdk)\bin\sdk\8.0.400\Sdks"
   $env:MSBuildSdksPath
 
   MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
