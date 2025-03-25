@@ -5,6 +5,8 @@ gem "rspec"
 gem "chefstyle"
 gem "pry"
 
+gem "ffi", ">= 1.15", force_ruby_platform: true
+
 gemspec
 
 group(:development, :test) do
