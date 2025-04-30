@@ -25,7 +25,7 @@ $env:MSBuildEnableWorkloadResolver = "false"
 # setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
 Write-Output "--- :shovel: Setting the BLDR and REFRESH Channels to LTS"
 $env:HAB_BLDR_CHANNEL="LTS-2024"
-# $env:HAB_REFRESH_CHANNEL = "LTS-2024"
+$env:HAB_REFRESH_CHANNEL = "LTS-2024"
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing Habitat via Choco"
@@ -33,10 +33,10 @@ choco install habitat -y
 if (-not $?) { throw "unable to install Habitat"}
 Write-Output "`r"
 
-# Write-Output "--- :screwdriver: Installing the latest Chef-Client"
-# choco install chef-client -y
-# if (-not $?) { throw "unable to install Chef-Client" }
-# Write-Output "`r"
+Write-Output "--- :screwdriver: Installing the latest Chef-Client"
+choco install chef-client -y
+if (-not $?) { throw "unable to install Chef-Client" }
+Write-Output "`r"
 
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
@@ -74,7 +74,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat
+hab pkg build Habitat --refresh-channel LTS-2024
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
