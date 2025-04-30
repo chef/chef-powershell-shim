@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative "./powershell"
-require_relative "./pwsh"
+require_relative "powershell"
+require_relative "pwsh"
 
 # The Chef-PowerShell gem provides in-process access to the PowerShell engine.
 #

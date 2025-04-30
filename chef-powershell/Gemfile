@@ -2,7 +2,6 @@
 source "https://rubygems.org"
 
 gem "rspec"
-gem "chefstyle"
 gem "pry"
 
 gem "ffi", ">= 1.15", force_ruby_platform: true
