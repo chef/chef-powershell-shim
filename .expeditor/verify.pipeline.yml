@@ -28,3 +28,16 @@ steps:
         host_os: windows
         image: rubydistros/windows-2019:3.4
         shell: [ "powershell", "-Command" ]
+
+- label: "What version of Ruby are we using?"
+  command:
+    - bundle config --local path vendor/bundle
+    - bundle config set --local without docs debug
+    - bundle install --jobs=7 --retry=3
+    - which ruby
+    - ruby --version
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        image: rubydistros/windows-2019:3.4
