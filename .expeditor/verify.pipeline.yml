@@ -31,7 +31,7 @@ steps:
 
 - label: ":windows: What version of Ruby are we using?"
   command:
-    - which ruby
+    - Get-Command ruby
     - ruby --version
   expeditor:
     executor:
