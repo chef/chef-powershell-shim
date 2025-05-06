@@ -170,7 +170,7 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
   Remove-item -path $($parent_folder + "\chef.powershell.wrapper.dll")
 }
 Write-Output "`r"
-
+Write-Output "--- :point_right: Ruby version is $(ruby -v)"
 Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update
 bundle exec rake gem_check
