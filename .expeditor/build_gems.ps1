@@ -154,7 +154,7 @@ Write-Output "`r"
 
 Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
-$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.1.0"
+$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.4.0"
 [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")

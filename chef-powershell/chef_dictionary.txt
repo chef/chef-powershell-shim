@@ -23,6 +23,7 @@ armv
 Artifactory
 Ashwini
 askpass
+assumeyes
 auditd
 auditpol
 authz
@@ -249,6 +250,7 @@ haproxy
 Harringon
 Hashi
 hashi
+hawkey
 hdiutil
 Heartbleed
 Heinemeier
@@ -295,6 +297,7 @@ inode
 inodes
 Inspec
 Intune
+installroot
 ipsec
 ipsecconf
 Itanium
@@ -661,6 +664,7 @@ tzdata
 tzutil
 UEFI
 uids
+ujson
 ulimit
 umask
 umount
@@ -695,6 +699,7 @@ VCPU
 Veertu
 vendored
 vendoring
+versionstr
 vgroot
 virtconn
 virtio
