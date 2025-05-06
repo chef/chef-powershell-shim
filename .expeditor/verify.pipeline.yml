@@ -30,8 +30,8 @@ steps:
         shell: [ "powershell", "-Command" ]
 
 - label: ":windows: What version of Ruby are we using?"
-  run: |
-    Get-Command ruby
+  command: 
+    Get-Command ruby;
     ruby --version
   expeditor:
     executor:
