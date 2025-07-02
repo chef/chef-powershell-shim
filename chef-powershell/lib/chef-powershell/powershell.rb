@@ -52,6 +52,7 @@ class ChefPowerShell
     #
     def error?
       return true if errors.any?
+
       false
     end
 
