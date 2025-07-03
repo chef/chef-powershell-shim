@@ -51,7 +51,7 @@ class ChefPowerShell
     # @return [Boolean]
     #
     def error?
-      return true if errors.count > 0
+      return true if errors.any?
 
       false
     end

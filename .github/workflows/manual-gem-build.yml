@@ -70,6 +70,7 @@ jobs:
           HAB_ORIGIN: ci
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
+          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
         run: hab pkg build Habitat
         shell: powershell
       - name: Installing the 64-bit DLL's
@@ -77,6 +78,7 @@ jobs:
           HAB_ORIGIN: ci
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
+          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
         run: |
           $project_root = $pwd
           . results/last_build.ps1
