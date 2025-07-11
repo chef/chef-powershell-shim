@@ -1,4 +1,4 @@
-$env:HAB_BLDR_CHANNEL = "LTS-2024"
+$env:HAB_BLDR_CHANNEL = "base-2025"
 $env:MSBuildEnableWorkloadResolver = $false
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
