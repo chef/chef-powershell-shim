@@ -78,7 +78,7 @@ else {
 Write-Output "`r"
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLL's"
-hab pkg build Habitat --refresh-channel LTS-2024
+hab pkg build Habitat --refresh-channel base-2025
 if (-not $?) { throw "unable to build" }
 Write-Output "`r"
 
