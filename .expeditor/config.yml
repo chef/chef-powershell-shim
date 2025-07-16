@@ -11,12 +11,12 @@ slack:
 rubygems:
   - chef-powershell
 
-pipelines:
-  - verify:
-      description: Pull Request validation tests
-      public: true
-  - habitat/build:
-      definition: .expeditor/build.habitat.yml
+# pipelines:
+#   - verify:
+#       description: Pull Request validation tests
+#       public: true
+#   - habitat/build:
+#       definition: .expeditor/build.habitat.yml
 
 github:
   # This deletes the GitHub PR branch after successfully merged into the release branch
@@ -35,6 +35,8 @@ changelog:
 release_branches:
   - main:
       version_constraint: 19.*
+  - 18-Stable:
+      version_constraint: 18.*    
 
 subscriptions:
   # These actions are taken, in order they are specified, anytime a Pull Request is merged.
@@ -53,7 +55,7 @@ subscriptions:
       - built_in:build_gem:
           only_if: built_in:bump_version            
 
-  - workload: project_promoted:{{agent_id}}:*
-    actions:
-      - built_in:rollover_changelog
-      - built_in:publish_rubygems      
+  # - workload: project_promoted:{{agent_id}}:*
+  #   actions:
+  #     - built_in:rollover_changelog
+  #     - built_in:publish_rubygems      
