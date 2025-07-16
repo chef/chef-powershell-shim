@@ -15,8 +15,8 @@ pipelines:
   - verify:
       description: Pull Request validation tests
       public: true
-  # - habitat/build:
-  #     definition: .expeditor/build.habitat.yml
+  - habitat/build:
+      definition: .expeditor/build.habitat.yml
 
 github:
   # This deletes the GitHub PR branch after successfully merged into the release branch
