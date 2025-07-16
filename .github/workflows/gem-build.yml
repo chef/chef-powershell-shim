@@ -18,7 +18,7 @@ jobs:
         run: choco install habitat -y
         shell: powershell
       - name: Install Chef Client
-        run: choco install chef-client --version=18.5.0 -y
+        run: choco install chef-client --version=18.7.10 -y
         shell: powershell
       - name: Update the Gem version
         run: |

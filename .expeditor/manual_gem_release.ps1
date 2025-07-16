@@ -1,6 +1,6 @@
 #########
 ## Purpose:
-##  This script is written as a manual process for bulding and publishing the chef-powershell gem.
+##  This script is written as a manual process for building and publishing the chef-powershell gem.
 ##  There is currently no process to build a gem on a Windows image.
 ##
 ## Assumptions:
