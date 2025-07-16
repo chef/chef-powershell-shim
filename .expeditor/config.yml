@@ -35,6 +35,8 @@ changelog:
 release_branches:
   - main:
       version_constraint: 19.*
+  - 18-Stable:
+      version_constraint: 18.*    
 
 subscriptions:
   # These actions are taken, in order they are specified, anytime a Pull Request is merged.
