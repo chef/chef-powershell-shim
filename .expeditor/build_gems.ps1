@@ -74,7 +74,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat --refresh-channel base-2025
+hab pkg build Habitat --refresh-channel base-2025 --auth $HAB_AUTH_TOKEN
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
