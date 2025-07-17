@@ -74,19 +74,19 @@ jobs:
           HAB_ORIGIN: ci
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
-          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
-        run: hab pkg build Habitat
+          #HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+        run: hab pkg build Habitat --auth ${{ secrets.HAB_AUTH_TOKEN }}
         shell: powershell
       - name: Installing the 64-bit DLL's
         env:
           HAB_ORIGIN: ci
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
-          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+          #HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
         run: |
           $project_root = $pwd
           . results/last_build.ps1
-          hab pkg install results/$pkg_artifact
+          hab pkg install results/$pkg_artifact --auth "${{ secrets.HAB_AUTH_TOKEN }}"
           $x64 = hab pkg path ci/chef-powershell-shim
           $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
           if (Test-Path -PathType Container $x64_bin_path) {
