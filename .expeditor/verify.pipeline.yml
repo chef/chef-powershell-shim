@@ -18,6 +18,8 @@ steps:
         host_os: windows
         image: rubydistros/windows-2019:3.1
         shell: [ "powershell", "-Command" ]
+        environment:
+          - HAB_AUTH_TOKEN
 
 - label: ":windows: pre-build-verify-windows-gem - Ruby 3.4"
   commands:
@@ -28,6 +30,8 @@ steps:
         host_os: windows
         image: rubydistros/windows-2019:3.4
         shell: [ "powershell", "-Command" ]
+        environment:
+          - HAB_AUTH_TOKEN
 
 - label: ":windows: What version of Ruby are we using?"
   command: 
