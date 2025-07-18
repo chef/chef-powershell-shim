@@ -16,7 +16,7 @@ Then set these envuironment variables:
 
 ```
 $env:MSBuildEnableWorkloadResolver = "false";
-$env:HAB_BLDR_CHANNEL = "LTS-2024";
+$env:HAB_BLDR_CHANNEL = "base-2025";
 $env:MSBuildSdksPath = "C:\Program Files\dotnet\sdk";
 $env:HAB_ORIGIN = "chef";
 ```

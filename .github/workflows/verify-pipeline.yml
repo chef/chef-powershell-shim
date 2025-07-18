@@ -1,0 +1,57 @@
+name: Build and Verify Gems on Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  pre-build-verify-ruby-3_1:
+    runs-on: windows-2019
+    name: Pre-build Verify - Ruby 3.1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.1
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+
+      - name: Run build script
+        shell: pwsh
+        run: .\.expeditor\build_gems.ps1
+
+  pre-build-verify-ruby-3_4:
+    runs-on: windows-2019
+    name: Pre-build Verify - Ruby 3.4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.4
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+
+      - name: Run build script
+        shell: pwsh
+        run: .\.expeditor\build_gems.ps1
+
+  check-ruby-version:
+    runs-on: windows-2019
+    name: Ruby Version Check
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.4
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+
+      - name: Display Ruby Version
+        shell: pwsh
+        run: |
+          Get-Command ruby
+          ruby --version
