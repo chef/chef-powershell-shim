@@ -1,52 +1,57 @@
-name: Windows Gem Build
+name: Build and Verify Gems on Windows
 
 on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 jobs:
-  build-ruby-3-1:
-    name: ":windows: Ruby 3.1 - Build Gems"
+  pre-build-verify-ruby-3_1:
     runs-on: windows-2019
-    timeout-minutes: 30
+    name: Pre-build Verify - Ruby 3.1
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Ruby 3.1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.1
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
-      - name: Build Gems
-        run: .\.expeditor\build_gems.ps1
-        shell: pwsh
 
-  build-ruby-3-4:
-    name: ":windows: Ruby 3.4 - Build Gems"
+      - name: Run build script
+        shell: pwsh
+        run: .\.expeditor\build_gems.ps1
+
+  pre-build-verify-ruby-3_4:
     runs-on: windows-2019
-    timeout-minutes: 30
+    name: Pre-build Verify - Ruby 3.4
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Ruby 3.4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4
-      - name: Build Gems
-        run: .\.expeditor\build_gems.ps1
+
+      - name: Run build script
         shell: pwsh
+        run: .\.expeditor\build_gems.ps1
 
   check-ruby-version:
-    name: ":windows: Check Ruby Version"
     runs-on: windows-2019
-    timeout-minutes: 30
+    name: Ruby Version Check
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Ruby 3.4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4
-      - name: Check Ruby Version
+
+      - name: Display Ruby Version
+        shell: pwsh
         run: |
           Get-Command ruby
           ruby --version
-        shell: pwsh
