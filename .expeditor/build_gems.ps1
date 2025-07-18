@@ -74,7 +74,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat --refresh-channel base-2025 --auth $HAB_AUTH_TOKEN
+hab pkg build Habitat --refresh-channel base-2025
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
@@ -84,7 +84,7 @@ if (-not $?) { throw "unable to determine details about this build"}
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing 64-bit $pkg_ident"
-hab pkg install results/$pkg_artifact
+hab pkg install results/$pkg_artifact --auth $HAB_AUTH_TOKEN
 $pkg_artifact = $null
 if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
