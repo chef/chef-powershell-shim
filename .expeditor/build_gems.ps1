@@ -24,8 +24,8 @@ $env:MSBuildEnableWorkloadResolver = "false"
 
 # setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
 Write-Output "--- :shovel: Setting the BLDR and REFRESH Channels to LTS"
-$env:HAB_BLDR_CHANNEL="LTS-2024"
-$env:HAB_REFRESH_CHANNEL = "LTS-2024"
+$env:HAB_BLDR_CHANNEL="base-2025"
+$env:HAB_REFRESH_CHANNEL = "base-2025"
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing Habitat via Choco"
@@ -74,7 +74,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat --refresh-channel LTS-2024
+hab pkg build Habitat --refresh-channel base-2025 --auth $HAB_AUTH_TOKEN
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
