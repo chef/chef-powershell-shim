@@ -1,4 +1,4 @@
-$env:HAB_BLDR_CHANNEL = "LTS-2024"
+$env:HAB_BLDR_CHANNEL = "base-2025"
 $env:MSBuildEnableWorkloadResolver = $false
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
@@ -36,7 +36,7 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-  $VCToolsInstallDir_170 = "$(Get-HabPackagePath visual-build-tools-2022)\Contents\VC\Redist\MSVC\14.40.33807"
+  $VCToolsInstallDir_170 = "$(Get-HabPackagePath visual-build-tools-2022)\Contents\VC\Redist\MSVC\14.44.35112"
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/x64/release/*.dll "$pkg_prefix/bin"
   Copy-Item "$VCToolsInstallDir_170\x64\Microsoft.VC143.CRT\*.dll" "$pkg_prefix/bin"
 
