@@ -28,8 +28,9 @@ $env:HAB_BLDR_CHANNEL="base-2025"
 $env:HAB_REFRESH_CHANNEL = "base-2025"
 Write-Output "`r"
 
-Write-Output "--- :screwdriver: Installing Habitat via Choco"
-choco install habitat -y
+Write-Host "--- :screwdriver: Installing Habitat"
+Set-ExecutionPolicy Bypass -Scope Process -Force
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
 if (-not $?) { throw "unable to install Habitat"}
 Write-Output "`r"
 
