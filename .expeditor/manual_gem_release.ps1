@@ -64,7 +64,7 @@ if (Test-Path $hpath) {
 }
 
 Write-Output "--- Setting up Habitat to build PowerShell DLL's"
-$env:HAB_ORIGIN = "ci"
+$env:HAB_ORIGIN = "chef"
 $env:HAB_LICENSE = "accept-no-persist"
 $env:FORCE_FFI_YAJL = "ext"
 
@@ -91,7 +91,7 @@ if (-not $?) { throw "unable to install this build" }
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path ci/chef-powershell-shim
+$x64 = hab pkg path chef/chef-powershell-shim
 Write-Output "`r"
 
 . results/last_build.ps1

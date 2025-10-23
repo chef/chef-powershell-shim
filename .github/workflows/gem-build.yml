@@ -71,21 +71,21 @@ jobs:
         shell: powershell
       - name: Building 64-bit PowerShell DLL's
         env:
-          HAB_ORIGIN: ci
+          HAB_ORIGIN: chef
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
         run: hab pkg build Habitat
         shell: powershell
       - name: Installing the 64-bit DLL's
         env:
-          HAB_ORIGIN: ci
+          HAB_ORIGIN: chef
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
         run: |
           $project_root = $pwd
           . results/last_build.ps1
           hab pkg install results/$pkg_artifact
-          $x64 = hab pkg path ci/chef-powershell-shim
+          $x64 = hab pkg path chef/chef-powershell-shim
           $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
           if (Test-Path -PathType Container $x64_bin_path) {
             Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }

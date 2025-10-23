@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/chef/chef-powershell-shim"
   spec.license       = "Apache-2.0"
 
-  spec.required_ruby_version = ">= 2.6"
+  spec.required_ruby_version = ">= 3.1"
 
   spec.add_runtime_dependency "ffi", "~> 1.15"
   spec.add_runtime_dependency "ffi-yajl", "~> 2.4"

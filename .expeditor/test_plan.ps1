@@ -6,7 +6,7 @@ param (
 )
 
 $env:HAB_LICENSE = "accept-no-persist"
-$env:HAB_ORIGIN = 'ci'
+$env:HAB_ORIGIN = 'chef'
 
 Write-Host "--- :8ball: :windows: Verifying $Plan"
 

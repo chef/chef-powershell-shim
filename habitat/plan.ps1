@@ -1,4 +1,4 @@
-$env:HAB_BLDR_CHANNEL="stable"
+$env:HAB_BLDR_CHANNEL="base-2025"
 $env:MSBuildEnableWorkloadResolver = $false
 $pkg_name="chef-powershell-shim"
 $pkg_origin="core"
@@ -8,7 +8,7 @@ $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
   "core/nuget",
   "core/dotnet-481-dev-pack", #, As of August 2024, this package should be installed by default on all Windows devices.
-  "core/windows-10-sdk", 
+  "core/windows-11-sdk", 
   "core/visual-build-tools-2022" 
   "core/dotnet-8-sdk" # this should be pulling down the .net 8 or later sdk, not the one we have locally in this repo
 )
@@ -39,7 +39,7 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-  $VCToolsInstallDir_170 = "$(Get-HabPackagePath visual-build-tools-2022)\Contents\VC\Redist\MSVC\14.40.33807"
+  $VCToolsInstallDir_170 = "$(Get-HabPackagePath visual-build-tools-2022)\Contents\VC\Redist\MSVC\14.44.35112"
   Copy-Item $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/x64/release/*.dll "$pkg_prefix/bin"
   Copy-Item "$VCToolsInstallDir_170\x64\Microsoft.VC143.CRT\*.dll" "$pkg_prefix/bin"
 
