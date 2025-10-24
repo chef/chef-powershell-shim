@@ -103,7 +103,20 @@ class ChefPowerShell
       # file_path = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/"
       # ENV["CHEF_POWERSHELL_BIN"] = file_path
       file_path = File.join(Gem.loaded_specs["chef-powershell"].full_gem_path, "bin", "ruby_bin_folder", ENV["PROCESSOR_ARCHITECTURE"] || "AMD64")
-      ENV["CHEF_POWERSHELL_BIN"] = file_path if File.directory?(file_path)
+      if File.directory?(file_path)
+        ENV["CHEF_POWERSHELL_BIN"] = file_path
+      else
+        # Habitat fallback: try locating the built package and use its bin directory
+        begin
+          hab_path = `hab pkg path chef/chef-powershell-shim 2>NUL`.strip
+          if hab_path != "" && File.directory?(hab_path)
+            candidate = File.join(hab_path, "bin")
+            ENV["CHEF_POWERSHELL_BIN"] = candidate if File.directory?(candidate)
+          end
+        rescue
+          # ignore habitat lookup failures
+        end
+      end
       # Run a command under PowerShell via a managed (.NET) API.
       #
       # Requires: .NET Framework 4.0 or higher on the target machine.
