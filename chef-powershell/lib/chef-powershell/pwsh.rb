@@ -17,6 +17,20 @@
 
 class ChefPowerShell
   class Pwsh < ChefPowerShell::PowerShell
+
+    def self.resolve_core_wrapper_dll
+      base = Gem.loaded_specs["chef-powershell"].full_gem_path
+      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+      dll_path = File.join(base, "bin", "ruby_bin_folder", arch, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
+      return dll_path if File.exist?(dll_path)
+
+      override = ENV["CHEF_POWERSHELL_BIN"]
+      candidate = override && File.join(override, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
+      return candidate if candidate && File.exist?(candidate)
+
+      raise LoadError, "Pwsh Core wrapper DLL not found at #{dll_path}. Populate binaries via rake update_chef_powershell_dlls"
+    end
+    
     # Run a command under pwsh (powershell core) via FFI
     # This implementation requires the managed dll, native wrapper and a
     # published, self contained dotnet core directory tree to exist in the

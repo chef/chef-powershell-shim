@@ -27,6 +27,19 @@ class ChefPowerShell
     attr_reader :errors
     attr_reader :verbose
 
+    def self.resolve_wrapper_dll
+      base = Gem.loaded_specs["chef-powershell"].full_gem_path
+      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+      dll_path = File.join(base, "bin", "ruby_bin_folder", arch, "Chef.PowerShell.Wrapper.dll")
+      return dll_path if File.exist?(dll_path)
+
+      override = ENV["CHEF_POWERSHELL_BIN"]
+      candidate = override && File.join(override, "Chef.PowerShell.Wrapper.dll")
+      return candidate if candidate && File.exist?(candidate)
+
+      raise LoadError, "Chef.PowerShell wrapper DLL not found. Expected #{dll_path}. Run: rake update_chef_powershell_dlls"
+    end
+
     # Run a command under PowerShell via FFI
     # This implementation requires the managed dll and native wrapper to be in the library search
     # path on Windows (i.e. c:\windows\system32 or in the same location as ruby.exe).
@@ -41,7 +54,8 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      # @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @powershell_dll = self.class.resolve_wrapper_dll
       exec(script, timeout: timeout)
     end
 
@@ -72,7 +86,8 @@ class ChefPowerShell
       # FFI requires attaching to modules, not classes, so we need to
       # have a module here. The module level variables *could* be refactored
       # out here, but still 100% of the work still goes through the module.
-      @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      # @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @@powershell_dll = self.resolve_wrapper_dll
       @@ps_command = ""
       @@ps_timeout = -1
 
