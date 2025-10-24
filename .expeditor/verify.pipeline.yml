@@ -12,6 +12,8 @@ steps:
 - label: ":windows: pre-build-verify-windows-gem"
   commands:
     - .expeditor/build_gems.ps1
+  env:
+    hab_auth_token
   expeditor:
     executor:
       docker:
