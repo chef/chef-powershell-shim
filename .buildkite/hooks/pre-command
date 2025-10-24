@@ -1,1 +1,5 @@
+#!/bin/bash
+
+set -eu
+
 export HAB_AUTH_TOKEN=$(aws ssm get-parameter --name 'habitat-prod-auth-token' --with-decryption --query Parameter.Value --output text --region ${AWS_REGION})
