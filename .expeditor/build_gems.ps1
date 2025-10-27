@@ -9,10 +9,6 @@
 ##  Watch the magic unfold!
 #####
 
-$env:HAB_BLDR_CHANNEL = "base-2025"
-$env:HAB_ORIGIN = "chef"
-$env:HAB_LICENSE = "accept-no-persist"
-
 $ErrorActionPreference = "Stop"
 
 Write-Output "--- :ruby: Removing existing Ruby instances"
@@ -26,13 +22,24 @@ Write-Output "`r"
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
 $env:MSBuildEnableWorkloadResolver = "false"
 
-# setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
-Write-Output "--- :shovel: Setting the BLDR Channel to LTS"
-Write-Output "`r"
-
-Write-Output "--- :screwdriver: Installing Habitat via Choco"
-choco install habitat -y
-if (-not $?) { throw "unable to install Habitat"}
+Write-Output "--- :screwdriver: Installing Habitat via Github"
+try {
+    [Version]$hab_version = (hab --version).split(" ")[1].split("/")[0]
+    if ($hab_version -lt [Version]"0.85.0" ) {
+        Write-Host "--- :habicat: Installing the version of Habitat required"
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
+        if (-not $?) { throw "Hab version is older than 0.85 and could not update it." }
+    } else {
+        Write-Host "--- :habicat: :thumbsup: Minimum required version of Habitat already installed"
+    }
+}
+catch {
+    # This install fails if Hab isn't on the path when we check for the version. This ensures it is installed
+    Write-Host "--- :habicat: Installing the version of Habitat required"
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
+}
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing the latest Chef-Client"
@@ -44,6 +51,9 @@ Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab b
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+$env:HAB_BLDR_CHANNEL = "base-2025"
+$env:HAB_ORIGIN = "chef"
+$env:HAB_LICENSE = "accept-no-persist"
 Write-Output "`r"
 
 Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
