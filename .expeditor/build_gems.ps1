@@ -11,6 +11,9 @@
 
 $ErrorActionPreference = "Stop"
 
+Write-Output "--- :shovel: Am I getting any of the import ENV Variables?"
+Get-ChildItem Env: | ForEach-Object { Write-Output "$($_.Name)=$($_.Value)" }
+
 Write-Output "--- :ruby: Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"
