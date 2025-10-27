@@ -67,7 +67,7 @@ Copy-Item $parent_folder -Destination $child_folder -ErrorAction Continue
 Write-Output "`r"
 
 Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
-$env:HAB_ORIGIN = "core"
+$env:HAB_ORIGIN = "chef"
 $env:HAB_LICENSE= "accept-no-persist"
 $env:FORCE_FFI_YAJL="ext"
 if (Test-Path -PathType leaf "/hab/cache/keys/core-*.sig.key") {

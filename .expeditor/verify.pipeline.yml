@@ -14,6 +14,9 @@ steps:
     - .expeditor/build_gems.ps1
   env:
     HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+    HAB_ORIGIN: "chef"
+    HAB_BLDR_CHANNEL: "base-2025"
+    HAB_REFRESH_CHANNEL: "base-2025"
   expeditor:
     executor:
       docker:
