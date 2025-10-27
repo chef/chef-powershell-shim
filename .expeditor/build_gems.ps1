@@ -54,9 +54,11 @@ Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab b
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+# We are being really aggressive about setting the bldr channel because some process keeps changing it to 'stable' which breaks our build
 $env:HAB_BLDR_CHANNEL = "base-2025"
 $env:HAB_ORIGIN = "chef"
 $env:HAB_LICENSE = "accept-no-persist"
+[System.Environment]::SetEnvironmentVariable("HAB_BLDR_CHANNEL", "base-2025", "Process")
 Write-Output "`r"
 
 Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
@@ -89,7 +91,8 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-hab pkg build Habitat
+$env:HAB_BLDR_CHANNEL = "base-2025"
+hab pkg build habitat --channel base-2025
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
