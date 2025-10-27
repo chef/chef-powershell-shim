@@ -1,7 +1,7 @@
 $env:HAB_BLDR_CHANNEL="base-2025"
 $env:HAB_REFRESH_CHANNEL="base-2025"
 $env:MSBuildEnableWorkloadResolver = $false
-$envL:HAB_ORIGIN="chef"
+$env:HAB_ORIGIN="chef"
 $pkg_name="chef-powershell-shim"
 $pkg_origin="chef"
 $pkg_version="18.6.3"
