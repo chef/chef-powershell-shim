@@ -9,6 +9,10 @@
 ##  Watch the magic unfold!
 #####
 
+$env:HAB_BLDR_CHANNEL = "base-2025"
+$env:HAB_ORIGIN = "chef"
+$env:HAB_LICENSE = "accept-no-persist"
+
 $ErrorActionPreference = "Stop"
 
 Write-Output "--- :ruby: Removing existing Ruby instances"
