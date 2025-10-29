@@ -92,7 +92,7 @@ Write-Output "`r"
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
 $env:HAB_BLDR_CHANNEL = "base-2025"
-hab pkg build habitat --channel base-2025
+hab pkg build habitat
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 

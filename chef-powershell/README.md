@@ -100,6 +100,29 @@ end
 my_result = powershell_exec!(join_command)
 ```
 
+## Installation and DLL Management
+
+The Chef-PowerShell gem includes required native DLL files that must be present in Chef's `embedded\bin` directory for proper operation. These files are:
+
+- `vcruntime140.dll` - Visual C++ Runtime
+- `vcruntime140_1.dll` - Visual C++ Runtime (additional components)
+- `ijwhost.dll` - IJW (It Just Works) host for mixed-mode assemblies
+- `msvcp140.dll` - Microsoft C++ Standard Library
+
+### Automatic Installation
+
+When the gem is installed (via `bundle install` or `gem install`), a post-install script automatically:
+
+1. Detects the Chef embedded bin directory (typically `C:\opscode\chef\embedded\bin`)
+2. Checks for the presence of required DLL files
+3. Copies or updates the DLL files if they are missing or outdated
+
+This ensures that chef-powershell updates can be deployed independently of Chef releases without breaking compatibility.
+
+### Manual Installation
+
+If the automatic installation fails or you need to manually install the DLL files, you can find them in the gem's installation directory under `bin\ruby_bin_folder\AMD64\` and copy them to your Chef installation's `embedded\bin` directory.
+
 ## Getting Involved
 
 We'd love to have your help developing Chef Infra. See our [Contributing Document](../CONTRIBUTING.md) for more information on getting started.

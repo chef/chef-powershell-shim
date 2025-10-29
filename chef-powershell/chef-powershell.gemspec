@@ -48,5 +48,8 @@ Gem::Specification.new do |spec|
   spec.bindir        = "bin"
   spec.executables   = []
   spec.files = %w{Rakefile LICENSE} + Dir.glob("*.gemspec") +
-    Dir.glob("{lib,spec,bin}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
+    Dir.glob("{lib,spec,bin,ext}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
+  
+  # Post-install extension to copy DLL files to chef/embedded/bin
+  spec.extensions = ["ext/chef-powershell/extconf.rb"]
 end
