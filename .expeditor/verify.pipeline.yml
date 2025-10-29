@@ -5,7 +5,7 @@ expeditor:
       retry:
         automatic:
           limit: 1
-      timeout_in_minutes: 30
+      timeout_in_minutes: 60
 
 steps:
 
@@ -25,4 +25,7 @@ steps:
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
+          - HAB_ORIGIN
+          - HAB_BLDR_CHANNEL
+          - HAB_REFRESH_CHANNEL
         propagate-environment: true
