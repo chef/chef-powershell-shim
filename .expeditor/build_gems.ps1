@@ -11,6 +11,16 @@
 
 $ErrorActionPreference = "Stop"
 
+Write-Output "=" * 80
+Write-Output "Are my Hab environment variables set correctly?"
+if ([string]::IsNullOrEmpty($env:HAB_AUTH_TOKEN)){
+  Write-Error "HAB_AUTH_TOKEN is not set! Please set it before running this script."
+  exit 1
+}
+else {
+  Write-Output "HAB_AUTH_TOKEN is set correctly."
+}
+
 Write-Output "--- :ruby: Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"

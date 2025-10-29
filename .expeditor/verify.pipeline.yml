@@ -23,9 +23,11 @@ steps:
         host_os: windows
         image: rubydistros/windows-2019:3.0
         shell: [ "powershell", "-Command" ]
-          environment:
-            - HAB_AUTH_TOKEN
-            - HAB_ORIGIN
-            - HAB_BLDR_CHANNEL
-            - HAB_REFRESH_CHANNEL
+        privileged: true
+        propagate-environment: true
+        environment:
+          - HAB_AUTH_TOKEN
+          - HAB_ORIGIN
+          - HAB_BLDR_CHANNEL
+          - HAB_REFRESH_CHANNEL
         propagate-environment: true
