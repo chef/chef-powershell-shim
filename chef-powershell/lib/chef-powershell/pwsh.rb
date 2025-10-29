@@ -60,17 +60,10 @@ class ChefPowerShell
       original_dotnet_root = ENV["DOTNET_ROOT"]
       original_dotnet_root_x86 = ENV["DOTNET_ROOT(x86)"]
 
-      # ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
-      # ENV["DOTNET_ROOT"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/AMD64"
-      # ENV["DOTNET_ROOT(x86)"] = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/x86"
 
-      # @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/8.0.0/Chef.PowerShell.Wrapper.Core.dll"
-
-      # super
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
       arch_root = File.join(Gem.loaded_specs["chef-powershell"].full_gem_path, "bin", "ruby_bin_folder", "AMD64")
       ENV["DOTNET_ROOT"] = arch_root
-      ENV["DOTNET_ROOT(x86)"] = File.join(Gem.loaded_specs["chef-powershell"].full_gem_path, "bin", "ruby_bin_folder", "x86")
 
       @powershell_dll = self.class.resolve_core_wrapper_dll
       super
