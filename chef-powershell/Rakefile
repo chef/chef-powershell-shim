@@ -46,6 +46,6 @@ rescue LoadError
   puts "Rubocop or Cookstyle gems are not installed. bundle install first to make sure all dependencies are installed."
 end
 
-task all: %w{cookstyle spellcheck spec update_chef_powershell_dlls gem_build}.freeze
-task gem: %w{cookstyle spellcheck spec:doc gem_build}.freeze
-task gem_check: %w{cookstyle spellcheck spec}.freeze
+task all: %w{style spellcheck spec update_chef_powershell_dlls gem_build}.freeze
+task gem: %w{style spellcheck spec:doc gem_build}.freeze
+task gem_check: %w{style spellcheck spec}.freeze

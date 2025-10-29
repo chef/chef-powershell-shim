@@ -54,11 +54,11 @@ class ChefPowerShell
           searched << hab_dll
           return hab_dll if File.exist?(hab_dll)
         end
-      rescue => e
+      rescue
         # ignore any hab errors, just proceed
       end
 
-      raise LoadError, "Chef.PowerShell wrapper DLL not found. Searched: #{searched.join(', ')}. Populate binaries via 'rake update_chef_powershell_dlls' or set CHEF_POWERSHELL_BIN."
+      raise LoadError, "Chef.PowerShell wrapper DLL not found. Searched: #{searched.join(", ")}. Populate binaries via 'rake update_chef_powershell_dlls' or set CHEF_POWERSHELL_BIN."
     end
 
     # Run a command under PowerShell via FFI
@@ -86,7 +86,7 @@ class ChefPowerShell
     # @return [Boolean]
     #
     def error?
-      return true if errors.count > 0
+      return true if errors.any?
 
       false
     end
@@ -175,11 +175,11 @@ class ChefPowerShell
 
       # Set it every time because the test suite actually switches
       # the DLL pointed to.
-  PowerMod.set_ps_dll(@powershell_dll)
+      PowerMod.set_ps_dll(@powershell_dll)
       PowerMod.set_ps_timeout(timeout)
 
       PowerMod.set_ps_command(script)
-      execution = PowerMod.do_work
+      PowerMod.do_work
       # we returned "true" to escape retry, but we still need to check the
       # exception and raise it if it exists.
       raise PowerMod.exception if PowerMod.exception

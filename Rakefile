@@ -22,7 +22,7 @@ begin
   require "rspec/core/rake_task"
   require "rubygems"
   require "rake"
-  require "chefstyle"
+  require "cookstyle"
 rescue LoadError => e
   puts "Skipping missing rake dep: #{e}"
 end

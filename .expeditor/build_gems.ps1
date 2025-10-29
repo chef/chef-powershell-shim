@@ -189,7 +189,12 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
-Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
+Write-Output "--- :building_construction: It looks like I need to install chef-client"
+# as of this build, chef -client was not in base-2025 or stable so we grabbed this version directly
+hab pkg install chef/chef-infra-client/18.8.50/20251022232751 --channel "chef-chef-chef-18-habitat-build"
+Write-Output "`r"
+
+Write-Output "--- :point_right: finally verifying the gem code (cookstyle, spellcheck, spec)"
 bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
