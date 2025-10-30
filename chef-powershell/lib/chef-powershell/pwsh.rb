@@ -60,7 +60,6 @@ class ChefPowerShell
       original_dotnet_root = ENV["DOTNET_ROOT"]
       original_dotnet_root_x86 = ENV["DOTNET_ROOT(x86)"]
 
-
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
       arch_root = File.join(Gem.loaded_specs["chef-powershell"].full_gem_path, "bin", "ruby_bin_folder", "AMD64")
       ENV["DOTNET_ROOT"] = arch_root
