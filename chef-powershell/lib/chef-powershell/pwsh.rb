@@ -44,8 +44,6 @@ class ChefPowerShell
       super
     end
 
-    protected
-
     def exec(script, timeout: -1)
       # Note that we need to override the location of the shared dotnet core library
       # location. With most .net core applications, you can simply publish them as a
