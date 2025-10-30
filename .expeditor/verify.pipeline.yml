@@ -5,16 +5,27 @@ expeditor:
       retry:
         automatic:
           limit: 1
-      timeout_in_minutes: 30
+      timeout_in_minutes: 60
 
 steps:
 
 - label: ":windows: pre-build-verify-windows-gem"
   commands:
     - .expeditor/build_gems.ps1
+  env:
+    HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+    HAB_ORIGIN: "chef"
+    HAB_BLDR_CHANNEL: "base-2025"
+    HAB_REFRESH_CHANNEL: "base-2025"
   expeditor:
     executor:
       docker:
         host_os: windows
         image: rubydistros/windows-2019:3.1
         shell: [ "powershell", "-Command" ]
+        propagate-environment: true
+        environment:
+          - HAB_AUTH_TOKEN
+          - HAB_ORIGIN
+          - HAB_BLDR_CHANNEL
+          - HAB_REFRESH_CHANNEL

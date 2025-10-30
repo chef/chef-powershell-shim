@@ -27,6 +27,40 @@ class ChefPowerShell
     attr_reader :errors
     attr_reader :verbose
 
+    def self.resolve_wrapper_dll
+      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+      searched = []
+
+      # Gem path
+      if Gem.loaded_specs["chef-powershell"]
+        base = Gem.loaded_specs["chef-powershell"].full_gem_path
+        gem_path = File.join(base, "bin", "ruby_bin_folder", arch, "Chef.PowerShell.Wrapper.dll")
+        searched << gem_path
+        return gem_path if File.exist?(gem_path)
+      end
+
+      # CHEF_POWERSHELL_BIN override
+      if ENV["CHEF_POWERSHELL_BIN"]&.length.to_i > 0
+        override = File.join(ENV["CHEF_POWERSHELL_BIN"], "Chef.PowerShell.Wrapper.dll")
+        searched << override
+        return override if File.exist?(override)
+      end
+
+      # Habitat package fallback (hab installed scenario)
+      begin
+        hab_path = `hab pkg path chef/chef-powershell-shim 2>NUL`.strip
+        if hab_path != "" && File.directory?(hab_path)
+          hab_dll = File.join(hab_path, "bin", "Chef.PowerShell.Wrapper.dll")
+          searched << hab_dll
+          return hab_dll if File.exist?(hab_dll)
+        end
+      rescue
+        # ignore any hab errors, just proceed
+      end
+
+      raise LoadError, "Chef.PowerShell wrapper DLL not found. Searched: #{searched.join(", ")}. Populate binaries via 'rake update_chef_powershell_dlls' or set CHEF_POWERSHELL_BIN."
+    end
+
     # Run a command under PowerShell via FFI
     # This implementation requires the managed dll and native wrapper to be in the library search
     # path on Windows (i.e. c:\windows\system32 or in the same location as ruby.exe).
@@ -41,7 +75,8 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      # @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @powershell_dll = self.class.resolve_wrapper_dll
       exec(script, timeout: timeout)
     end
 
@@ -51,7 +86,7 @@ class ChefPowerShell
     # @return [Boolean]
     #
     def error?
-      return true if errors.count > 0
+      return true if errors.any?
 
       false
     end
@@ -72,7 +107,11 @@ class ChefPowerShell
       # FFI requires attaching to modules, not classes, so we need to
       # have a module here. The module level variables *could* be refactored
       # out here, but still 100% of the work still goes through the module.
-      @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      # @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      # NOTE: Previously this line called self.resolve_wrapper_dll at class definition time,
+      # but no such method exists inside this module (it's defined on the outer PowerShell class),
+      # leading to NoMethodError during require. We now lazy-resolve through a delegator.
+      @@powershell_dll = nil
       @@ps_command = ""
       @@ps_timeout = -1
 
@@ -105,6 +144,11 @@ class ChefPowerShell
         @@powershell_dll = value
       end
 
+      # Resolve DLL via outer class method; cache the result
+      def self.ensure_ps_dll
+        @@powershell_dll ||= ChefPowerShell::PowerShell.resolve_wrapper_dll
+      end
+
       def self.set_ps_command(value)
         @@ps_command = value
       end
@@ -116,6 +160,7 @@ class ChefPowerShell
       def self.do_work
         @exception = nil
         @retry_count = 0
+        ensure_ps_dll unless @@powershell_dll
         ffi_lib @@powershell_dll
         attach_function :execute_powershell, :ExecuteScript, %i{string int pointer}, :pointer
 
@@ -134,7 +179,7 @@ class ChefPowerShell
       PowerMod.set_ps_timeout(timeout)
 
       PowerMod.set_ps_command(script)
-      execution = PowerMod.do_work
+      PowerMod.do_work
       # we returned "true" to escape retry, but we still need to check the
       # exception and raise it if it exists.
       raise PowerMod.exception if PowerMod.exception

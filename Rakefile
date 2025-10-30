@@ -22,7 +22,7 @@ begin
   require "rspec/core/rake_task"
   require "rubygems"
   require "rake"
-  require "chefstyle"
+  require "cookstyle"
 rescue LoadError => e
   puts "Skipping missing rake dep: #{e}"
 end
@@ -35,14 +35,18 @@ task :update_chef_powershell_dlls do
   raise "Unable to locate Habitat cli. Please install Habitat cli before invoking this task!" unless find_executable "hab"
 
   sh("hab pkg build Habitat")
-
   sh("hab pkg install chef/chef-powershell-shim")
 
   x64 = `hab pkg path chef/chef-powershell-shim`.chomp.tr("\\", "/")
 
-  FileUtils.rm_rf(Dir["bin/ruby_bin_folder/AMD64/*"])
-  puts "Copying #{x64}/bin/* to chef-powershell/bin/ruby_bin_folder/AMD64"
-  FileUtils.cp_r(Dir["#{x64}/bin/*"], "chef-powershell/bin/ruby_bin_folder/AMD64")
+  target = File.join(__dir__, "chef-powershell", "bin", "ruby_bin_folder", "AMD64")
+  FileUtils.mkdir_p(target)
+
+  puts "Cleaning #{target}"
+  FileUtils.rm_rf(Dir["#{target}/*"])
+
+  puts "Copying #{x64}/bin/* to #{target}"
+  FileUtils.cp_r(Dir["#{x64}/bin/*"], target)
 end
 
 task all: %w{update_chef_powershell_dlls}.freeze
