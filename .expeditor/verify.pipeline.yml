@@ -21,7 +21,7 @@ steps:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.0
+        image: rubydistros/windows-2019:3.1
         shell: [ "powershell", "-Command" ]
         propagate-environment: true
         environment:
