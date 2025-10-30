@@ -84,6 +84,5 @@ class ChefPowerShell
       # @dll ||= @powershell_dll
       @dll ||= resolve_core_wrapper_dll
     end
-    private_class_method :dll
   end
 end
