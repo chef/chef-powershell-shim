@@ -11,7 +11,7 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Output "=" * 80
+Write-Output ( "=" * 80 )
 Write-Output "Are my Hab environment variables set correctly?"
 if ([string]::IsNullOrEmpty($env:HAB_AUTH_TOKEN)){
   Write-Error "HAB_AUTH_TOKEN is not set! Please set it before running this script."
@@ -27,6 +27,7 @@ $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
   Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
 }
+Write-Output ( "=" * 80 )
 Write-Output "`r"
 
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
