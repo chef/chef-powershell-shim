@@ -11,10 +11,11 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Output ( "=" * 80 )
 Write-Output "Are my Hab environment variables set correctly?"
 if ([string]::IsNullOrEmpty($env:HAB_AUTH_TOKEN)){
+  Write-Output ( "=" * 80 )
   Write-Error "HAB_AUTH_TOKEN is not set! Please set it before running this script."
+  Write-Output ( "=" * 80 )
   exit 1
 }
 else {
@@ -27,7 +28,7 @@ $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
   Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
 }
-Write-Output ( "=" * 80 )
+
 Write-Output "`r"
 
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
@@ -116,7 +117,7 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path core/chef-powershell-shim
+$x64 = hab pkg path chef/chef-powershell-shim
 Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
 Test-Path -Path $x64
 Write-Output "`r"
