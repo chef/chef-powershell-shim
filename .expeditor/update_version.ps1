@@ -8,13 +8,29 @@
 
 $ErrorActionPreference = "Stop"
 
-# get the contents of the gem version file
+# Get the project root directory using git
+$project_root = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to determine git repository root. Are you in a git repository?"
+    exit 1
+}
+
+# Convert Unix-style path to Windows path if necessary
+$project_root = $project_root -replace '/', '\'
+
+# Get the contents of the gem version file
+$version_file = Join-Path $project_root "chef-powershell\lib\chef-powershell\version.rb"
+if (-not (Test-Path $version_file)) {
+    Write-Error "Version file not found at: $version_file"
+    exit 1
+}
+
 try {
-    $project_root = Get-ChildItem -Path C:\ -Recurse | Where-Object { $_.PSIsContainer -eq $True -and $_.Name -like "*chef-powershell-shim*" }  | % { $_.fullname } | select-object -First 1
-    $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
+    $file = Get-Content $version_file
 }
 catch {
-    Write-Error "Failed to Get the Version from version.rb"
+    Write-Error "Failed to read the Version from version.rb: $_"
+    exit 1
 }
 
 # Use RegEx to get the Version Number and set it as a version datatype
@@ -48,10 +64,10 @@ else {
 
 # Replace Old Version Number with New Version number in the file
 try {
-    (Get-Content .\chef-powershell\lib\chef-powershell\version.rb) -replace $version, $NewVersion | Out-File .\chef-powershell\lib\chef-powershell\version.rb
+    (Get-Content $version_file) -replace $version, $NewVersion | Set-Content $version_file -Encoding UTF8
     Write-Output "Updated Module Version from $Version to $NewVersion"
 }
 catch {
-    $_
-    Write-Error "failed to set file"
+    Write-Error "Failed to update version file: $_"
+    exit 1
 }
