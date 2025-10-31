@@ -82,7 +82,8 @@ jobs:
           . results/last_build.ps1
           hab pkg install results/$pkg_artifact
           $x64 = hab pkg path chef/chef-powershell-shim
-          $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
+          $arch = if ($env:PROCESSOR_ARCHITECTURE) { $env:PROCESSOR_ARCHITECTURE } else { "AMD64" }
+          $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/$arch")
           if (Test-Path -PathType Container $x64_bin_path) {
             Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
             Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
