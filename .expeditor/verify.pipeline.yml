@@ -15,8 +15,8 @@ steps:
   env:
     HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
     HAB_ORIGIN: "chef"
-    HAB_BLDR_CHANNEL: "base-2025"
-    HAB_REFRESH_CHANNEL: "base-2025"
+    HAB_BLDR_CHANNEL: "stable"
+    HAB_REFRESH_CHANNEL: "stable"
   expeditor:
     executor:
       docker:

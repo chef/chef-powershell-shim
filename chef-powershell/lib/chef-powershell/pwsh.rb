@@ -21,7 +21,7 @@ class ChefPowerShell
     def self.resolve_core_wrapper_dll
       gem_spec = Gem.loaded_specs["chef-powershell"]
       arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
-      
+
       if gem_spec
         base = gem_spec.full_gem_path
         dll_path = File.join(base, "bin", "ruby_bin_folder", arch, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
