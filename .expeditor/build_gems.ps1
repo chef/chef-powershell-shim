@@ -64,10 +64,10 @@ Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 # We are being really aggressive about setting the bldr channel because some process keeps changing it to 'stable' which breaks our build
-$env:HAB_BLDR_CHANNEL = "stable"
+$env:HAB_BLDR_CHANNEL = "base-2025"
 $env:HAB_ORIGIN = "chef"
 $env:HAB_LICENSE = "accept-no-persist"
-[System.Environment]::SetEnvironmentVariable("HAB_BLDR_CHANNEL", "stable", "Process")
+[System.Environment]::SetEnvironmentVariable("HAB_BLDR_CHANNEL", "base-2025", "Process")
 Write-Output "`r"
 
 Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
@@ -100,7 +100,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-$env:HAB_BLDR_CHANNEL = "stable"
+$env:HAB_BLDR_CHANNEL = "base-2025"
 hab pkg build habitat
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
@@ -200,8 +200,8 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 Write-Output "`r"
 
 Write-Output "--- :building_construction: It looks like I need to install chef-client"
-# as of this build, chef -client was not in stable or stable so we grabbed this version directly
-hab pkg install chef/chef-infra-client
+# as of this build, chef -client was not in base-2025 or stable so we grabbed this version directly
+hab pkg install chef/chef-infra-client/18.8.50/20251022232751 --channel "chef-chef-chef-18-habitat-build"
 Write-Output "`r"
 
 Write-Output "--- :point_right: finally verifying the gem code (cookstyle, spellcheck, spec)"
