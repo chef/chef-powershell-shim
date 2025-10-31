@@ -19,15 +19,20 @@ class ChefPowerShell
   class Pwsh < ChefPowerShell::PowerShell
 
     def self.resolve_core_wrapper_dll
-      base = Gem.loaded_specs["chef-powershell"].full_gem_path
+      gem_spec = Gem.loaded_specs["chef-powershell"]
       arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
-      dll_path = File.join(base, "bin", "ruby_bin_folder", arch, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
-      return dll_path if File.exist?(dll_path)
+      
+      if gem_spec
+        base = gem_spec.full_gem_path
+        dll_path = File.join(base, "bin", "ruby_bin_folder", arch, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
+        return dll_path if File.exist?(dll_path)
+      end
 
       override = ENV["CHEF_POWERSHELL_BIN"]
       candidate = override && File.join(override, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll")
       return candidate if candidate && File.exist?(candidate)
 
+      dll_path = gem_spec ? File.join(gem_spec.full_gem_path, "bin", "ruby_bin_folder", arch, "shared", "Microsoft.NETCore.App", "8.0.0", "Chef.PowerShell.Wrapper.Core.dll") : "bin/ruby_bin_folder/#{arch}/shared/Microsoft.NETCore.App/8.0.0/Chef.PowerShell.Wrapper.Core.dll"
       raise LoadError, "Pwsh Core wrapper DLL not found at #{dll_path}. Populate binaries via rake update_chef_powershell_dlls"
     end
 
@@ -59,8 +64,12 @@ class ChefPowerShell
       original_dotnet_root_x86 = ENV["DOTNET_ROOT(x86)"]
 
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
-      arch_root = File.join(Gem.loaded_specs["chef-powershell"].full_gem_path, "bin", "ruby_bin_folder", "AMD64")
-      ENV["DOTNET_ROOT"] = arch_root
+      gem_spec = Gem.loaded_specs["chef-powershell"]
+      if gem_spec
+        arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+        arch_root = File.join(gem_spec.full_gem_path, "bin", "ruby_bin_folder", arch)
+        ENV["DOTNET_ROOT"] = arch_root
+      end
 
       @powershell_dll = self.class.resolve_core_wrapper_dll
       super
@@ -78,8 +87,6 @@ class ChefPowerShell
       # ensures that the correct architecture binaries are installed into the path.
       # Also note that the version of pwsh is determined by which assemblies the dll was
       # built with. To update powershell, those dependencies must be bumped.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/shared/Microsoft.NETCore.App/8.0.0/Chef.PowerShell.Wrapper.Core.dll"
-      # @dll ||= @powershell_dll
       @dll ||= resolve_core_wrapper_dll
     end
   end

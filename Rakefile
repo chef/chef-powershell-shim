@@ -39,7 +39,8 @@ task :update_chef_powershell_dlls do
 
   x64 = `hab pkg path chef/chef-powershell-shim`.chomp.tr("\\", "/")
 
-  target = File.join(__dir__, "chef-powershell", "bin", "ruby_bin_folder", "AMD64")
+  arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+  target = File.join(__dir__, "chef-powershell", "bin", "ruby_bin_folder", arch)
   FileUtils.mkdir_p(target)
 
   puts "Cleaning #{target}"

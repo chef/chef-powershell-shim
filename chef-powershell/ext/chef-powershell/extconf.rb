@@ -57,11 +57,12 @@ if RbConfig::CONFIG["host_os"] =~ /mswin|mingw|cygwin/
 
   def find_source_dlls
     # Look for DLLs in the gem's bin directory structure
-    # They should be in bin/ruby_bin_folder/AMD64/
+    # They should be in bin/ruby_bin_folder/<ARCH>/
     gem_bin_dir = File.expand_path("../../bin", __dir__)
+    arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
 
     possible_locations = [
-      File.join(gem_bin_dir, "ruby_bin_folder", "AMD64"),
+      File.join(gem_bin_dir, "ruby_bin_folder", arch),
       gem_bin_dir,
     ]
 
@@ -108,8 +109,9 @@ if RbConfig::CONFIG["host_os"] =~ /mswin|mingw|cygwin/
     source_dir = find_source_dlls
 
     unless source_dir
+      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
       log "WARNING: Could not locate source DLL files in gem installation."
-      log "Expected location: bin/ruby_bin_folder/AMD64/"
+      log "Expected location: bin/ruby_bin_folder/#{arch}/"
       log "DLL files will not be installed."
       return
     end
