@@ -1,6 +1,6 @@
 #
 # Author:: John McCrae (<john.mccrae@progress.com>)
-# Copyright:: Copyright, Chef Software Inc.
+# Copyright (c) 2018-2025 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 # Copyright:: Copyright, Progress Software Inc.
 # License:: Apache License, Version 2.0
 #
