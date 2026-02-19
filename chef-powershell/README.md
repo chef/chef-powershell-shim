@@ -104,9 +104,7 @@ my_result = powershell_exec!(join_command)
 
 We'd love to have your help developing Chef Infra. See our [Contributing Document](../CONTRIBUTING.md) for more information on getting started.
 
-## License and Copyright
-
-Copyright Chef Software, Inc.
+## License 
 
 ```
 Licensed under the Apache License, Version 2.0 (the "License");
