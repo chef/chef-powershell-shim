@@ -13,6 +13,7 @@ rubygems:
 
 pipelines:
   - verify:
+      public: true
       description: Pull Request validation tests
       public: true
   - habitat/build:
