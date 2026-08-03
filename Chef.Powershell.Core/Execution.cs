@@ -12,17 +12,17 @@ namespace Chef
             /// <summary>
             /// Contains a JSON representation of the result.
             /// </summary>
-            public string result;
+            public string result { get; set; }
 
             /// <summary>
             /// An array containing the errors.
             /// </summary>
-            public List<string> errors;
+            public List<string> errors { get; set; } = new List<string>();
 
             /// <summary>
             /// An array containing the verbose text.
             /// </summary>
-            public List<string> verbose;
+            public List<string> verbose { get; set; } = new List<string>();
         }
     }
 }

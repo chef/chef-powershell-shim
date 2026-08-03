@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "msclr\marshal.h"
 #include "Chef.PowerShell.Wrapper.h"
-#include <iostream>
 
 using namespace System;
 using namespace System::IO;
@@ -39,20 +38,29 @@ Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
 // You likely want to make similar changes to the Chef.PowerShell.Core.Wrapper.cpp file.
 bool ExecuteScript(const char* powershellScript, int timeout, store_result_function* store_result)
 {
-    String^ wPowerShellScript = gcnew String(powershellScript);
-    String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
+    try
+    {
+        String^ wPowerShellScript = gcnew String(powershellScript, 0, (int)strlen(powershellScript), System::Text::Encoding::UTF8);
+        String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
 
-    pin_ptr<const wchar_t> pinned_result;
-    bool success;
+        pin_ptr<const wchar_t> pinned_result;
+        bool success;
 
-    do {
-        pinned_result = PtrToStringChars(output);
-        
-        // just pass the string length, not the string size including (two byte) \0
-        success = store_result(pinned_result, output->Length * sizeof(wchar_t));
-    } while(!success);
-        
-    return success;
+        do {
+            pinned_result = PtrToStringChars(output);
+            // just pass the string length, not the string size including (two byte) \0
+            success = store_result(pinned_result, output->Length * sizeof(wchar_t));
+        } while(!success);
+
+        return success;
+    }
+    catch (Exception^ e)
+    {
+        // Any managed (.NET) exception thrown from this native function will
+        // be raised to the caller as an unintelligible SEHException without this.
+        Console::WriteLine(e->ToString());
+        throw;
+    }
 }
 
 // This initializes the DLL with an assembly Resolve Handler. Note that we are initializing

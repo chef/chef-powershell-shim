@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# VS Code C/C++ IntelliSense config (local dev only, not part of the build)
+.vscode/c_cpp_properties.json
+
 # User-specific files
 *.suo
 *.user

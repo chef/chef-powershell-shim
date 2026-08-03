@@ -9,7 +9,7 @@ using namespace System;
 bool ExecuteScript(const char* powershellScript, int timeout, store_result_function* store_result)
 {
     try {
-        String^ wPowerShellScript = gcnew String(powershellScript);
+        String^ wPowerShellScript = gcnew String(powershellScript, 0, (int)strlen(powershellScript), System::Text::Encoding::UTF8);
         String^ output = Chef::PowerShell().ExecuteScript(wPowerShellScript, timeout);
 
         pin_ptr<const wchar_t> pinned_result;
@@ -20,13 +20,12 @@ bool ExecuteScript(const char* powershellScript, int timeout, store_result_funct
             // just pass the string length, not the string size including (two byte) \0
             success = store_result(pinned_result, output->Length * sizeof(wchar_t));
         } while(!success);
-            
+
         return success;
     }
     catch(Exception^ e){
-        // Any managed(.net) exception thrown from this native function will
-        // be raised to the user as an unintelligible SEHException. So we provide the
-        // courtesy of writing out the original exception details
+        // Any managed (.NET) exception thrown from this native function will
+        // be raised to the caller as an unintelligible SEHException without this.
         Console::WriteLine(e->ToString());
         throw;
     }
