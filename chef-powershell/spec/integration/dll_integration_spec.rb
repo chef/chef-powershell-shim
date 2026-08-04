@@ -83,7 +83,7 @@ ensure
 end
 
 # ---------------------------------------------------------------------------
-# Shared behaviour
+# Shared behavior
 # ---------------------------------------------------------------------------
 
 RSpec.shared_examples "a working powershell engine" do |runner_proc|
