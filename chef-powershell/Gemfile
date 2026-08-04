@@ -11,4 +11,5 @@ gemspec
 group(:development, :test) do
   gem "fauxhai-ng"
   gem "rake"
+  gem "uri"
 end

@@ -155,10 +155,14 @@ Write-Output "`r"
 
 Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
-$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.4.0"
-[Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
-[Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
+Write-Output "`r"
+
+Write-Output "--- :gem: Pre-installing uri gem into vendor bundle to bootstrap Bundler on Ruby 3.1"
+$ruby_version = (ruby -e "puts RbConfig::CONFIG['ruby_version']").Trim()
+$vendor_dir = "$($temp.path)\vendor\bundle\ruby\$ruby_version"
+New-Item -ItemType Directory -Force -Path $vendor_dir | Out-Null
+gem install uri --install-dir $vendor_dir --no-document
 Write-Output "`r"
 
 Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
