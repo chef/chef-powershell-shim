@@ -17,7 +17,9 @@
 # Snapshot CHEF_POWERSHELL_BIN *before* require "chef-powershell", because
 # powershell_exec.rb unconditionally overwrites it with the gem's own bin path
 # at module load time.
+# rubocop:disable Lint/UnderscorePrefixedVariableName
 _hab_bin_override = ENV["CHEF_POWERSHELL_BIN"].dup if ENV["CHEF_POWERSHELL_BIN"] && !ENV["CHEF_POWERSHELL_BIN"].empty?
+# rubocop:enable Lint/UnderscorePrefixedVariableName
 
 require "chef-powershell"
 
@@ -27,12 +29,12 @@ DLL_BIN_DIR = if _hab_bin_override
                 File.expand_path(_hab_bin_override)
               else
                 File.join(Gem.loaded_specs["chef-powershell"].full_gem_path,
-                          "bin", "ruby_bin_folder", ENV.fetch("PROCESSOR_ARCHITECTURE", "AMD64"))
+                  "bin", "ruby_bin_folder", ENV.fetch("PROCESSOR_ARCHITECTURE", "AMD64"))
               end.freeze
 
 NET481_DLL  = File.join(DLL_BIN_DIR, "Chef.PowerShell.Wrapper.dll").freeze
 NET10_DLL   = File.join(DLL_BIN_DIR, "shared", "Microsoft.NETCore.App", "10.0.0",
-                        "Chef.PowerShell.Wrapper.Core.dll").freeze
+  "Chef.PowerShell.Wrapper.Core.dll").freeze
 
 # Re-pin CHEF_POWERSHELL_BIN to the Hab package dir so the C++/CLI assembly
 # resolver (currentDomain_AssemblyResolve in Wrapper.cpp) finds Chef.PowerShell.dll

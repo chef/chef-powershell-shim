@@ -24,7 +24,7 @@ BIN_DIR = if ARGV[0]
 
 NET481_DLL = File.join(BIN_DIR, "Chef.PowerShell.Wrapper.dll").freeze
 NET10_DLL  = File.join(BIN_DIR, "shared", "Microsoft.NETCore.App", "10.0.0",
-                       "Chef.PowerShell.Wrapper.Core.dll").freeze
+  "Chef.PowerShell.Wrapper.Core.dll").freeze
 
 # Add gem lib to load path (run from the chef-powershell directory or its parent)
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
