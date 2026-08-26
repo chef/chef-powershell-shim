@@ -12,6 +12,13 @@
 #
 # Exit code: 0 = all tests passed, 1 = one or more failures
 
+# Prefer project-local bundled gems when available (supports running via plain `ruby`).
+begin
+  require "bundler/setup"
+rescue LoadError
+  # Fall back to system gems if Bundler is unavailable.
+end
+
 # Resolve the DLL bin directory
 BIN_DIR = if ARGV[0]
             File.expand_path(ARGV[0])
@@ -64,6 +71,18 @@ class ChefPowerShell
       ENV["DOTNET_ROOT"]      = BIN_DIR
       ENV["DOTNET_ROOT(x86)"] = BIN_DIR
       @powershell_dll = NET10_DLL
+
+      # FFI loads DLLs on Windows with LOAD_LIBRARY_SEARCH_DEFAULT_DIRS, which
+      # does not include PATH or the current directory -- only the hosting
+      # EXE's directory, System32, and directories registered via
+      # SetDllDirectory/AddDllDirectory. The wrapper's native CRT dependencies
+      # (vcruntime140.dll, msvcp140.dll, etc.) live in the FLAT bin dir, not
+      # the nested runtime dir alongside the DLL -- register both explicitly.
+      # Do not rely on System32 already having the VC++ redistributable.
+      core_dir = File.dirname(@powershell_dll)
+      Kernel32.SetDefaultDllDirectories(Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+      [BIN_DIR, core_dir].each { |dir| Kernel32.register_search_directory(dir) }
+      Kernel32.SetDllDirectoryA(core_dir)
 
       # Call PowerShell#exec directly — we are already inside Pwsh#exec so
       # calling super would recurse.  bind() bypasses Ruby access control.

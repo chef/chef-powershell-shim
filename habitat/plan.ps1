@@ -7,7 +7,7 @@ $pkg_build_deps=@(
   "core/nuget",
   "core/dotnet-481-dev-pack",
   "core/windows-11-sdk",
-  "core/visual-build-tools-2026/18.8.2/20260731054756",
+  "core/visual-build-tools-2026",
   "core/dotnet-10-sdk"
 )
 $pkg_bin_dirs=@("bin")

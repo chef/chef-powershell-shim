@@ -69,6 +69,18 @@ def raw_pwsh(script, timeout: -1)
   ENV["DOTNET_ROOT"]              = DLL_BIN_DIR
   ENV["DOTNET_ROOT(x86)"]         = DLL_BIN_DIR
 
+  # FFI loads DLLs on Windows with LOAD_LIBRARY_SEARCH_DEFAULT_DIRS, which
+  # does not include PATH or the current directory -- only the hosting
+  # EXE's directory, System32, and directories registered via
+  # SetDllDirectory/AddDllDirectory. The wrapper's native CRT dependencies
+  # (vcruntime140.dll, msvcp140.dll, etc.) live in the FLAT bin dir, not the
+  # nested runtime dir alongside the DLL -- register both explicitly. Do not
+  # rely on System32 already having the VC++ redistributable.
+  core_dir = File.dirname(NET10_DLL)
+  ChefPowerShell::Pwsh::Kernel32.SetDefaultDllDirectories(ChefPowerShell::Pwsh::Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+  [DLL_BIN_DIR, core_dir].each { |dir| ChefPowerShell::Pwsh::Kernel32.register_search_directory(dir) }
+  ChefPowerShell::Pwsh::Kernel32.SetDllDirectoryA(core_dir)
+
   ps = ChefPowerShell::Pwsh.allocate
   ps.instance_variable_set(:@powershell_dll, NET10_DLL)
   # Must call PowerShell#exec directly — Pwsh#exec overrides it and unconditionally
