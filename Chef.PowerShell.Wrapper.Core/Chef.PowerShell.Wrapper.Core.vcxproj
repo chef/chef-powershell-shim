@@ -76,7 +76,17 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup>
+    <NetCoreTargetingPackRoot Condition="'$(NetCoreTargetingPackRoot)'==''">$(NetCoreRoot)packs\</NetCoreTargetingPackRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <_NetCoreRefPackVersionDir Include="$(NetCoreTargetingPackRoot)Microsoft.NETCore.App.Ref\*" Condition="'$(DotNetCoreRefPackPath)'==''" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DotNetCoreRefPackVersion Condition="'$(DotNetCoreRefPackPath)'==''">@(_NetCoreRefPackVersionDir->'%(Filename)')</DotNetCoreRefPackVersion>
+    <DotNetCoreRefPackVersion Condition="'$(DotNetCoreRefPackPath)'=='' and $(DotNetCoreRefPackVersion.Contains(';'))">$(DotNetCoreRefPackVersion.Substring($([MSBuild]::Add($(DotNetCoreRefPackVersion.LastIndexOf(';')), 1))))</DotNetCoreRefPackVersion>
+    <DotNetCoreRefPackPath Condition="'$(DotNetCoreRefPackPath)'=='' and '$(DotNetCoreRefPackVersion)'!=''">$(NetCoreTargetingPackRoot)Microsoft.NETCore.App.Ref\$(DotNetCoreRefPackVersion)\ref\net10.0</DotNetCoreRefPackPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
