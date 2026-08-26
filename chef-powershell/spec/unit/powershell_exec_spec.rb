@@ -23,7 +23,7 @@ describe ChefPowerShell::ChefPowerShellModule::PowerShellExec, :windows_only do
   subject(:object) { powershell_mixin.new }
 
   before do
-    file_path = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/"
+    file_path = ENV["CHEF_POWERSHELL_BIN"] || ChefPowerShell.bin_dir
     ENV["CHEF_POWERSHELL_BIN"] = file_path
   end
 

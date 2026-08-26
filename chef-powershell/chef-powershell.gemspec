@@ -17,8 +17,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 3.1"
 
-  spec.add_dependency "ffi", ">= 1.15"
-  spec.add_dependency "ffi-yajl", "~> 2.4"
+  spec.add_dependency "ffi", ">= 1.15.5", "< 1.18.0"
+  spec.add_dependency "ffi-yajl", ">= 2.2", "!= 3.0.0", "< 4.0"
   spec.add_development_dependency "cookstyle", "~> 8.1"
 
   spec.metadata = {
