@@ -123,7 +123,11 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :bank: Installing Node via Choco"
-choco install nodejs -y
+# Use the LTS package (not the rolling "nodejs" package) to avoid picking up
+# pre-release/alpha builds (e.g. 26.8.0-alpha.x), which cspell's engines check
+# rejects with "Unsupported NodeJS version" even though it's technically newer
+# than the minimum supported version.
+choco install nodejs-lts -y
 if (-not $?) { throw "unable to install Node"}
 Write-Output "`r"
 
