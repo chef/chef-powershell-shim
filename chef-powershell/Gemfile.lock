@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    chef-powershell (18.1.0)
+    chef-powershell (19.1.0)
       ffi (>= 1.15.5, < 1.18.0)
       ffi-yajl (>= 2.2, < 4.0, != 3.0.0)
 
