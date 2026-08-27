@@ -33,7 +33,7 @@ class ChefPowerShell
         wide_path = (path + "\0").encode("UTF-16LE")
         ptr = FFI::MemoryPointer.new(:uint8, wide_path.bytesize)
         ptr.put_bytes(0, wide_path)
-        !AddDllDirectory(ptr).address.zero?
+        !(AddDllDirectory(ptr).address == 0)
       end
     end
 
