@@ -43,6 +43,12 @@ begin
       t.pattern = FileList["spec/functional/**/*_spec.rb"]
     end
 
+    RSpec::Core::RakeTask.new(:integration) do |t|
+      t.verbose = false
+      t.rspec_opts = %w{--profile --format documentation}
+      t.pattern = FileList["spec/integration/**/*_spec.rb"]
+    end
+
     desc "Print Specdoc for all specs"
     RSpec::Core::RakeTask.new(:doc) do |t|
       t.verbose = false

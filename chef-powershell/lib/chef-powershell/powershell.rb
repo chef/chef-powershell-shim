@@ -21,6 +21,24 @@ require_relative "exceptions"
 require_relative "unicode"
 
 class ChefPowerShell
+  def self.bin_dir
+    if ENV["CHEF_POWERSHELL_BIN"] && !ENV["CHEF_POWERSHELL_BIN"].empty?
+      return File.expand_path(ENV["CHEF_POWERSHELL_BIN"])
+    end
+
+    gem_spec = Gem.loaded_specs["chef-powershell"]
+    base_path = gem_spec ? gem_spec.full_gem_path : File.expand_path("../..", __dir__)
+    arch = ENV.fetch("PROCESSOR_ARCHITECTURE", "AMD64")
+    gem_bin = File.join(base_path, "bin", "ruby_bin_folder", arch)
+    return gem_bin if File.exist?(gem_bin)
+
+    # Fallback to local Habitat build package when running from source repository without built gem_bin
+    hab_pkgs = Dir.glob("C:/hab/pkgs/chef/chef-powershell-shim/*/*/bin").sort
+    return hab_pkgs.last if hab_pkgs.any?
+
+    gem_bin
+  end
+
   class PowerShell
 
     attr_reader :result
@@ -41,7 +59,7 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      @powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @powershell_dll = File.join(ChefPowerShell.bin_dir, "Chef.PowerShell.Wrapper.dll")
       exec(script, timeout: timeout)
     end
 
@@ -72,7 +90,7 @@ class ChefPowerShell
       # FFI requires attaching to modules, not classes, so we need to
       # have a module here. The module level variables *could* be refactored
       # out here, but still 100% of the work still goes through the module.
-      @@powershell_dll = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/Chef.PowerShell.Wrapper.dll"
+      @@powershell_dll = File.join(ChefPowerShell.bin_dir, "Chef.PowerShell.Wrapper.dll")
       @@ps_command = ""
       @@ps_timeout = -1
 
