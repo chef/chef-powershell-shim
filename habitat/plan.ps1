@@ -32,7 +32,6 @@ function Invoke-Build {
 
   $vsRoot = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
   $msbuildExe = "$vsRoot\MSBuild\Current\Bin\amd64\MSBuild.exe"
-  $vcTargetsPath = "$vsRoot\MSBuild\Microsoft\VC\v180\"
   $resolverDir = "$vsRoot\Common7\IDE\CommonExtensions\Microsoft\NuGet"
   $resolver = "$resolverDir\Microsoft.Build.NuGetSdkResolver.dll"
 
@@ -130,20 +129,19 @@ function Invoke-Build {
   Write-Output "MSBuild command: $msbuildExe"
   Write-Output "MSBuild project: $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj"
 
-  & $msbuildExe `
-    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
-    /t:Build `
-    /p:Configuration=Release `
-    /p:Platform=x64 `
-    /p:BuildProjectReferences=false `
-    /p:VCTargetsPath="$vcTargetsPath" `
-    /p:DotNetSdkRoot="$env:DOTNET_ROOT" `
-    /p:DotNetCoreRefPackPath="$refPackPath" `
-    /p:IjwHostSourcePath="$ijwHostSourcePath" `
-    /p:DisableImplicitFrameworkReferences=true `
-    /p:GenerateRuntimeConfigurationFiles=false `
-    /nodeReuse:false `
-    /verbosity:diagnostic
+& $msbuildExe `
+  "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
+  /t:Build `
+  /p:Configuration=Release `
+  /p:Platform=x64 `
+  /p:BuildProjectReferences=false `
+  /p:DotNetSdkRoot="$env:DOTNET_ROOT" `
+  /p:DotNetCoreRefPackPath="$refPackPath" `
+  /p:IjwHostSourcePath="$ijwHostSourcePath" `
+  /p:DisableImplicitFrameworkReferences=true `
+  /p:GenerateRuntimeConfigurationFiles=false `
+  /nodeReuse:false `
+  /verbosity:diagnostic
 
   if ($LASTEXITCODE -ne 0) {
     throw "Chef.PowerShell.Wrapper.Core build failed with exit code $LASTEXITCODE"
