@@ -21,7 +21,11 @@ function Invoke-SetupEnvironment {
 }
 
 function Invoke-Build {
-  Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -Recurse -Force -Exclude ".vs"
+  Copy-Item $PLAN_CONTEXT/../* `
+    $HAB_CACHE_SRC_PATH/$pkg_dirname `
+    -Recurse `
+    -Force `
+    -Exclude ".vs"
 
   nuget restore `
     "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config" `
@@ -61,7 +65,6 @@ function Invoke-Build {
   Write-Output "DOTNET_ROOT: $env:DOTNET_ROOT"
   Write-Output "Reference pack: $refPackPath"
   Write-Output "Reference pack exists: $(Test-Path $refPackPath)"
-  Write-Output "Host pack: $hostPackRoot\$hostPackVersion"
   Write-Output "ijwhost.dll: $ijwHostSourcePath"
   Write-Output "ijwhost.dll exists: $(Test-Path $ijwHostSourcePath)"
   Write-Output "MSBuildSDKsPath: $env:MSBuildSDKsPath"
@@ -97,6 +100,9 @@ function Invoke-Build {
     throw
   }
 
+  # Help MSBuild resolve NuGet resolver dependencies.
+  $env:PATH = "$resolverDir;$env:PATH"
+
   Write-Output "Building .NET Framework PowerShell wrapper"
 
   & $msbuildExe `
@@ -126,22 +132,22 @@ function Invoke-Build {
   $env:LIBPATH = "$refPackPath;$env:LIBPATH"
 
   Write-Output "Building .NET 10 C++/CLI wrapper"
-  Write-Output "MSBuild command: $msbuildExe"
-  Write-Output "MSBuild project: $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj"
+  Write-Output "MSBuild: $msbuildExe"
+  Write-Output "Project: $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj"
 
-& $msbuildExe `
-  "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
-  /t:Build `
-  /p:Configuration=Release `
-  /p:Platform=x64 `
-  /p:BuildProjectReferences=false `
-  /p:DotNetSdkRoot="$env:DOTNET_ROOT" `
-  /p:DotNetCoreRefPackPath="$refPackPath" `
-  /p:IjwHostSourcePath="$ijwHostSourcePath" `
-  /p:DisableImplicitFrameworkReferences=true `
-  /p:GenerateRuntimeConfigurationFiles=false `
-  /nodeReuse:false `
-  /verbosity:diagnostic
+  & $msbuildExe `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
+    /t:Build `
+    /p:Configuration=Release `
+    /p:Platform=x64 `
+    /p:BuildProjectReferences=false `
+    /p:DotNetSdkRoot="$env:DOTNET_ROOT" `
+    /p:DotNetCoreRefPackPath="$refPackPath" `
+    /p:IjwHostSourcePath="$ijwHostSourcePath" `
+    /p:DisableImplicitFrameworkReferences=true `
+    /p:GenerateRuntimeConfigurationFiles=false `
+    /nodeReuse:false `
+    /verbosity:diagnostic
 
   if ($LASTEXITCODE -ne 0) {
     throw "Chef.PowerShell.Wrapper.Core build failed with exit code $LASTEXITCODE"
