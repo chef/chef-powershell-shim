@@ -21,43 +21,135 @@ function Invoke-SetupEnvironment {
 }
 
 function Invoke-Build {
-  Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force -Exclude ".vs"
-  nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
-  MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
-  if($LASTEXITCODE -ne 0) {
-    Write-Error "dotnet build failed!"
-  }
+  Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -Recurse -Force -Exclude ".vs"
+
+  nuget restore `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config" `
+    -PackagesDirectory "$HAB_CACHE_SRC_PATH/$pkg_dirname/packages" `
+    -Source "https://www.nuget.org/api/v2"
 
   $env:DOTNET_ROOT = "$(Get-HabPackagePath dotnet-10-sdk)\bin"
 
-  # Step 1: Build the managed .NET 10 core library (CoreCLR). Must use dotnet — VC++ MSBuild
-  # tasks are .NET Framework-only and cannot build .csproj in the same invocation as .vcxproj.
-  & "$env:DOTNET_ROOT\dotnet.exe" build $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj --configuration Release /p:Platform=x64
-  if($LASTEXITCODE -ne 0) {
-    Write-Error "dotnet core build failed!"
-  }
+  $vsRoot = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
+  $msbuildExe = "$vsRoot\MSBuild\Current\Bin\amd64\MSBuild.exe"
+  $vcTargetsPath = "$vsRoot\MSBuild\Microsoft\VC\v180"
+  $resolverDir = "$vsRoot\Common7\IDE\CommonExtensions\Microsoft\NuGet"
+  $resolver = "$resolverDir\Microsoft.Build.NuGetSdkResolver.dll"
 
-  # Step 2: Build the C++/CLI wrapper with the 64-bit MSBuild.exe (.NET Framework).
-  # Must use amd64\MSBuild.exe — hostfxr.dll is 64-bit and cannot be loaded by a 32-bit process.
-  $vsBuildToolsPath = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
-  $vcTargetsPath = "$vsBuildToolsPath\MSBuild\Microsoft\VC\v180\"
-  $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
-
-  # Locate the .NET 10 reference pack and host pack from the Hab dotnet-10-sdk package.
-  # These are passed to MSBuild so cl.exe and the linker can find the right binaries without
-  # relying on NuGet restore or workload resolution (both disabled via DisableImplicitFrameworkReferences).
   $refPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Ref"
-  $refVersion = (Get-ChildItem $refPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
+  $refVersion = (
+    Get-ChildItem $refPackRoot |
+      Sort-Object Name -Descending |
+      Select-Object -First 1
+  ).Name
   $refPackPath = "$refPackRoot\$refVersion\ref\net10.0"
-  $env:LIBPATH = "$refPackPath;$env:LIBPATH"
 
   $hostPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Host.win-x64"
-  $hostPackVersion = (Get-ChildItem $hostPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
+  $hostPackVersion = (
+    Get-ChildItem $hostPackRoot |
+      Sort-Object Name -Descending |
+      Select-Object -First 1
+  ).Name
   $ijwHostSourcePath = "$hostPackRoot\$hostPackVersion\runtimes\win-x64\native\ijwhost.dll"
-  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:VCTargetsPath="$vcTargetsPath" /p:DotNetSdkRoot="$env:DOTNET_ROOT" /p:DotNetCoreRefPackPath="$refPackPath" /p:IjwHostSourcePath="$ijwHostSourcePath" /p:DisableImplicitFrameworkReferences=true /p:GenerateRuntimeConfigurationFiles=false /nodeReuse:false
-  if($LASTEXITCODE -ne 0) {
-    Write-Error "dotnet core build failed!"
+
+  Write-Output "*********************************************************************"
+  Write-Output "chef-powershell build diagnostics"
+  Write-Output "Visual Build Tools root: $vsRoot"
+  Write-Output "MSBuild: $msbuildExe"
+  Write-Output "Resolver directory: $resolverDir"
+  Write-Output "Resolver: $resolver"
+  Write-Output "Resolver exists: $(Test-Path $resolver)"
+  Write-Output "DOTNET_ROOT: $env:DOTNET_ROOT"
+  Write-Output "Reference pack: $refPackPath"
+  Write-Output "Reference pack exists: $(Test-Path $refPackPath)"
+  Write-Output "Host pack: $hostPackRoot\$hostPackVersion"
+  Write-Output "ijwhost.dll: $ijwHostSourcePath"
+  Write-Output "ijwhost.dll exists: $(Test-Path $ijwHostSourcePath)"
+  Write-Output "MSBuildSDKsPath: $env:MSBuildSDKsPath"
+  Write-Output "*********************************************************************"
+
+  if (-not (Test-Path $msbuildExe)) {
+    throw "MSBuild was not found: $msbuildExe"
   }
+
+  if (-not (Test-Path $resolver)) {
+    throw "NuGet SDK resolver was not found: $resolver"
+  }
+
+  if (-not (Test-Path $refPackPath)) {
+    throw ".NET 10 reference pack was not found: $refPackPath"
+  }
+
+  if (-not (Test-Path $ijwHostSourcePath)) {
+    throw "ijwhost.dll was not found: $ijwHostSourcePath"
+  }
+
+  Write-Output "NuGet resolver directory contents:"
+  Get-ChildItem $resolverDir |
+    Select-Object Name, Length, FullName
+
+  try {
+    [System.Reflection.Assembly]::LoadFrom($resolver) | Out-Null
+    Write-Output "Resolver loaded successfully"
+  }
+  catch {
+    Write-Error "Resolver failed to load"
+    Write-Error $_.Exception.ToString()
+    throw
+  }
+
+  Write-Output "Building .NET Framework PowerShell wrapper"
+
+  & $msbuildExe `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj" `
+    /t:Build `
+    /p:Configuration=Release `
+    /p:Platform=x64 `
+    /nodeReuse:false `
+    /verbosity:minimal
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "Chef.PowerShell.Wrapper build failed with exit code $LASTEXITCODE"
+  }
+
+  Write-Output "Building .NET 10 managed PowerShell core"
+
+  & "$env:DOTNET_ROOT\dotnet.exe" `
+    build `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj" `
+    --configuration Release `
+    /p:Platform=x64
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "Chef.Powershell.Core build failed with exit code $LASTEXITCODE"
+  }
+
+  $env:LIBPATH = "$refPackPath;$env:LIBPATH"
+
+  Write-Output "Building .NET 10 C++/CLI wrapper"
+  Write-Output "MSBuild command: $msbuildExe"
+  Write-Output "MSBuild project: $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj"
+
+  & $msbuildExe `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
+    /t:Build `
+    /p:Configuration=Release `
+    /p:Platform=x64 `
+    /p:BuildProjectReferences=false `
+    /p:VCTargetsPath="$vcTargetsPath" `
+    /p:DotNetSdkRoot="$env:DOTNET_ROOT" `
+    /p:DotNetCoreRefPackPath="$refPackPath" `
+    /p:IjwHostSourcePath="$ijwHostSourcePath" `
+    /p:DisableImplicitFrameworkReferences=true `
+    /p:GenerateRuntimeConfigurationFiles=false `
+    /nodeReuse:false `
+    /verbosity:diagnostic
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "Chef.PowerShell.Wrapper.Core build failed with exit code $LASTEXITCODE"
+  }
+
+  Write-Output "chef-powershell native build completed successfully"
 }
 
 function Invoke-Install {
