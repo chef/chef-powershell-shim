@@ -32,7 +32,7 @@ function Invoke-Build {
 
   $vsRoot = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
   $msbuildExe = "$vsRoot\MSBuild\Current\Bin\amd64\MSBuild.exe"
-  $vcTargetsPath = "$vsRoot\MSBuild\Microsoft\VC\v180"
+  $vcTargetsPath = "$vsRoot\MSBuild\Microsoft\VC\v180\"
   $resolverDir = "$vsRoot\Common7\IDE\CommonExtensions\Microsoft\NuGet"
   $resolver = "$resolverDir\Microsoft.Build.NuGetSdkResolver.dll"
 
