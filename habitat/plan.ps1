@@ -135,6 +135,68 @@ function Invoke-Build {
   Write-Output "MSBuild: $msbuildExe"
   Write-Output "Project: $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj"
 
+  # Step 2: Build the C++/CLI wrapper with the 64-bit MSBuild.exe (.NET Framework).
+  # MSBuildSDKsPath must point at the installed .NET 10 SDK.
+  $vsBuildToolsPath = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
+  $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
+
+  $sdkRoot = Join-Path $env:DOTNET_ROOT "Sdk"
+  $sdkVersion = (
+    Get-ChildItem $sdkRoot -Directory |
+      Sort-Object Name -Descending |
+      Select-Object -First 1
+  ).Name
+
+  $env:MSBuildSDKsPath = Join-Path $sdkRoot "$sdkVersion\Sdks"
+
+  # Locate the .NET 10 reference pack and host pack.
+  $refPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Ref"
+  $refVersion = (
+    Get-ChildItem $refPackRoot -Directory |
+      Sort-Object Name -Descending |
+      Select-Object -First 1
+  ).Name
+  $refPackPath = "$refPackRoot\$refVersion\ref\net10.0"
+
+  $hostPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Host.win-x64"
+  $hostPackVersion = (
+    Get-ChildItem $hostPackRoot -Directory |
+      Sort-Object Name -Descending |
+      Select-Object -First 1
+  ).Name
+  $ijwHostSourcePath = "$hostPackRoot\$hostPackVersion\runtimes\win-x64\native\ijwhost.dll"
+
+  Write-Output "Building .NET 10 C++/CLI wrapper"
+  Write-Output "MSBuild: $msbuildExe"
+  Write-Output "SDK root: $sdkRoot"
+  Write-Output "SDK version: $sdkVersion"
+  Write-Output "MSBuildSDKsPath: $env:MSBuildSDKsPath"
+  Write-Output "Reference pack: $refPackPath"
+  Write-Output "ijwhost.dll: $ijwHostSourcePath"
+  Write-Output "Microsoft.NET.Sdk exists: $(Test-Path (Join-Path $env:MSBuildSDKsPath 'Microsoft.NET.Sdk\Sdk'))"
+
+  if (-not (Test-Path $msbuildExe)) {
+    throw "MSBuild was not found: $msbuildExe"
+  }
+
+  if (-not (Test-Path $env:MSBuildSDKsPath)) {
+    throw "MSBuild SDK path was not found: $env:MSBuildSDKsPath"
+  }
+
+  if (-not (Test-Path (Join-Path $env:MSBuildSDKsPath "Microsoft.NET.Sdk\Sdk"))) {
+    throw "Microsoft.NET.Sdk was not found under: $env:MSBuildSDKsPath"
+  }
+
+  if (-not (Test-Path $refPackPath)) {
+    throw ".NET 10 reference pack was not found: $refPackPath"
+  }
+
+  if (-not (Test-Path $ijwHostSourcePath)) {
+    throw "ijwHost.dll was not found: $ijwHostSourcePath"
+  }
+
+  $env:LIBPATH = "$refPackPath;$env:LIBPATH"
+
   & $msbuildExe `
     "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
     /t:Build `
@@ -146,6 +208,7 @@ function Invoke-Build {
     /p:IjwHostSourcePath="$ijwHostSourcePath" `
     /p:DisableImplicitFrameworkReferences=true `
     /p:GenerateRuntimeConfigurationFiles=false `
+    /p:EnableWorkloadResolver=false `
     /nodeReuse:false `
     /verbosity:diagnostic
 
