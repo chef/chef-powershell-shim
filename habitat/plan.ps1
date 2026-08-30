@@ -202,6 +202,13 @@ function Invoke-Build {
 
   $env:LIBPATH = "$refPackPath;$env:LIBPATH"
 
+  $env:MSBuildSDKsPath = Join-Path $sdkRoot "$sdkVersion\Sdks"
+
+  Write-Output "*********************************************************************"
+  Write-Output "MSBuildSDKsPath immediately before second MSBuild call: $env:MSBuildSDKsPath"
+  Write-Output "Microsoft.NET.Sdk exists at that path: $(Test-Path (Join-Path $env:MSBuildSDKsPath 'Microsoft.NET.Sdk\Sdk'))"
+  Write-Output "*********************************************************************"
+
   & $msbuildExe `
     "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj" `
     /t:Build `
