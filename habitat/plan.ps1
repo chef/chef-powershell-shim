@@ -21,6 +21,13 @@ function Invoke-SetupEnvironment {
 }
 
 function Invoke-Build {
+
+  Write-Output "*********************************************************************"
+  Write-Output "MSBuildSDKsPath at Invoke-Build entry: $env:MSBuildSDKsPath"
+  Write-Output "*********************************************************************"
+
+  pause
+
   Copy-Item $PLAN_CONTEXT/../* `
     $HAB_CACHE_SRC_PATH/$pkg_dirname `
     -Recurse `
