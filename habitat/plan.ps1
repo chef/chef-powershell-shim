@@ -39,18 +39,11 @@ function Invoke-Build {
 
   $env:DOTNET_ROOT = "$(Get-HabPackagePath dotnet-10-sdk)\bin"
 
-  # Step 1: Build the managed .NET 10 core library (CoreCLR). Must use dotnet — VC++ MSBuild
-  # tasks are .NET Framework-only and cannot build .csproj in the same invocation as .vcxproj.
   & "$env:DOTNET_ROOT\dotnet.exe" build $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj --configuration Release /p:Platform=x64
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet core build failed!"
   }
 
-  # Step 2: Build the C++/CLI wrapper with the 64-bit MSBuild.exe (.NET Framework).
-  # Must use amd64\MSBuild.exe — hostfxr.dll is 64-bit and cannot be loaded by a 32-bit process.
-  # Locate the .NET 10 reference pack and host pack from the Hab dotnet-10-sdk package.
-  # These are passed to MSBuild so cl.exe and the linker can find the right binaries without
-  # relying on NuGet restore or workload resolution (both disabled via DisableImplicitFrameworkReferences).
   $refPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Ref"
   $refVersion = (Get-ChildItem $refPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
   $refPackPath = "$refPackRoot\$refVersion\ref\net10.0"
