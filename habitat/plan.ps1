@@ -52,7 +52,7 @@ function Invoke-Build {
   $hostPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Host.win-x64"
   $hostPackVersion = (Get-ChildItem $hostPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
   $ijwHostSourcePath = "$hostPackRoot\$hostPackVersion\runtimes\win-x64\native\ijwhost.dll"
-  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:VCTargetsPath="$vcTargetsPath" /p:DotNetSdkRoot="$env:DOTNET_ROOT" /p:DotNetCoreRefPackPath="$refPackPath" /p:IjwHostSourcePath="$ijwHostSourcePath" /p:DisableImplicitFrameworkReferences=true /p:GenerateRuntimeConfigurationFiles=false /nodeReuse:false
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:VCTargetsPath="$vcTargetsPath" /p:DotNetSdkRoot="$env:DOTNET_ROOT" /p:DotNetCoreRefPackPath="$refPackPath" /p:IjwHostSourcePath="$ijwHostSourcePath" /p:DisableImplicitFrameworkReferences=true /p:GenerateRuntimeConfigurationFiles=false /p:MSBuildEnableWorkloadResolver=false /nodeReuse:false
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet core build failed!"
   }
