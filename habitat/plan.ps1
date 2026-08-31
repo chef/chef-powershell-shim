@@ -12,10 +12,6 @@ $pkg_build_deps=@(
 )
 $pkg_bin_dirs=@("bin")
 
-$env:HAB_BLDR_CHANNEL = "base-2025"
-$env:HAB_ORIGIN = "chef"
-$env:HAB_REFRESH_CHANNEL = "base-2025"
-
 function Invoke-SetupEnvironment {
   Push-RuntimeEnv -IsPath "RUBY_DLL_PATH" "$pkg_prefix/bin"
   Set-RuntimeEnv -IsPath "CHEF_POWERSHELL_BIN" "$pkg_prefix/bin"
