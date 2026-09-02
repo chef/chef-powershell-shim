@@ -14,6 +14,10 @@
 # If CHEF_POWERSHELL_BIN is not set, the spec falls back to the gem's own bin/ruby_bin_folder
 # (useful when running from a fully-installed gem).
 
+require "bundler"
+require "open3"
+require "tempfile"
+
 # Snapshot CHEF_POWERSHELL_BIN *before* require "chef-powershell", because
 # powershell_exec.rb unconditionally overwrites it with the gem's own bin path
 # at module load time.
@@ -77,9 +81,9 @@ def raw_pwsh(script, timeout: -1)
   # nested runtime dir alongside the DLL -- register both explicitly. Do not
   # rely on System32 already having the VC++ redistributable.
   core_dir = File.dirname(NET10_DLL)
-  ChefPowerShell::Pwsh::Kernel32.SetDefaultDllDirectories(ChefPowerShell::Pwsh::Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
-  [DLL_BIN_DIR, core_dir].each { |dir| ChefPowerShell::Pwsh::Kernel32.register_search_directory(dir) }
-  ChefPowerShell::Pwsh::Kernel32.SetDllDirectoryA(core_dir)
+  ChefPowerShell::Kernel32.SetDefaultDllDirectories(ChefPowerShell::Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+  [DLL_BIN_DIR, core_dir].each { |dir| ChefPowerShell::Kernel32.register_search_directory(dir) }
+  ChefPowerShell::Kernel32.SetDllDirectoryA(core_dir)
 
   ps = ChefPowerShell::Pwsh.allocate
   ps.instance_variable_set(:@powershell_dll, NET10_DLL)
@@ -359,5 +363,97 @@ RSpec.describe "DLL isolation", :windows_only do
     original = ENV["DOTNET_ROOT"]
     raw_pwsh("'test'")
     expect(ENV["DOTNET_ROOT"]).to eq(original)
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Regression: PowerShell#initialize must register its own DLL search directory
+# ---------------------------------------------------------------------------
+#
+# Background: AddDllDirectory/SetDefaultDllDirectories mutate GLOBAL,
+# PROCESS-WIDE Windows search-path state that is never unregistered. Because
+# this entire spec file runs in a single rspec process, a missing directory
+# registration in one interpreter's init path can be silently masked by
+# another interpreter's init path having already registered the very same
+# directory earlier in the run (raw_powershell/raw_pwsh above share DLL_BIN_DIR).
+#
+# This previously hid a real bug: PowerShell#initialize (the Windows
+# PowerShell / .NET Framework 4.8.1 path) never registered `bin_dir` as a DLL
+# search directory -- only Pwsh#exec (.NET 10 / PowerShell Core path) did.
+# Production usage (e.g. Chef-18) only ever constructs a `:powershell`
+# interpreter in a single-purpose process, so no such masking occurs there --
+# it failed with error 126 because the native CRT dependencies
+# (vcruntime140.dll, msvcp140.dll, etc.) could not be resolved.
+#
+# NOTE: on a dev/CI machine that already has the VC++ redistributable
+# installed under System32 (part of the classic DLL search order regardless
+# of AddDllDirectory registration), removing the registration call will NOT
+# reproduce the failure -- System32 quietly satisfies the dependency. The
+# behavioral spec below ("registers bin_dir...") is what actually catches a
+# regression deterministically, on any machine. This subprocess test instead
+# guards against the *masking* mechanism itself: it proves the real
+# constructor (not `.allocate`) succeeds end-to-end in a fresh, single-purpose
+# process with no possibility of state bleed from other examples in this
+# suite -- the same condition production code runs under.
+RSpec.describe "PowerShell#initialize DLL directory registration (process isolation)", :windows_only do
+  before(:all) do
+    skip "NET481 DLL not found at #{NET481_DLL}" unless File.exist?(NET481_DLL)
+  end
+
+  it "constructs ChefPowerShell::PowerShell and resolves native DLL dependencies in an otherwise-empty process" do
+    gem_root = File.expand_path("../..", __dir__)
+
+    script = <<~'RUBY'
+      require "chef-powershell"
+      result = ChefPowerShell::PowerShell.new("$PSVersionTable", timeout: -1)
+      raise "errors: #{result.errors}" unless result.errors.empty?
+      unless result.result["PSEdition"] == "Desktop"
+        raise "unexpected PSEdition: #{result.result["PSEdition"].inspect}"
+      end
+
+      puts "OK"
+    RUBY
+
+    env = { "CHEF_POWERSHELL_BIN" => DLL_BIN_DIR }
+
+    # Write the script to a real file rather than passing it via `ruby -e`.
+    # On Windows, `bundle` resolves to a .bat shim, so the OS re-invokes the
+    # child through cmd.exe -- which treats embedded newlines in a command-line
+    # argument as command separators and silently truncates a multi-line -e
+    # script at the first newline.
+    stdout, stderr, status = Tempfile.create(["dll_isolation_check", ".rb"]) do |file|
+      file.write(script)
+      file.close
+
+      Bundler.with_unbundled_env do
+        Open3.capture3(env, "bundle", "exec", "ruby", file.path, chdir: gem_root)
+      end
+    end
+
+    expect(status.success?).to be(true),
+      "subprocess failed (exit #{status.exitstatus}):\nSTDOUT:\n#{stdout}\nSTDERR:\n#{stderr}"
+    expect(stdout).to include("OK")
+  end
+
+  # Deterministic regression coverage: assert the actual Kernel32 calls happen,
+  # rather than relying on native DLL resolution failing -- which depends on
+  # whether the VC++ redistributable happens to already be installed on the
+  # machine running the suite (see NOTE above).
+  it "registers bin_dir as a DLL search directory before executing" do
+    orig_bin = ENV["CHEF_POWERSHELL_BIN"]
+    ENV["CHEF_POWERSHELL_BIN"] = DLL_BIN_DIR
+
+    allow(ChefPowerShell::Kernel32).to receive(:SetDefaultDllDirectories).and_call_original
+    allow(ChefPowerShell::Kernel32).to receive(:register_search_directory).and_call_original
+    allow(ChefPowerShell::Kernel32).to receive(:SetDllDirectoryA).and_call_original
+
+    ChefPowerShell::PowerShell.new("$PSVersionTable", timeout: -1)
+
+    expect(ChefPowerShell::Kernel32).to have_received(:SetDefaultDllDirectories)
+      .with(ChefPowerShell::Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+    expect(ChefPowerShell::Kernel32).to have_received(:register_search_directory).with(DLL_BIN_DIR)
+    expect(ChefPowerShell::Kernel32).to have_received(:SetDllDirectoryA).with(DLL_BIN_DIR)
+  ensure
+    ENV["CHEF_POWERSHELL_BIN"] = orig_bin
   end
 end

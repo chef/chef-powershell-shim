@@ -21,6 +21,26 @@ require_relative "exceptions"
 require_relative "unicode"
 
 class ChefPowerShell
+  module Kernel32
+    extend FFI::Library
+    ffi_lib "kernel32"
+    attach_function :SetDllDirectoryA, %i{string}, :int
+    attach_function :SetDefaultDllDirectories, %i{uint32}, :int
+    attach_function :AddDllDirectory, %i{pointer}, :pointer
+
+    # https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-setdefaultdlldirectories
+    LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000
+
+    # AddDllDirectory requires a wide (UTF-16LE), null-terminated string (LPCWSTR).
+    # Returns true if the directory was registered successfully.
+    def self.register_search_directory(path)
+      wide_path = (path + "\0").encode("UTF-16LE")
+      ptr = FFI::MemoryPointer.new(:uint8, wide_path.bytesize)
+      ptr.put_bytes(0, wide_path)
+      !(AddDllDirectory(ptr).address == 0)
+    end
+  end
+
   def self.bin_dir
     if ENV["CHEF_POWERSHELL_BIN"] && !ENV["CHEF_POWERSHELL_BIN"].empty?
       return File.expand_path(ENV["CHEF_POWERSHELL_BIN"])
@@ -59,7 +79,27 @@ class ChefPowerShell
       # Every merge into that repo triggers a Habitat build and verification process.
       # There is no mechanism to build a Windows gem file. It has to be done manually running manual_gem_release.ps1
       # Bundle install ensures that the correct architecture binaries are installed into the path.
-      @powershell_dll = File.join(ChefPowerShell.bin_dir, "Chef.PowerShell.Wrapper.dll")
+      bin_dir = ChefPowerShell.bin_dir
+      @powershell_dll = File.join(bin_dir, "Chef.PowerShell.Wrapper.dll")
+
+      # Windows' default LoadLibrary(Ex) search order used by FFI does NOT
+      # include the directory of the DLL being loaded -- FFI loads on Windows
+      # with LOAD_LIBRARY_SEARCH_DEFAULT_DIRS, which only searches the hosting
+      # EXE's directory, System32, and directories registered via
+      # SetDllDirectory/AddDllDirectory (notably *not* PATH or the current
+      # directory). Chef.PowerShell.Wrapper.dll depends on native VC++ runtime
+      # DLLs (vcruntime140.dll, msvcp140.dll, etc.) that live alongside it in
+      # bin_dir, so that directory must be registered explicitly or those
+      # dependent DLLs will fail to resolve (error 126) even though the
+      # wrapper DLL itself loads fine via its absolute path.
+      Kernel32.SetDefaultDllDirectories(Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+      raise LoadError, "Failed to register DLL search directory: #{bin_dir}" unless Kernel32.register_search_directory(bin_dir)
+
+      # Retained alongside AddDllDirectory for defense in depth / older Windows
+      # compatibility (AddDllDirectory requires Windows 8+/Server 2012+, or
+      # Windows 7 SP1/Server 2008 R2 SP1 with KB2533623).
+      Kernel32.SetDllDirectoryA(bin_dir)
+
       exec(script, timeout: timeout)
     end
 

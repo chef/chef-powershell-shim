@@ -17,26 +17,6 @@
 
 class ChefPowerShell
   class Pwsh < ChefPowerShell::PowerShell
-    module Kernel32
-      extend FFI::Library
-      ffi_lib "kernel32"
-      attach_function :SetDllDirectoryA, %i{string}, :int
-      attach_function :SetDefaultDllDirectories, %i{uint32}, :int
-      attach_function :AddDllDirectory, %i{pointer}, :pointer
-
-      # https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-setdefaultdlldirectories
-      LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000
-
-      # AddDllDirectory requires a wide (UTF-16LE), null-terminated string (LPCWSTR).
-      # Returns true if the directory was registered successfully.
-      def self.register_search_directory(path)
-        wide_path = (path + "\0").encode("UTF-16LE")
-        ptr = FFI::MemoryPointer.new(:uint8, wide_path.bytesize)
-        ptr.put_bytes(0, wide_path)
-        !(AddDllDirectory(ptr).address == 0)
-      end
-    end
-
     # Run a command under pwsh (powershell core) via FFI
     # This implementation requires the managed dll, native wrapper and a
     # published, self contained dotnet core directory tree to exist in the

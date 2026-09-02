@@ -21,31 +21,29 @@ function Invoke-SetupEnvironment {
 }
 
 function Invoke-Build {
-  Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force -Exclude ".vs"
-  nuget restore $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config -PackagesDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/packages -Source "https://www.nuget.org/api/v2"
-  MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
+  Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -Recurse -Force -Exclude ".vs"
+
+  nuget restore `
+    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config" `
+    -PackagesDirectory "$HAB_CACHE_SRC_PATH/$pkg_dirname/packages" `
+    -Source "https://www.nuget.org/api/v2"
+
+  $vsBuildToolsPath = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
+  $vcTargetsPath = "$vsBuildToolsPath\MSBuild\Microsoft\VC\v180\"
+  $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
+
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet build failed!"
   }
 
   $env:DOTNET_ROOT = "$(Get-HabPackagePath dotnet-10-sdk)\bin"
 
-  # Step 1: Build the managed .NET 10 core library (CoreCLR). Must use dotnet — VC++ MSBuild
-  # tasks are .NET Framework-only and cannot build .csproj in the same invocation as .vcxproj.
   & "$env:DOTNET_ROOT\dotnet.exe" build $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Core/Chef.Powershell.Core.csproj --configuration Release /p:Platform=x64
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet core build failed!"
   }
 
-  # Step 2: Build the C++/CLI wrapper with the 64-bit MSBuild.exe (.NET Framework).
-  # Must use amd64\MSBuild.exe — hostfxr.dll is 64-bit and cannot be loaded by a 32-bit process.
-  $vsBuildToolsPath = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
-  $vcTargetsPath = "$vsBuildToolsPath\MSBuild\Microsoft\VC\v180\"
-  $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
-
-  # Locate the .NET 10 reference pack and host pack from the Hab dotnet-10-sdk package.
-  # These are passed to MSBuild so cl.exe and the linker can find the right binaries without
-  # relying on NuGet restore or workload resolution (both disabled via DisableImplicitFrameworkReferences).
   $refPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Ref"
   $refVersion = (Get-ChildItem $refPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
   $refPackPath = "$refPackRoot\$refVersion\ref\net10.0"
@@ -54,7 +52,7 @@ function Invoke-Build {
   $hostPackRoot = "$env:DOTNET_ROOT\packs\Microsoft.NETCore.App.Host.win-x64"
   $hostPackVersion = (Get-ChildItem $hostPackRoot | Sort-Object Name -Descending | Select-Object -First 1).Name
   $ijwHostSourcePath = "$hostPackRoot\$hostPackVersion\runtimes\win-x64\native\ijwhost.dll"
-  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:VCTargetsPath="$vcTargetsPath" /p:DotNetSdkRoot="$env:DOTNET_ROOT" /p:DotNetCoreRefPackPath="$refPackPath" /p:IjwHostSourcePath="$ijwHostSourcePath" /p:DisableImplicitFrameworkReferences=true /p:GenerateRuntimeConfigurationFiles=false /nodeReuse:false
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper.Core/Chef.Powershell.Wrapper.Core.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:VCTargetsPath="$vcTargetsPath" /p:DotNetSdkRoot="$env:DOTNET_ROOT" /p:DotNetCoreRefPackPath="$refPackPath" /p:IjwHostSourcePath="$ijwHostSourcePath" /p:DisableImplicitFrameworkReferences=true /p:GenerateRuntimeConfigurationFiles=false /p:MSBuildEnableWorkloadResolver=false /nodeReuse:false
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet core build failed!"
   }
