@@ -105,7 +105,8 @@ if (-not $?) { throw "unable to install this build" }
 Write-Output "`r"
 
 Write-Output "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DLL's in the chef-powershell Directory and copying the newly compiled ones down"
-$x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/AMD64")
+$arch = if ($env:PROCESSOR_ARCHITECTURE) { $env:PROCESSOR_ARCHITECTURE } else { "AMD64" }
+$x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/$arch")
 
 if (Test-Path -PathType Container $x64_bin_path) {
     Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
