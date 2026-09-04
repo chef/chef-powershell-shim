@@ -23,10 +23,9 @@ $ErrorActionPreference = "Stop"
 
 $project_name = "chef-powershell"
 
-Write-Output "--- Cleaning up old Hab directories for a minty fresh build experience"
-# Is there a c:\hab directory? If so, nuke it.
-if (Test-Path -Path c:\hab) {
-    Remove-Item -LiteralPath c:\hab -Recurse -Force #-ErrorAction SilentlyContinue
+Write-Output "--- Cleaning up old build results directory"
+if (Test-Path -Path "$project_root\results") {
+    Remove-Item -LiteralPath "$project_root\results" -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Output "`r"
 
@@ -66,13 +65,6 @@ if ($LocalVersion -eq $rubygemsversion) {
 Write-Output "`r"
 
 # compile
-# check for existing hab folders and delete
-Write-Output "--- Testing for existing hab folders and cleaning them up"
-$hpath = "c:\hab"
-if (Test-Path $hpath) {
-    Remove-Item -LiteralPath $hpath -Recurse -Force -ErrorAction SilentlyContinue
-}
-
 Write-Output "--- Setting up Habitat to build PowerShell DLL's"
 $env:HAB_ORIGIN = "ci"
 $env:HAB_LICENSE = "accept-no-persist"
@@ -118,14 +110,11 @@ Write-Output "--- :cleanup, cleanup, everybody, everywhere: Deleting existing DL
 $arch = if ($env:PROCESSOR_ARCHITECTURE) { $env:PROCESSOR_ARCHITECTURE } else { "AMD64" }
 $x64_bin_path = $("$project_root/chef-powershell/bin/ruby_bin_folder/$arch")
 
-if (Test-Path -PathType Container $x64_bin_path) {
-    Get-ChildItem -Path $x64_bin_path -Recurse | Foreach-object { Remove-item -Recurse -path $_.FullName -Force }
-    Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
+if (Test-Path -Path $x64_bin_path) {
+    Remove-Item -Path $x64_bin_path -Recurse -Force -ErrorAction SilentlyContinue
 }
-else {
-    New-Item -Path $x64_bin_path -ItemType Directory -Force
-    Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
-}
+New-Item -Path $x64_bin_path -ItemType Directory -Force
+Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 Write-Output "`r"
 
 Write-Output "--- Moving to the chef-powershell gem directory"
@@ -136,11 +125,6 @@ Write-Output "--- Verifying gem code and running tests"
 bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Gem verification failed! Aborting build." }
-Write-Output "`r"
-
-Write-Output "--- Running smoke test for built DLLs"
-bundle exec ruby smoke_test_dlls.rb "$x64\bin"
-if (-not $?) { throw "DLL smoke test failed! Aborting build." }
 Write-Output "`r"
 
 Write-Output "--- Building the gem"
@@ -156,6 +140,29 @@ catch {
 }
 [string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
 $gemFile = $([string]$project_root + "\" + [string]$project_name + "\" + [string]$project_name + "-" + [string]$Version + ".gem" )
+
+Write-Output "--- Installing built gem into temporary directory and running smoke test"
+$testGemDir = Join-Path ([System.IO.Path]::GetTempPath()) "chef_ps_gem_test"
+if (Test-Path $testGemDir) { Remove-Item $testGemDir -Recurse -Force -ErrorAction SilentlyContinue }
+
+gem install $gemFile --install-dir $testGemDir --no-document --ignore-dependencies
+if (-not $?) { throw "Failed to install built gem into temporary directory" }
+
+$arch = if ($env:PROCESSOR_ARCHITECTURE) { $env:PROCESSOR_ARCHITECTURE } else { "AMD64" }
+$installedGemBin = "$testGemDir\gems\chef-powershell-$Version\bin\ruby_bin_folder\$arch"
+
+if (-not (Test-Path "$installedGemBin\Chef.PowerShell.Wrapper.dll")) {
+    throw "Installed gem is missing Chef.PowerShell.Wrapper.dll!"
+}
+if (-not (Test-Path "$installedGemBin\shared\Microsoft.NETCore.App\10.0.0\Chef.PowerShell.Wrapper.Core.dll")) {
+    throw "Installed gem is missing Chef.PowerShell.Wrapper.Core.dll!"
+}
+
+bundle exec ruby smoke_test_dlls.rb "$installedGemBin"
+if (-not $?) { throw "DLL smoke test on installed gem failed!" }
+
+Remove-Item $testGemDir -Recurse -Force -ErrorAction SilentlyContinue
+Write-Output "`r"
 
 if (-not $Publish) {
     Write-Output "--- :white_check_mark: Gem successfully built at: $gemFile"
