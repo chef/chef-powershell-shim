@@ -1,14 +1,21 @@
+[CmdletBinding()]
+param(
+    [switch]$Publish,
+    [switch]$Force
+)
+
 #########
 ## Purpose:
-##  This script is written as manual process for bulding and publishing the chef-powershell gem.
-##  There is currently no process to build a gem on a Windows image.
+##  This script builds the chef-powershell gem and optionally publishes it to RubyGems.org.
+##  By default, it builds the DLLs and gem locally without publishing.
+##
+## Options:
+##  -Publish : Push the built gem to RubyGems.org (default: $false)
+##  -Force   : Skip interactive confirmation prompt when -Publish is specified
 ##
 ## Assumptions:
-##  1) You have access to https://rubygems.org/gems/chef-powershell
-##  2) You have already had the changes to your build branch merged back to Main and you have updated your local main branch - Main should match your local build branch
-##  3) This script will create a temp branch, check out to it, build the dll's and the gem locally and then will publish your gem to Rubygems.org
-##  4) Clearly that will create some churn as we'd like to push to Artifactory internally until a given gem is stable. Not possible currently
-##  5) You'll need to build and test your completed gem locally and then push directly to Rubygems for now.
+##  1) You have access to https://rubygems.org/gems/chef-powershell (if publishing)
+##  2) You have already merged changes to Main and updated your local main branch
 ##
 #########
 
@@ -24,7 +31,10 @@ if (Test-Path -Path c:\hab) {
 Write-Output "`r"
 
 Write-Output "--- Making sure we're in the correct spot"
-$project_root = (Get-ChildItem c:\ -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($("$project_name-shim")) } | Select-Object -First 1).FullName
+$project_root = (git rev-parse --show-toplevel).Trim()
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to determine git repository root. Are you in a git repository?"
+}
 Set-Location -Path $project_root
 Write-Output "`r"
 
@@ -118,16 +128,25 @@ else {
 }
 Write-Output "`r"
 
-Write-Output "--- :Moving to the chef-powershell gem directory"
+Write-Output "--- Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
 Write-Output "`r"
 
-Write-Output "--- Finally building the gem"
+Write-Output "--- Verifying gem code and running tests"
+bundle update
+bundle exec rake gem_check
+if (-not $?) { throw "Gem verification failed! Aborting build." }
+Write-Output "`r"
+
+Write-Output "--- Running smoke test for built DLLs"
+bundle exec ruby smoke_test_dlls.rb "$x64\bin"
+if (-not $?) { throw "DLL smoke test failed! Aborting build." }
+Write-Output "`r"
+
+Write-Output "--- Building the gem"
 gem build $("$project_name.gemspec")
 if (-not $?) { throw "Gem Build failed" }
 Write-Output "`r"
-
-Write-Output "--- pushing the gem to RubyGems.org"
 
 try {
     $file = (Get-Content $("$project_root\chef-powershell\lib\chef-powershell\version.rb"))
@@ -136,8 +155,26 @@ catch {
     Write-Error "Failed to Get the Version from version.rb"
 }
 [string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
-$gemfIle = $([string]$project_root + "\" + [string]$project_name + "\" + [string]$project_name + "-" + [string]$Version + ".gem" )
-gem push $($gemfIle)
+$gemFile = $([string]$project_root + "\" + [string]$project_name + "\" + [string]$project_name + "-" + [string]$Version + ".gem" )
+
+if (-not $Publish) {
+    Write-Output "--- :white_check_mark: Gem successfully built at: $gemFile"
+    Write-Output "--- NOTE: To publish this gem to RubyGems.org, re-run with the -Publish switch:"
+    Write-Output "---       .\.expeditor\manual_gem_release.ps1 -Publish"
+    Write-Output "`r"
+    exit 0
+}
+
+Write-Output "--- Pushing the gem to RubyGems.org"
+if (-not $Force) {
+    $confirm = Read-Host "ARE YOU SURE you want to push $gemFile to RubyGems.org? (y/N)"
+    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
+        Write-Output "Release aborted by user."
+        exit 0
+    }
+}
+
+gem push $($gemFile)
 if (-not $?) { throw "Gem Push failed" }
 Write-Output "`r"
 

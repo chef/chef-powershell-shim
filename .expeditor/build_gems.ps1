@@ -185,5 +185,27 @@ Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spell
 bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
+Write-Output "`r"
 
+Write-Output "--- :test_tube: Running smoke test for built DLLs"
+bundle exec ruby smoke_test_dlls.rb "$x64\bin"
+if (-not $?) { throw "DLL smoke test failed!"}
+Write-Output "`r"
+
+Write-Output "--- :gem: Building the chef-powershell gem artifact"
+$project_name = "chef-powershell"
+gem build "$project_name.gemspec"
+if (-not $?) { throw "Gem Build failed" }
+Write-Output "`r"
+
+try {
+    $file = (Get-Content "$project_root\chef-powershell\lib\chef-powershell\version.rb")
+}
+catch {
+    Write-Error "Failed to Get the Version from version.rb"
+}
+[string]$Version = [regex]::matches($file, "\s*VERSION\s=\s\`"(\d*.\d*.\d*)\`"\s*").groups[1].value
+$gemFile = "$project_root\$project_name\$project_name-$Version.gem"
+
+Write-Output "--- :white_check_mark: Gem successfully built at: $gemFile"
 Write-Output "`r"

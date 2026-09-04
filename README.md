@@ -4,7 +4,7 @@ A .NET Assembly to facilitate communication between Chef and PowerShell on the W
 
 ### Development Prerequisites
 
-Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\build_gems.ps1` to test your changes locally.
+Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\build_gems.ps1` to build the gem and test your changes locally.
 
 You will need to have the following things installed:
 1) .net framework 4.8.1 development pack
@@ -33,12 +33,20 @@ dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
 
 `workflows/gem-build.yml` should normally build on merge to `main`
 
-### Manual build
+### Manual build and release
 
-Then run `.\.expeditor\manual_gem_release.ps1` to build the gem and push it out. Releng does not have a Windows centric
-facility to build and push gems to Artifactory automatically. You will need:
-1) Access to the Chef internal Artifactory repo
-2) a Windows build system
+To build the DLLs, run code quality checks, and build the `.gem` file locally without publishing:
+```powershell
+.\.expeditor\build_gems.ps1
+# or
+.\.expeditor\manual_gem_release.ps1
+```
+
+To publish the built gem to RubyGems.org, run with the `-Publish` flag:
+```powershell
+.\.expeditor\manual_gem_release.ps1 -Publish
+```
+*Note: Publishing requires push access/credentials to RubyGems.org.*
 
 ## Contributing/Development
 
