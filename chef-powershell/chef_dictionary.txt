@@ -296,8 +296,8 @@ Inno
 inode
 inodes
 Inspec
-Intune
 installroot
+Intune
 ipsec
 ipsecconf
 Itanium
@@ -744,8 +744,8 @@ wrlinux
 Wrock
 WSUS
 xargs
-xattr
 XATTR
+xattr
 Xcode
 xenenterprise
 xenial
