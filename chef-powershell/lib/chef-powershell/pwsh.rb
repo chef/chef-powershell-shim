@@ -72,6 +72,37 @@ class ChefPowerShell
       end
 
       @powershell_dll = self.class.resolve_core_wrapper_dll
+
+      # Windows' default LoadLibrary(Ex) search order used by FFI does NOT
+      # include the directory of the DLL being loaded -- FFI loads on Windows
+      # with LOAD_LIBRARY_SEARCH_DEFAULT_DIRS, which only searches the hosting
+      # EXE's directory, System32, and directories registered via
+      # SetDllDirectory/AddDllDirectory (notably *not* PATH or the current
+      # directory).
+      #
+      # Chef.PowerShell.Wrapper.Core.dll lives in a "shared/Microsoft.NETCore.App"
+      # folder separate from ruby.exe. It also depends on native VC++ runtime DLLs
+      # (vcruntime140.dll, msvcp140.dll, concrt140.dll, vccorlib140.dll) that are
+      # NOT copied into that nested folder -- they only exist in the flat
+      # "ruby_bin_folder/<arch>" directory alongside the .NET Framework wrapper.
+      # We must register BOTH directories explicitly. Do not assume System32
+      # already has the VC++ redistributable installed -- that is incidental to
+      # any given machine and must never be relied upon.
+      core_dir = File.dirname(@powershell_dll)
+      native_deps_dir = File.expand_path(File.join(core_dir, "..", "..", ".."))
+
+      Kernel32.SetDefaultDllDirectories(Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+      [native_deps_dir, core_dir].each do |dir|
+        next if Kernel32.register_search_directory(dir)
+
+        raise LoadError, "Failed to register DLL search directory: #{dir}"
+      end
+
+      # Retained alongside AddDllDirectory for defense in depth / older Windows
+      # compatibility (AddDllDirectory requires Windows 8+/Server 2012+, or
+      # Windows 7 SP1/Server 2008 R2 SP1 with KB2533623).
+      Kernel32.SetDllDirectoryA(core_dir)
+
       super
     ensure
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = original_dml
