@@ -744,8 +744,8 @@ wrlinux
 Wrock
 WSUS
 xargs
-xattr
 XATTR
+xattr
 Xcode
 xenenterprise
 xenial

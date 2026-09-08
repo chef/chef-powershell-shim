@@ -186,6 +186,10 @@ $gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.1.0"
 [Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
 [Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
+Write-Output "--- :gem: Installing uri into the isolated vendor bundle"
+New-Item -ItemType Directory -Force -Path $gem_path | Out-Null
+gem install uri --install-dir $gem_path --no-document
+if (-not $?) { throw "unable to install uri gem" }
 Write-Output "`r"
 
 Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
@@ -205,7 +209,7 @@ hab pkg install chef/chef-infra-client/18.8.50/20251022232751 --channel "chef-ch
 Write-Output "`r"
 
 Write-Output "--- :point_right: finally verifying the gem code (cookstyle, spellcheck, spec)"
-bundle update
+bundle install
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
 
