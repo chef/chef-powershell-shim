@@ -187,3 +187,122 @@ bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
 
 Write-Output "`r"
+
+# There are ~100 released chef-infra-client patch versions per major line, so we
+# resolve the newest one for a given major version at run time via the Habitat
+# Depot API rather than hardcoding a patch version that will inevitably go stale.
+# `hab pkg install chef/chef-infra-client/18` does not support a major-only partial
+# version, so we need the fully qualified origin/name/version/release ident anyway.
+function Get-LatestHabPackageIdent {
+  param(
+    [Parameter(Mandatory=$true)] [string]$Origin,
+    [Parameter(Mandatory=$true)] [string]$Name,
+    [Parameter(Mandatory=$true)] [string]$Channel,
+    [Parameter(Mandatory=$true)] [string]$MajorVersion
+  )
+
+  $matching_releases = @()
+  $range = 0
+  do {
+    $page = Invoke-RestMethod "https://bldr.habitat.sh/v1/depot/channels/$Origin/$Channel/pkgs/$Name`?range=$range"
+    $matching_releases += $page.data | Where-Object { $_.version -like "$MajorVersion.*" }
+    $range += $page.data.Count
+  } while ($page.data.Count -gt 0 -and $range -lt $page.total_count)
+
+  if ($matching_releases.Count -eq 0) {
+    throw "No $Origin/$Name releases matching version '$MajorVersion.*' found in the '$Channel' channel"
+  }
+
+  $latest = $matching_releases | Sort-Object { [version]$_.version }, release | Select-Object -Last 1
+  return "$($latest.origin)/$($latest.name)/$($latest.version)/$($latest.release)"
+}
+
+# Chef vendors/bundles its own copy of chef-powershell at build time, so a plain
+# `require` inside a Chef install always resolves to that stale copy first, never
+# whatever is newest on the load path. To prove this branch's code + freshly built
+# DLLs actually work when consumed by a real Chef install, we replace that bundled
+# copy (Omnibus: `gem install`) or force it to the front of the load path (Habitat:
+# RUBYOPT), then run chef_gem_integration_test.rb through Chef's own Ruby.
+function Invoke-ChefPowerShellIntegrationTest {
+  param(
+    [Parameter(Mandatory=$true)] [string]$Label,
+    [Parameter(Mandatory=$true)] [scriptblock]$Invocation,
+    [Parameter(Mandatory=$true)] [string]$ChefPowerShellBin,
+    [string]$RubyOptLibPath
+  )
+
+  Write-Output "--- :test_tube: $Label"
+  $original_rubyopt = $env:RUBYOPT
+  $original_chef_bin = $env:CHEF_POWERSHELL_BIN
+  try {
+    if ($RubyOptLibPath) { $env:RUBYOPT = "-I$RubyOptLibPath" } else { Remove-Item Env:\RUBYOPT -ErrorAction SilentlyContinue }
+    $env:CHEF_POWERSHELL_BIN = $ChefPowerShellBin
+    & $Invocation
+    if (-not $?) { throw "$Label failed" }
+  }
+  finally {
+    if ($null -eq $original_rubyopt) { Remove-Item Env:\RUBYOPT -ErrorAction SilentlyContinue } else { $env:RUBYOPT = $original_rubyopt }
+    if ($null -eq $original_chef_bin) { Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue } else { $env:CHEF_POWERSHELL_BIN = $original_chef_bin }
+  }
+  Write-Output "`r"
+}
+
+Write-Output "--- :mag: Determining which Chef version to integration-test against this Ruby"
+$ruby_version = (ruby -e "puts RbConfig::CONFIG['ruby_version']").Trim()
+Write-Output "System Ruby under test: $ruby_version"
+Write-Output "`r"
+
+$integration_test_script = "$project_root\chef-powershell\chef_gem_integration_test.rb"
+
+if ($ruby_version.StartsWith("3.1")) {
+  # ---- Chef-18 ships as both Omnibus and Habitat: test it both ways ----
+
+  Write-Output "--- :gem: Building a local chef-powershell gem to replace Chef-18's bundled version"
+  Push-Location "$project_root\chef-powershell"
+  Remove-Item *.gem -ErrorAction SilentlyContinue
+  gem build chef-powershell.gemspec
+  if (-not $?) { throw "unable to build the chef-powershell gem" }
+  $built_gem = (Get-ChildItem *.gem | Select-Object -First 1).FullName
+  Pop-Location
+  Write-Output "`r"
+
+  Write-Output "--- :gem: Replacing the chef-powershell gem bundled in the Omnibus Chef-18 install"
+  & C:\opscode\chef\embedded\bin\gem.cmd install $built_gem --no-document
+  if (-not $?) { throw "unable to install local chef-powershell gem into Omnibus Chef-18" }
+  Write-Output "`r"
+
+  Invoke-ChefPowerShellIntegrationTest -Label "Chef-18 (Omnibus) integration test" -ChefPowerShellBin $x64_bin_path -Invocation {
+    & C:\opscode\chef\embedded\bin\ruby.exe $integration_test_script
+  }
+
+  Write-Output "--- :package: Installing Chef-18 (Habitat) for integration testing"
+  # chef/chef-infra-client is published to 'stable', not the 'base-2025' channel set above for our own package build
+  $chef18_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "stable" -MajorVersion "18"
+  Write-Output "Resolved latest Chef-18 Habitat package: $chef18_ident"
+  hab pkg install $chef18_ident --channel stable
+  if (-not $?) { throw "unable to install $chef18_ident" }
+  Write-Output "`r"
+
+  Invoke-ChefPowerShellIntegrationTest -Label "Chef-18 (Habitat) integration test" -RubyOptLibPath "$project_root\chef-powershell\lib" -ChefPowerShellBin $x64_bin_path -Invocation {
+    hab pkg exec $chef18_ident ruby $integration_test_script
+  }
+}
+elseif ($ruby_version.StartsWith("3.4")) {
+  # ---- Chef-19 ships as Habitat only ----
+
+  Write-Output "--- :package: Installing Chef-19 (Habitat) for integration testing"
+  # chef/chef-infra-client is published to 'stable', not the 'base-2025' channel set above for our own package build
+  $chef19_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "stable" -MajorVersion "19"
+  Write-Output "Resolved latest Chef-19 Habitat package: $chef19_ident"
+  hab pkg install $chef19_ident --channel stable
+  if (-not $?) { throw "unable to install $chef19_ident" }
+  Write-Output "`r"
+
+  Invoke-ChefPowerShellIntegrationTest -Label "Chef-19 (Habitat) integration test" -RubyOptLibPath "$project_root\chef-powershell\lib" -ChefPowerShellBin $x64_bin_path -Invocation {
+    hab pkg exec $chef19_ident ruby $integration_test_script
+  }
+}
+else {
+  throw "Unrecognized Ruby version '$ruby_version' - no Chef integration test mapping for it"
+}
+Write-Output "`r"
