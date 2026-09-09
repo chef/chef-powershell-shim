@@ -28,7 +28,7 @@ steps:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.4.8
+        image: rubydistros/windows-2019:3.4
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
@@ -41,6 +41,6 @@ steps:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.4.8
+        image: rubydistros/windows-2019:3.4
         shell: [ "powershell", "-Command" ]
         shell: [ "powershell", "-Command" ]
