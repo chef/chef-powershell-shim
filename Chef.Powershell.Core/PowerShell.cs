@@ -1,8 +1,7 @@
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Management.Automation.Runspaces;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
+using System.Text.Json;
 using System;
 
 namespace Chef
@@ -29,8 +28,6 @@ namespace Chef
                 powershell.Commands.AddCommand(jsonCommand);
 
                 var execution = new Execution();
-                execution.errors = new List<string>();
-                execution.verbose = new List<string>();
 
                 try
                 {
@@ -39,15 +36,7 @@ namespace Chef
                     if (asyncResult.AsyncWaitHandle.WaitOne(timeoutMilliseconds))
                     {
                         PSDataCollection<PSObject> results = powershell.EndInvoke(asyncResult: asyncResult);
-                        switch (results.Count)
-                        {
-                            case 1:
-                                execution.result = results[0].ToString();
-                                break;
-                            default:
-                                execution.result = EMPTY_JSON_STRING;
-                                break;
-                        }
+                        execution.result = results.Count == 1 ? results[0].ToString() : EMPTY_JSON_STRING;
                     }
                     else
                     {
@@ -73,7 +62,7 @@ namespace Chef
                         execution.verbose.Add(verboseRecord.ToString());
                     }
                 }
-                return JsonConvert.SerializeObject(execution, new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat });
+                return JsonSerializer.Serialize(execution, new JsonSerializerOptions { PropertyNamingPolicy = null });
             }
         }
 
