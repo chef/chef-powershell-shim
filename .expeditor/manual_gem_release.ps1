@@ -1,11 +1,11 @@
 #########
 ## Purpose:
-##  This script is written as a manual process for building and publishing the chef-powershell gem.
+##  This script is written as manual process for bulding and publishing the chef-powershell gem.
 ##  There is currently no process to build a gem on a Windows image.
 ##
 ## Assumptions:
 ##  1) You have access to https://rubygems.org/gems/chef-powershell
-##  2) You have already had the changes to your build branch merged back to 18-Stable and you have updated your local 18-Stable branch - 18-Stable should match your local build branch
+##  2) You have already had the changes to your build branch merged back to Main and you have updated your local main branch - Main should match your local build branch
 ##  3) This script will create a temp branch, check out to it, build the dll's and the gem locally and then will publish your gem to Rubygems.org
 ##  4) Clearly that will create some churn as we'd like to push to Artifactory internally until a given gem is stable. Not possible currently
 ##  5) You'll need to build and test your completed gem locally and then push directly to Rubygems for now.
@@ -64,7 +64,7 @@ if (Test-Path $hpath) {
 }
 
 Write-Output "--- Setting up Habitat to build PowerShell DLL's"
-$env:HAB_ORIGIN = "chef"
+$env:HAB_ORIGIN = "ci"
 $env:HAB_LICENSE = "accept-no-persist"
 $env:FORCE_FFI_YAJL = "ext"
 
@@ -78,7 +78,7 @@ else {
 Write-Output "`r"
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLL's"
-hab pkg build Habitat
+hab pkg build Habitat --refresh-channel base-2025
 if (-not $?) { throw "unable to build" }
 Write-Output "`r"
 
@@ -91,7 +91,7 @@ if (-not $?) { throw "unable to install this build" }
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path chef/chef-powershell-shim
+$x64 = hab pkg path ci/chef-powershell-shim
 Write-Output "`r"
 
 . results/last_build.ps1

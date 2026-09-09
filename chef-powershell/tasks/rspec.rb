@@ -1,6 +1,6 @@
 #
 # Author:: John McCrae (<john.mccrae@progress.com>)
-# Copyright:: Copyright (c) Chef Software Inc.
+# Copyright:: Copyright (c) 2018-2025 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,12 @@ begin
       t.verbose = false
       t.rspec_opts = %w{--profile}
       t.pattern = FileList["spec/functional/**/*_spec.rb"]
+    end
+
+    RSpec::Core::RakeTask.new(:integration) do |t|
+      t.verbose = false
+      t.rspec_opts = %w{--profile --format documentation}
+      t.pattern = FileList["spec/integration/**/*_spec.rb"]
     end
 
     desc "Print Specdoc for all specs"

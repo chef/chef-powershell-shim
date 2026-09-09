@@ -11,47 +11,27 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Output "Are my Hab environment variables set correctly?"
-if ([string]::IsNullOrEmpty($env:HAB_AUTH_TOKEN)){
-  Write-Output ( "=" * 80 )
-  Write-Error "HAB_AUTH_TOKEN is not set! Please set it before running this script."
-  Write-Output ( "=" * 80 )
-  exit 1
-}
-else {
-  Write-Output "HAB_AUTH_TOKEN is set correctly."
-}
-
 Write-Output "--- :ruby: Removing existing Ruby instances"
 
 $rubies = Get-ChildItem -Path "C:\ruby*"
 foreach ($ruby in $rubies){
   Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
 }
-
 Write-Output "`r"
 
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
 $env:MSBuildEnableWorkloadResolver = "false"
 
-Write-Output "--- :screwdriver: Installing Habitat via Github"
-try {
-    [Version]$hab_version = (hab --version).split(" ")[1].split("/")[0]
-    if ($hab_version -lt [Version]"0.85.0" ) {
-        Write-Host "--- :habicat: Installing the version of Habitat required"
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
-        if (-not $?) { throw "Hab version is older than 0.85 and could not update it." }
-    } else {
-        Write-Host "--- :habicat: :thumbsup: Minimum required version of Habitat already installed"
-    }
-}
-catch {
-    # This install fails if Hab isn't on the path when we check for the version. This ensures it is installed
-    Write-Host "--- :habicat: Installing the version of Habitat required"
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
-}
+# setting the channel in this way gets access to the LTS channel and falls back to stable if the plan doesn't live there.
+Write-Output "--- :shovel: Setting the BLDR and REFRESH Channels to LTS"
+$env:HAB_BLDR_CHANNEL="base-2025"
+$env:HAB_REFRESH_CHANNEL = "base-2025"
+Write-Output "`r"
+
+Write-Host "--- :screwdriver: Installing Habitat"
+Set-ExecutionPolicy Bypass -Scope Process -Force
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
+if (-not $?) { throw "unable to install Habitat"}
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing the latest Chef-Client"
@@ -63,11 +43,6 @@ Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab b
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
-# We are being really aggressive about setting the bldr channel because some process keeps changing it to 'stable' which breaks our build
-$env:HAB_BLDR_CHANNEL = "base-2025"
-$env:HAB_ORIGIN = "chef"
-$env:HAB_LICENSE = "accept-no-persist"
-[System.Environment]::SetEnvironmentVariable("HAB_BLDR_CHANNEL", "base-2025", "Process")
 Write-Output "`r"
 
 Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
@@ -81,7 +56,7 @@ Copy-Item $parent_folder -Destination $child_folder -ErrorAction Continue
 Write-Output "`r"
 
 Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
-$env:HAB_ORIGIN = "chef"
+$env:HAB_ORIGIN = "core"
 $env:HAB_LICENSE= "accept-no-persist"
 $env:FORCE_FFI_YAJL="ext"
 if (Test-Path -PathType leaf "/hab/cache/keys/core-*.sig.key") {
@@ -100,8 +75,7 @@ Write-Output "`r"
 
 
 Write-Output "--- :construction: Building 64-bit PowerShell DLLs"
-$env:HAB_BLDR_CHANNEL = "base-2025"
-hab pkg build habitat
+hab pkg build Habitat --refresh-channel base-2025
 if (-not $?) { throw "unable to build"}
 Write-Output "`r"
 
@@ -117,7 +91,7 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path chef/chef-powershell-shim
+$x64 = hab pkg path core/chef-powershell-shim
 Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
 Test-Path -Path $x64
 Write-Output "`r"
@@ -150,7 +124,11 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :bank: Installing Node via Choco"
-choco install nodejs -y
+# Use the LTS package (not the rolling "nodejs" package) to avoid picking up
+# pre-release/alpha builds (e.g. 26.8.0-alpha.x), which cspell's engines check
+# rejects with "Unsupported NodeJS version" even though it's technically newer
+# than the minimum supported version.
+choco install nodejs-lts -y
 if (-not $?) { throw "unable to install Node"}
 Write-Output "`r"
 
@@ -182,14 +160,14 @@ Write-Output "`r"
 
 Write-Output "--- :building_construction: Setting up Environment Variables for Ruby and Chef PowerShell"
 $temp = Get-Location
-$gem_path = [string]$temp.path + "\vendor\bundle\ruby\3.1.0"
-[Environment]::SetEnvironmentVariable("GEM_PATH", $gem_path)
-[Environment]::SetEnvironmentVariable("GEM_ROOT", $gem_path)
 [Environment]::SetEnvironmentVariable("BUNDLE_GEMFILE", "$($temp.path)\Gemfile")
-Write-Output "--- :gem: Installing uri into the isolated vendor bundle"
-New-Item -ItemType Directory -Force -Path $gem_path | Out-Null
-gem install uri --install-dir $gem_path --no-document
-if (-not $?) { throw "unable to install uri gem" }
+Write-Output "`r"
+
+Write-Output "--- :gem: Pre-installing uri gem into vendor bundle to bootstrap Bundler on Ruby 3.1"
+$ruby_version = (ruby -e "puts RbConfig::CONFIG['ruby_version']").Trim()
+$vendor_dir = "$($temp.path)\vendor\bundle\ruby\$ruby_version"
+New-Item -ItemType Directory -Force -Path $vendor_dir | Out-Null
+gem install uri --install-dir $vendor_dir --no-document
 Write-Output "`r"
 
 Write-Output "--- :put_litter_in_its_place: Removing any existing Chef PowerShell DLL's since they'll conflict with rspec"
@@ -203,13 +181,8 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
-Write-Output "--- :building_construction: It looks like I need to install chef-client"
-# as of this build, chef -client was not in base-2025 or stable so we grabbed this version directly
-hab pkg install chef/chef-infra-client/18.8.50/20251022232751 --channel "chef-chef-chef-18-habitat-build"
-Write-Output "`r"
-
-Write-Output "--- :point_right: finally verifying the gem code (cookstyle, spellcheck, spec)"
-bundle install
+Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
+bundle update
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
 
