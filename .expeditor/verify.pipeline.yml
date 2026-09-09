@@ -9,26 +9,26 @@ expeditor:
 
 steps:
 
-- label: ":windows: pre-build-verify-windows-gem - Ruby 3.1"
+- label: ":windows: pre-build-verify-windows-gem - Ruby 3.1.7"
   commands:
     - .expeditor/build_gems.ps1
   expeditor:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.1
+        image: rubydistros/windows-2019:3.1.7
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
 
-- label: ":windows: pre-build-verify-windows-gem - Ruby 3.4"
+- label: ":windows: pre-build-verify-windows-gem - Ruby 3.4.8"
   commands:
     - .expeditor/build_gems.ps1
   expeditor:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.4
+        image: rubydistros/windows-2019:3.4.8
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
@@ -41,5 +41,6 @@ steps:
     executor:
       docker:
         host_os: windows
-        image: rubydistros/windows-2019:3.4
+        image: rubydistros/windows-2019:3.4.8
+        shell: [ "powershell", "-Command" ]
         shell: [ "powershell", "-Command" ]
