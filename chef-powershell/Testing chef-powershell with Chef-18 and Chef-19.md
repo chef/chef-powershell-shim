@@ -341,6 +341,20 @@ C:\opscode\chef\embedded\bin\gem install .\chef-powershell-<version>.gem --no-do
 > `18.6.x` gem. This is intentional for testing but will affect any Chef runs on this machine
 > until you revert. Consider using a VM or container.
 
+> **Check for stale higher-numbered gems first.** RubyGems activates the *highest installed
+> version* on a plain `require` — it does NOT prefer whichever gem you just installed. If an
+> older test left behind e.g. `chef-powershell-19.1.0` alongside your freshly built `18.6.6`,
+> `require 'chef-powershell'` silently loads the stale `19.1.0` instead (verified: this actually
+> happened — `Gem.loaded_specs['chef-powershell'].full_gem_path` pointed at the old `19.1.0`
+> gem dir even though `18.6.6` had just been installed). Check and clean up before trusting any
+> result:
+>
+> ```powershell
+> C:\opscode\chef\embedded\bin\gem list chef-powershell
+> # Uninstall anything that isn't the version you intend to test:
+> C:\opscode\chef\embedded\bin\gem uninstall chef-powershell -v <stale-version> --force
+> ```
+
 ### 4.3 Verify the gem is loaded correctly
 
 ```powershell

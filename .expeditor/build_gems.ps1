@@ -45,15 +45,15 @@ refreshenv
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
 Write-Output "`r"
 
-Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
-$filename = "ansidecl.h"
-$locale = Get-ChildItem -path c:\opscode -Include $filename -Recurse -ErrorAction Ignore
-Write-Output "Copying ansidecl.h to the correct folder"
-$parent_folder = $locale.Directory.Parent.FullName[1]
-$child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
-Write-Output "`r"
-Copy-Item $parent_folder -Destination $child_folder -ErrorAction Continue
-Write-Output "`r"
+# Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
+# $filename = "ansidecl.h"
+# $locale = Get-ChildItem -path c:\opscode -Include $filename -Recurse -ErrorAction Ignore
+# Write-Output "Copying ansidecl.h to the correct folder"
+# $parent_folder = $locale.Directory.Parent.FullName[1]
+# $child_folder = $parent_folder + "\x86_64-w64-mingw32\include"
+# Write-Output "`r"
+# Copy-Item $parent_folder -Destination $child_folder -ErrorAction Continue
+# Write-Output "`r"
 
 Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
 $env:HAB_ORIGIN = "chef"
@@ -285,6 +285,16 @@ if ($ruby_version.StartsWith("3.1")) {
   Write-Output "`r"
 
   Write-Output "--- :gem: Replacing the chef-powershell gem bundled in the Omnibus Chef-18 install"
+  # RubyGems activates the highest installed version on a plain `require`, not whichever gem
+  # was installed most recently -- a stale higher-numbered leftover would silently win over
+  # the one we just built. Remove every other installed version first.
+  $built_gem_version = [System.IO.Path]::GetFileNameWithoutExtension($built_gem) -replace "^chef-powershell-", ""
+  (& C:\opscode\chef\embedded\bin\gem.cmd list chef-powershell --local) | Select-String -Pattern "chef-powershell \((.+)\)" | ForEach-Object {
+    $_.Matches[0].Groups[1].Value -split ", " | Where-Object { $_ -ne $built_gem_version } | ForEach-Object {
+      Write-Output "Uninstalling stale chef-powershell $_"
+      & C:\opscode\chef\embedded\bin\gem.cmd uninstall chef-powershell -v $_ --force
+    }
+  }
   & C:\opscode\chef\embedded\bin\gem.cmd install $built_gem --no-document
   if (-not $?) { throw "unable to install local chef-powershell gem into Omnibus Chef-18" }
   Write-Output "`r"
