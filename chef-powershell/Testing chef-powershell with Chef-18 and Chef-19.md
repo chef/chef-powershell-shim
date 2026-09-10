@@ -120,52 +120,45 @@ hab pkg install chef/chef-infra-client --channel stable
 hab pkg install chef/chef-infra-client/19.x.y/<timestamp> --channel stable
 ```
 
-### 2.2 Find Chef-19's embedded Ruby, and load the LOCAL gem source (not the baked-in one)
+### 2.2 Replace the vendored chef-powershell gem with this branch's code + fresh DLLs
 
-Chef-19's `chef-infra-client` package does NOT bundle `ruby.exe` in its own `bin/` folder —
-that folder only contains the `chef-*`/`ohai`/`inspec` wrapper scripts. Ruby is a separate
-Habitat dependency package (`core/ruby3_4-plus-devkit` as of this writing); find it via
-`hab pkg dependencies` or by locating the installed package directly:
+Chef's Habitat packages vendor a full copy of `chef-powershell` (`lib/`, `bin/`, `ext/`, gemspec)
+under `vendor/gems/chef-powershell-<version>` inside the installed package, and Chef's own
+Bundler-based startup activates *that* gemspec before any of your code runs. That means
+`Gem.loaded_specs["chef-powershell"]` — which this repo's own `resolve_wrapper_dll`/
+`resolve_core_wrapper_dll` check first — always points at the stale vendored copy.
+
+**`RUBYOPT -I<path>` does NOT fix this** (an earlier version of this guide recommended it —
+don't use it). It only shadows which *file* `require 'chef-powershell'` resolves to; it does not
+change what RubyGems considers "activated," so `Gem.loaded_specs["chef-powershell"].full_gem_path`
+still points at the old vendored directory and DLL resolution still fails there (verified: you
+get a `LoadError: Pwsh Core wrapper DLL not found at .../vendor/gems/chef-powershell-18.6.6/...`
+even with `RUBYOPT` set). The reliable fix is to replace the vendored copy on disk:
 
 ```powershell
 $chefPkg = hab pkg path chef/chef-infra-client
-$rubyPkg = hab pkg path core/ruby3_4-plus-devkit
-$rubyExe = "$rubyPkg\bin\ruby.exe"
+$vendoredDir = Get-ChildItem "$chefPkg\vendor\gems" -Filter "chef-powershell-*" -Directory | Select-Object -First 1
+
+Remove-Item "$($vendoredDir.FullName)\lib" -Recurse -Force
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\lib" "$($vendoredDir.FullName)\lib" -Recurse -Force
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\chef-powershell.gemspec" "$($vendoredDir.FullName)\chef-powershell.gemspec" -Force
+
+$vendoredDllDir = "$($vendoredDir.FullName)\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE"
+Remove-Item $vendoredDllDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $vendoredDllDir | Out-Null
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\*" -Destination $vendoredDllDir -Recurse -Force
 ```
 
-**Important:** whatever `chef-powershell` gem version is already bundled inside the installed
-`chef-infra-client` package was baked in at *that package's build time* — it does **not**
-contain the fix from this branch. Do not test against it. Instead, use this repo's own
-`Gemfile`/`Gemfile.lock` (already set up for `bundle exec rake spec` in Part 1) but run it
-through Chef-19's own Ruby, so `ffi`/`ffi-yajl` resolve correctly for that Ruby version:
+This is exactly what `Set-VendoredChefPowerShellGem` in `.expeditor/build_gems.ps1` automates.
+Once done, **no `RUBYOPT` or `CHEF_POWERSHELL_BIN` override is needed** for the rest of this
+section — `require 'chef-powershell'` now resolves to this branch's code and DLLs directly, and
+`ffi`/`ffi-yajl` are already resolved because Chef's own vendor/bundle setup provides them (the
+original vendored gem needed them too).
+
+### 2.3 Run a quick in-process PowerShell test
 
 ```powershell
-cd C:\localrepo\chef-powershell-shim\chef-powershell
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" install   # first time only, installs into ./vendor/bundle
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" exec ruby -e "require 'chef-powershell'; puts 'loaded OK'"
-```
-
-A plain `-I "...\chef-powershell\lib" -e "require 'chef-powershell'"` will **fail** with
-`LoadError: cannot load such file -- ffi` — `ffi`/`ffi-yajl` are not installed anywhere on
-`core/ruby3_4-plus-devkit`'s base gem path by default. `bundle exec` (using this repo's
-Gemfile) is required to resolve them.
-
-### 2.3 Point `CHEF_POWERSHELL_BIN` at a freshly built shim package (not chef-infra-client's own bin)
-
-Build/install the `chef-powershell-shim` Habitat package from this branch (see Part 1.2), then
-point `CHEF_POWERSHELL_BIN` at *that* package's `bin/` directory — not at `chef-infra-client`'s
-own `bin/`, which only has the old DLLs from whenever `chef-infra-client` was last built:
-
-```powershell
-$pkgPath = (hab pkg path chef/chef-powershell-shim)
-$env:CHEF_POWERSHELL_BIN = "$pkgPath\bin"
-```
-
-### 2.4 Run a quick in-process PowerShell test via Chef-19's Ruby, using the local gem + fresh DLLs
-
-```powershell
-cd C:\localrepo\chef-powershell-shim\chef-powershell
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" exec ruby -e "
+hab pkg exec chef/chef-infra-client ruby -e "
   require 'chef-powershell'
   include ChefPowerShell::ChefPowerShellModule::PowerShellExec
 
@@ -193,13 +186,7 @@ outer double-quoted `-e "..."` string doesn't have PowerShell itself expand its 
 `$PSVersionTable` automatic variable before Ruby ever sees the code (a plain backslash does
 NOT escape `$` in PowerShell double-quoted strings, unlike bash).
 
-Once this branch's `chef-powershell` gem changes are actually merged and `chef-infra-client` is
-rebuilt against them, the gem no longer needs to be loaded via `-I` — the normal
-`hab pkg exec chef/chef-infra-client ruby -e "require 'chef-powershell'; ..."` flow (without the
-`-I` override) becomes the correct way to test, since the fix will then be baked into the
-installed package.
-
-### 2.5 Run a Chef recipe using `powershell_exec` under Chef-19
+### 2.4 Run a Chef recipe using `powershell_exec` under Chef-19
 
 Create a minimal test recipe at `C:\tmp\test_recipe.rb`:
 
@@ -229,68 +216,9 @@ instead:
 hab pkg exec chef/chef-infra-client chef-apply C:\tmp\test_recipe.rb
 ```
 
-**Important — this alone will reproduce error 126, not test the fix.** `chef-apply` loads
-whatever `chef-powershell` gem version is bundled inside the installed `chef-infra-client`
-package (verified: v18.6.6 referencing the old `.NET 8.0.0` path in this install) — that gem
-predates this branch's fix and does not respect `CHEF_POWERSHELL_BIN` overrides at all (only
-the fixed `bin_dir` helper added in this branch does). Setting `CHEF_POWERSHELL_BIN` alone will
-NOT redirect it. To actually exercise this branch's fixed code, force Ruby to load this repo's
-gem source ahead of the bundled one via `RUBYOPT`:
-
-```powershell
-$env:RUBYOPT = "-IC:\localrepo\chef-powershell-shim\chef-powershell\lib"
-hab pkg exec chef/chef-infra-client chef-apply C:\tmp\test_recipe.rb
-# Expected output: "hello world - reached Chef::Log line, PSCore detected OK"
-
-# Clean up afterward so it doesn't leak into unrelated commands in this shell session:
-Remove-Item Env:\RUBYOPT
-```
-
-### 2.6 Test against the locally built shim Hab package under Chef-19
-
-If you want Chef-19 to use your **locally built** shim DLLs instead of the ones baked into its
-bundled gem, override `CHEF_POWERSHELL_BIN`:
-
-```powershell
-$shimPkg = hab pkg path chef/chef-powershell-shim   # install local .hart first
-$env:CHEF_POWERSHELL_BIN = "$shimPkg\bin"
-
-hab pkg exec chef/chef-infra-client ruby -e "
-  require 'chef-powershell'
-  include ChefPowerShell::ChefPowerShellModule::PowerShellExec
-  r = powershell_exec('`$PSVersionTable', :pwsh)
-  puts r.result['PSVersion']['Major']
-"
-```
-
-> **Important — this alone will reproduce error 126, same as section 2.5.** `chef-infra-client`
-> vendors its own copy of `chef-powershell` (v18.6.6) inside the package itself
-> (`vendor/gems/chef-powershell-18.6.6`), and a plain `require 'chef-powershell'` will always
-> resolve to that vendored copy first — regardless of `CHEF_POWERSHELL_BIN` — because the old
-> gem's code doesn't know to look at that env var. Setting `CHEF_POWERSHELL_BIN` only has an
-> effect once Ruby is actually loading **this repo's** `chef-powershell` source. Force that with
-> `RUBYOPT` before running:
->
-> ```powershell
-> $shimPkg = hab pkg path chef/chef-powershell-shim   # install local .hart first
-> $env:CHEF_POWERSHELL_BIN = "$shimPkg\bin"
-> $env:RUBYOPT = "-IC:\localrepo\chef-powershell-shim\chef-powershell\lib"
->
-> hab pkg exec chef/chef-infra-client ruby -e "
->   require 'chef-powershell'
->   include ChefPowerShell::ChefPowerShellModule::PowerShellExec
->   r = powershell_exec('`$PSVersionTable', :pwsh)
->   puts r.result['PSVersion']['Major']
-> "
->
-> # Clean up afterward so it doesn't leak into unrelated commands in this shell session:
-> Remove-Item Env:\RUBYOPT
-> Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue
-> ```
->
-> With both set, `require 'chef-powershell'` resolves to this repo's `lib/chef-powershell.rb`,
-> which uses the `ChefPowerShell.bin_dir` helper — that helper DOES check `CHEF_POWERSHELL_BIN`
-> first, so the DLLs from your locally built `chef-powershell-shim` Hab package get used.
+With the vendored gem already replaced in 2.2, this works with **no env var overrides** —
+verified output: `hello world - reached Chef::Log line, PSCore detected OK` /
+`PSEdition: Core, PSVersion: 7.6.5`.
 
 ---
 
@@ -321,43 +249,29 @@ $chef18Ident = "$($latest.origin)/$($latest.name)/$($latest.version)/$($latest.r
 hab pkg install $chef18Ident --channel stable
 ```
 
-### 3.2 Find Chef-18's embedded Ruby, and load the LOCAL gem source (not the baked-in one)
+### 3.2 Replace the vendored chef-powershell gem with this branch's code + fresh DLLs
 
-Just like Chef-19 (see 2.2), `chef-infra-client`'s own `bin/` folder does NOT contain
-`ruby.exe` — it only has the `chef-*`/`ohai`/`inspec` wrapper scripts. Ruby is a separate
-Habitat dependency package. Chef-18 depends on an older Ruby (3.1.x) devkit package rather
-than the 3.4.x one Chef-19 uses, so discover it dynamically instead of hardcoding the name:
+Same caveat and fix as Chef-19 (see 2.2) — `RUBYOPT` does not fix `Gem.loaded_specs`, so replace
+the vendored copy on disk instead:
 
 ```powershell
 $chefPkg = hab pkg path $chef18Ident
-$rubyIdent = (hab pkg dependencies $chef18Ident | Select-String "ruby").ToString().Trim()
-$rubyPkg = hab pkg path $rubyIdent
-$rubyExe = "$rubyPkg\bin\ruby.exe"
+$vendoredDir = Get-ChildItem "$chefPkg\vendor\gems" -Filter "chef-powershell-*" -Directory | Select-Object -First 1
+
+Remove-Item "$($vendoredDir.FullName)\lib" -Recurse -Force
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\lib" "$($vendoredDir.FullName)\lib" -Recurse -Force
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\chef-powershell.gemspec" "$($vendoredDir.FullName)\chef-powershell.gemspec" -Force
+
+$vendoredDllDir = "$($vendoredDir.FullName)\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE"
+Remove-Item $vendoredDllDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $vendoredDllDir | Out-Null
+Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\*" -Destination $vendoredDllDir -Recurse -Force
 ```
 
-**Important:** just like Chef-19, whatever `chef-powershell` gem version is already bundled
-inside the installed `chef-infra-client` package (pinned to `~> 18.6.x`) predates this branch's
-fix. Do not test against it directly. Use this repo's own `Gemfile`/`Gemfile.lock` run through
-Chef-18's own Ruby instead, so `ffi`/`ffi-yajl` resolve correctly for that Ruby version:
+### 3.3 Quick runtime test (same as Chef-19 above, different exec target)
 
 ```powershell
-cd C:\localrepo\chef-powershell-shim\chef-powershell
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" install   # first time only, installs into ./vendor/bundle
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" exec ruby -e "require 'chef-powershell'; puts 'loaded OK'"
-```
-
-### 3.3 Point `CHEF_POWERSHELL_BIN` at a freshly built shim package
-
-```powershell
-$pkgPath = (hab pkg path chef/chef-powershell-shim)
-$env:CHEF_POWERSHELL_BIN = "$pkgPath\bin"
-```
-
-### 3.4 Quick runtime test (same as Chef-19 above, different exec target)
-
-```powershell
-cd C:\localrepo\chef-powershell-shim\chef-powershell
-& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" exec ruby -e "
+hab pkg exec $chef18Ident ruby -e "
   require 'chef-powershell'
   include ChefPowerShell::ChefPowerShellModule::PowerShellExec
 
@@ -369,15 +283,12 @@ cd C:\localrepo\chef-powershell-shim\chef-powershell
 "
 ```
 
-### 3.5 Run a Chef recipe using `powershell_exec` under Chef-18
+### 3.4 Run a Chef recipe using `powershell_exec` under Chef-18
 
-Same caveat as Chef-19 section 2.5 — running `chef-apply` directly loads the stale bundled
-`~> 18.6.x` gem and reproduces error 126. Force the local repo source via `RUBYOPT`:
+With the vendored gem already replaced in 3.2, no env var overrides are needed:
 
 ```powershell
-$env:RUBYOPT = "-IC:\localrepo\chef-powershell-shim\chef-powershell\lib"
 hab pkg exec $chef18Ident chef-apply C:\tmp\test_recipe.rb
-Remove-Item Env:\RUBYOPT
 ```
 
 ---
@@ -599,9 +510,10 @@ hab pkg install C:\localrepo\chef-powershell-shim\results\chef-chef-powershell-s
 | Run RSpec unit tests | `bundle exec rake spec` (from `chef-powershell/`) |
 | Smoke test local Hab build | `bundle exec ruby smoke_test_dlls.rb <pkg>\bin` |
 | Full layout verification | `bundle exec ruby verify_hab_build.rb <pkg>\bin` |
-| Test under Chef-19 Hab | `hab pkg exec chef/chef-infra-client ruby -e "..."` (`--channel stable` on install) |
-| Test under Chef-18 Hab | `& "$rubyPkg\bin\ruby.exe" "$rubyPkg\bin\bundle" exec ruby -e "..."` (see 3.2) |
+| Test under Chef-19 Hab | `hab pkg exec chef/chef-infra-client ruby -e "..."` (`--channel stable` on install; replace vendored gem first, see 2.2) |
+| Test under Chef-18 Hab | `hab pkg exec $chef18Ident ruby -e "..."` (replace vendored gem first, see 3.2) |
 | Test under Chef-18 Omnibus | `C:\opscode\chef\embedded\bin\ruby -e "..."` |
 | Install local gem into Omnibus | `C:\opscode\chef\embedded\bin\gem install .\chef-powershell-<version>.gem` |
-| Override DLL path at runtime | `$env:CHEF_POWERSHELL_BIN = "<path>\bin"` |
+| Replace a Habitat package's vendored gem | see `Set-VendoredChefPowerShellGem` in `.expeditor/build_gems.ps1`, or 2.2/3.2 |
+| Override DLL path at runtime (Omnibus only) | `$env:CHEF_POWERSHELL_BIN = "<path>\bin"` |
 | Automated CI equivalent | `.expeditor\build_gems.ps1` + `chef_gem_integration_test.rb` |

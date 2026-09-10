@@ -217,31 +217,49 @@ function Get-LatestHabPackageIdent {
   return "$($latest.origin)/$($latest.name)/$($latest.version)/$($latest.release)"
 }
 
-# Chef vendors/bundles its own copy of chef-powershell at build time, so a plain
-# `require` inside a Chef install always resolves to that stale copy first, never
-# whatever is newest on the load path. To prove this branch's code + freshly built
-# DLLs actually work when consumed by a real Chef install, we replace that bundled
-# copy (Omnibus: `gem install`) or force it to the front of the load path (Habitat:
-# RUBYOPT), then run chef_gem_integration_test.rb through Chef's own Ruby.
+# Habitat's chef-infra-client vendors a full copy of chef-powershell (lib/, bin/, ext/,
+# gemspec) under vendor\gems\chef-powershell-<version>, and its own Bundler-based startup
+# activates THAT gemspec before our code ever runs. That means Gem.loaded_specs["chef-powershell"]
+# -- which our own resolve_wrapper_dll/resolve_core_wrapper_dll check first -- always points at
+# the stale vendored copy, no matter what RUBYOPT/$LOAD_PATH tricks are used to shadow `require`.
+# So instead of shadowing, we replace the vendored copy in place with this branch's code and
+# freshly built DLLs, which is also a more faithful test of what a real Chef release will do.
+function Set-VendoredChefPowerShellGem {
+  param(
+    [Parameter(Mandatory=$true)] [string]$ChefPkgIdent,
+    [Parameter(Mandatory=$true)] [string]$FreshDllBin
+  )
+
+  $chef_pkg_path = hab pkg path $ChefPkgIdent
+  $vendored_dir = Get-ChildItem "$chef_pkg_path\vendor\gems" -Filter "chef-powershell-*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $vendored_dir) { throw "Could not find a vendored chef-powershell gem under $chef_pkg_path\vendor\gems" }
+
+  Write-Output "Replacing vendored chef-powershell at $($vendored_dir.FullName) with this branch's code + DLLs"
+  Remove-Item "$($vendored_dir.FullName)\lib" -Recurse -Force
+  Copy-Item "$project_root\chef-powershell\lib" "$($vendored_dir.FullName)\lib" -Recurse -Force
+  Copy-Item "$project_root\chef-powershell\chef-powershell.gemspec" "$($vendored_dir.FullName)\chef-powershell.gemspec" -Force
+
+  $vendored_dll_dir = "$($vendored_dir.FullName)\bin\ruby_bin_folder\$arch"
+  Remove-Item $vendored_dll_dir -Recurse -Force -ErrorAction SilentlyContinue
+  New-Item -ItemType Directory -Force -Path $vendored_dll_dir | Out-Null
+  Copy-Item "$FreshDllBin\*" -Destination $vendored_dll_dir -Recurse -Force
+}
+
 function Invoke-ChefPowerShellIntegrationTest {
   param(
     [Parameter(Mandatory=$true)] [string]$Label,
     [Parameter(Mandatory=$true)] [scriptblock]$Invocation,
-    [Parameter(Mandatory=$true)] [string]$ChefPowerShellBin,
-    [string]$RubyOptLibPath
+    [string]$ChefPowerShellBin
   )
 
   Write-Output "--- :test_tube: $Label"
-  $original_rubyopt = $env:RUBYOPT
   $original_chef_bin = $env:CHEF_POWERSHELL_BIN
   try {
-    if ($RubyOptLibPath) { $env:RUBYOPT = "-I$RubyOptLibPath" } else { Remove-Item Env:\RUBYOPT -ErrorAction SilentlyContinue }
-    $env:CHEF_POWERSHELL_BIN = $ChefPowerShellBin
+    if ($ChefPowerShellBin) { $env:CHEF_POWERSHELL_BIN = $ChefPowerShellBin } else { Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue }
     & $Invocation
     if (-not $?) { throw "$Label failed" }
   }
   finally {
-    if ($null -eq $original_rubyopt) { Remove-Item Env:\RUBYOPT -ErrorAction SilentlyContinue } else { $env:RUBYOPT = $original_rubyopt }
     if ($null -eq $original_chef_bin) { Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue } else { $env:CHEF_POWERSHELL_BIN = $original_chef_bin }
   }
   Write-Output "`r"
@@ -283,7 +301,9 @@ if ($ruby_version.StartsWith("3.1")) {
   if (-not $?) { throw "unable to install $chef18_ident" }
   Write-Output "`r"
 
-  Invoke-ChefPowerShellIntegrationTest -Label "Chef-18 (Habitat) integration test" -RubyOptLibPath "$project_root\chef-powershell\lib" -ChefPowerShellBin $x64_bin_path -Invocation {
+  Set-VendoredChefPowerShellGem -ChefPkgIdent $chef18_ident -FreshDllBin $x64_bin_path
+
+  Invoke-ChefPowerShellIntegrationTest -Label "Chef-18 (Habitat) integration test" -Invocation {
     hab pkg exec $chef18_ident ruby $integration_test_script
   }
 }
@@ -298,7 +318,9 @@ elseif ($ruby_version.StartsWith("3.4")) {
   if (-not $?) { throw "unable to install $chef19_ident" }
   Write-Output "`r"
 
-  Invoke-ChefPowerShellIntegrationTest -Label "Chef-19 (Habitat) integration test" -RubyOptLibPath "$project_root\chef-powershell\lib" -ChefPowerShellBin $x64_bin_path -Invocation {
+  Set-VendoredChefPowerShellGem -ChefPkgIdent $chef19_ident -FreshDllBin $x64_bin_path
+
+  Invoke-ChefPowerShellIntegrationTest -Label "Chef-19 (Habitat) integration test" -Invocation {
     hab pkg exec $chef19_ident ruby $integration_test_script
   }
 }
