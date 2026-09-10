@@ -8,7 +8,13 @@
 # OS plus the handful of things CI gets "for free" from the `rubydistros`
 # image it runs on: Ruby, Git, and Chocolatey (used by build_gems.ps1 to
 # install everything else).
-ARG RUBY_VERSION=3.4.8
+#
+# RUBY_VERSION is a major.minor prefix (e.g. "3.4" or "3.1"), matching the
+# Ruby lines .expeditor/verify.pipeline.yml is tested against. Chocolatey's
+# "ruby" package versions are suffixed with an extra packaging revision
+# (e.g. "3.4.10.1") that changes over time, so it's resolved to the newest
+# matching package version at build time rather than hardcoded here.
+ARG RUBY_VERSION=3.4
 
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
@@ -24,7 +30,14 @@ RUN choco feature enable -n allowGlobalConfirmation
 
 ARG RUBY_VERSION
 RUN choco install git --no-progress ; `
-    choco install ruby --version=$env:RUBY_VERSION --no-progress
+    $feed = Invoke-RestMethod "https://community.chocolatey.org/api/v2/FindPackagesById()?id='ruby'" ; `
+    $resolved = $feed | ForEach-Object { $_.properties.Version } | `
+      Where-Object { $_ -eq $env:RUBY_VERSION -or $_ -like "$env:RUBY_VERSION.*" } | `
+      Sort-Object { [version]($_ -replace '^(\d+\.\d+\.\d+)\.(\d+)$', '$1.$2') } | `
+      Select-Object -Last 1 ; `
+    if (-not $resolved) { throw "No Chocolatey 'ruby' package found matching version '$env:RUBY_VERSION'" } ; `
+    Write-Output "Resolved Chocolatey ruby package version '$env:RUBY_VERSION' -> '$resolved'" ; `
+    choco install ruby --version=$resolved --no-progress
 
 # Pick up choco/ruby/git on PATH for subsequent RUN/ENTRYPOINT steps.
 RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1 ; `

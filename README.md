@@ -16,7 +16,7 @@ by default):
 ```powershell
 .\.expeditor\local_build_gems.ps1
 # or, to control the Ruby version / output location:
-.\.expeditor\local_build_gems.ps1 -RubyVersion 3.1.7 -OutputPath C:\chef-powershell-shim-output
+.\.expeditor\local_build_gems.ps1 -RubyVersion 3.1 -OutputPath C:\chef-powershell-shim-output
 ```
 
 You will need to have the following things installed:

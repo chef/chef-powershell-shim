@@ -28,8 +28,10 @@
   if it doesn't already exist. Defaults to ".\build-output" under the repo.
 
 .PARAMETER RubyVersion
-  Ruby version to install in the image, matching one of the Ruby versions
-  build_gems.ps1 is verified against in .expeditor/verify.pipeline.yml.
+  Major.minor Ruby version to install in the image (e.g. "3.4" or "3.1"),
+  matching one of the Ruby lines build_gems.ps1 is verified against in
+  .expeditor/verify.pipeline.yml. Resolved to the newest matching Chocolatey
+  "ruby" package version at image build time.
 
 .PARAMETER ImageTag
   Tag to build/reuse for the Windows Server 2022 Core build image.
@@ -50,13 +52,13 @@
   .\.expeditor\local_build_gems.ps1
 
 .EXAMPLE
-  .\.expeditor\local_build_gems.ps1 -OutputPath C:\chef-powershell-shim-output -RubyVersion 3.1.7
+  .\.expeditor\local_build_gems.ps1 -OutputPath C:\chef-powershell-shim-output -RubyVersion 3.1
 #>
 
 [CmdletBinding()]
 param(
     [Parameter()] [string] $OutputPath,
-    [Parameter()] [string] $RubyVersion = '3.4.8',
+    [Parameter()] [string] $RubyVersion = '3.4',
     [Parameter()] [string] $ImageTag = 'chef-powershell-shim/windows2022-core:latest',
     [Parameter()] [switch] $NoCache,
     [Parameter()] [ValidateSet('process', 'hyperv')] [string] $Isolation = 'hyperv',
