@@ -6,6 +6,19 @@ A .NET Assembly to facilitate communication between Chef and PowerShell on the W
 
 Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\build_gems.ps1` to test your changes locally.
 
+If you'd rather not install Habitat, Chef-Client, and the other build dependencies directly on your
+workstation, `.\.expeditor\local_build_gems.ps1` runs the exact same `build_gems.ps1` build inside a
+disposable Windows Server 2022 Core Docker container (Docker Desktop with Windows containers enabled
+is required). It mounts your repo checkout read-write into the container and copies the resulting
+Habitat artifacts, built gem, and compiled DLLs out to an output directory on your host (`.\build-output`
+by default):
+
+```powershell
+.\.expeditor\local_build_gems.ps1
+# or, to control the Ruby version / output location:
+.\.expeditor\local_build_gems.ps1 -RubyVersion 3.1.7 -OutputPath C:\chef-powershell-shim-output
+```
+
 You will need to have the following things installed:
 1) .net framework 4.8.1 development pack
 2) Windows 11 SDK build 26100
