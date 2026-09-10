@@ -70,7 +70,7 @@ jobs:
           HAB_ORIGIN: chef
           HAB_LICENSE: accept-no-persist
           FORCE_FFI_YAJL: ext
-        run: hab pkg build Habitat
+        run: hab pkg build habitat
         shell: powershell
       - name: Installing the 64-bit DLL's
         env:

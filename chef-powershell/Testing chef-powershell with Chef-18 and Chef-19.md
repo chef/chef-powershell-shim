@@ -54,20 +54,17 @@ set by the `before` block in the spec to the gem's own `bin/ruby_bin_folder/<ARC
 `smoke_test_dlls.rb` verifies that both DLLs in the built package actually execute PowerShell
 without needing Chef installed at all.
 
-**Step 1 — install the .hart file you want to test:**
+**Step 1 — install the .hart file you want to test and capture its installed path:**
+`build_gems.ps1` already does this for you (see `$x64`/`$x64_bin_path`); for a standalone
+`.hart` you built manually:
 
 ```powershell
 hab pkg install results\chef-chef-powershell-shim-19.1.0-20260818161158-x86_64-windows.hart
-```
-
-**Step 2 — find the installed package prefix:**
-
-```powershell
 $pkgPath = (hab pkg path chef/chef-powershell-shim)
 # e.g. C:\hab\pkgs\chef\chef-powershell-shim\19.1.0\20260818161158
 ```
 
-**Step 3 — run the smoke test:**
+**Step 2 — run the smoke test:**
 
 ```powershell
 cd C:\localrepo\chef-powershell-shim\chef-powershell
