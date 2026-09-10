@@ -408,7 +408,24 @@ C:\opscode\chef\embedded\bin\ruby -e "
 
 ## Part 5 — What to check in each test scenario
 
-Regardless of which method you use, always verify these specific behaviors:
+Regardless of which method you use, always verify these specific behaviors.
+
+**Where to run this:** `chef_gem_integration_test.rb` (same directory as this doc) already runs
+every check below as a single script — prefer it over copy-pasting snippets. Run it with
+whichever Ruby you're testing:
+
+```powershell
+# Omnibus Chef-18
+C:\opscode\chef\embedded\bin\ruby.exe C:\localrepo\chef-powershell-shim\chef-powershell\chef_gem_integration_test.rb
+
+# Habitat Chef-18/19, after Set-VendoredChefPowerShellGem has replaced the vendored copy (2.2/3.2)
+hab pkg exec <chef-ident> ruby C:\localrepo\chef-powershell-shim\chef-powershell\chef_gem_integration_test.rb
+```
+
+If you do want to check something ad hoc, paste the snippets below directly into whichever
+`ruby -e "..."` command (or `irb`/`pry` session) you're already using from Part 2/3/4, right after
+the `include ChefPowerShell::ChefPowerShellModule::PowerShellExec` line — they assume `r`/`r2`
+were just assigned by a `powershell_exec` call in that same session.
 
 ### 5.1 Both interpreters work
 

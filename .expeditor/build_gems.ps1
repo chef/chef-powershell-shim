@@ -59,7 +59,7 @@ Write-Output "--- :construction: Setting up Habitat to build PowerShell DLL's"
 $env:HAB_ORIGIN = "chef"
 $env:HAB_LICENSE= "accept-no-persist"
 $env:FORCE_FFI_YAJL="ext"
-if (Test-Path -PathType leaf "/hab/cache/keys/core-*.sig.key") {
+if (Test-Path -PathType leaf "/hab/cache/keys/$env:HAB_ORIGIN-*.sig.key") {
     Write-Output "--- :key: Using existing fake '$env:HAB_ORIGIN' origin key"
 } else {
     Write-Output "--- :key: Generating fake '$env:HAB_ORIGIN' origin key"
@@ -91,7 +91,7 @@ if (-not $?) { throw "unable to install this build"}
 Write-Output "`r"
 
 Write-Output "--- :hammer_and_wrench: Capturing the x64 installation path"
-$x64 = hab pkg path core/chef-powershell-shim
+$x64 = hab pkg path $env:HAB_ORIGIN/chef-powershell-shim
 Write-Output "Hab thinks it installed my 64-bit dlls here : $x64"
 Test-Path -Path $x64
 Write-Output "`r"
