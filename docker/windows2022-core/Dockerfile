@@ -28,16 +28,12 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force ; `
 
 RUN choco feature enable -n allowGlobalConfirmation
 
+# Installs Git plus a Chocolatey "ruby" package resolved from RUBY_VERSION.
+# Kept as an external script (rather than an inline RUN one-liner) to avoid
+# Dockerfile/PowerShell quoting collisions - see Install-Ruby.ps1 for why.
 ARG RUBY_VERSION
-RUN choco install git --no-progress ; `
-    $feed = Invoke-RestMethod "https://community.chocolatey.org/api/v2/FindPackagesById()?id='ruby'" ; `
-    $resolved = $feed | ForEach-Object { $_.properties.Version } | `
-      Where-Object { $_ -eq $env:RUBY_VERSION -or $_ -like "$env:RUBY_VERSION.*" } | `
-      Sort-Object { [version]($_ -replace '^(\d+\.\d+\.\d+)\.(\d+)$', '$1.$2') } | `
-      Select-Object -Last 1 ; `
-    if (-not $resolved) { throw "No Chocolatey 'ruby' package found matching version '$env:RUBY_VERSION'" } ; `
-    Write-Output "Resolved Chocolatey ruby package version '$env:RUBY_VERSION' -> '$resolved'" ; `
-    choco install ruby --version=$resolved --no-progress
+COPY Install-Ruby.ps1 C:\Install-Ruby.ps1
+RUN powershell -ExecutionPolicy Bypass -File C:\Install-Ruby.ps1 -RubyVersion $env:RUBY_VERSION
 
 # Pick up choco/ruby/git on PATH for subsequent RUN/ENTRYPOINT steps.
 RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1 ; `
