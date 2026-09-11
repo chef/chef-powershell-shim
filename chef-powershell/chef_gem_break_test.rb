@@ -82,7 +82,7 @@ def make_scratch_gem_root(version: nil)
 
   if version
     version_file = File.join(root, "lib", "chef-powershell", "version.rb")
-    contents = File.read(version_file).sub(/VERSION = ".*"/, %(VERSION = "#{version}"))
+    contents = File.read(version_file).sub(/VERSION = ".*"/, %{VERSION = "#{version}"})
     File.write(version_file, contents)
   end
 
@@ -182,18 +182,18 @@ section("Corrupted / partial DLL layout")
   },
   "host/fxr/10.0.0/hostfxr.dll missing" => {
     corrupt: ->(bin_dir) { FileUtils.rm_rf(File.join(bin_dir, "host")) },
-    expect_pwsh: [:raised_load_error, :raised_other, :crashed],
+    expect_pwsh: %i{raised_load_error raised_other crashed},
     expect_powershell: :succeeded,
   },
   "Chef.PowerShell.Wrapper.dll (net481) missing" => {
     corrupt: ->(bin_dir) { FileUtils.rm_f(File.join(bin_dir, "Chef.Powershell.Wrapper.dll")) },
     expect_pwsh: :succeeded,
-    expect_powershell: [:raised_load_error, :raised_other, :crashed],
+    expect_powershell: %i{raised_load_error raised_other crashed},
   },
   "vcruntime140.dll (CRT dependency) missing, wrapper DLLs still present" => {
     corrupt: ->(bin_dir) { FileUtils.rm_f(File.join(bin_dir, "vcruntime140.dll")) },
-    expect_pwsh: [:raised_load_error, :raised_other, :crashed],
-    expect_powershell: [:raised_load_error, :raised_other, :crashed],
+    expect_pwsh: %i{raised_load_error raised_other crashed},
+    expect_powershell: %i{raised_load_error raised_other crashed},
   },
 }.each do |name, scenario|
   root = make_scratch_gem_root
@@ -297,9 +297,9 @@ begin
     # A plain `require` with two installed versions activates the highest (99.0.0, the broken
     # one) -- the desired behavior is a clear, loud LoadError, not a silent bad result.
     record("Higher-numbered but DLL-less gem shadows the real one -- fails loudly instead of silently (:pwsh)",
-      expected: [:raised_load_error, :raised_other], actual: outcome_for("pwsh", pwsh_run), detail: pwsh_run[:stderr])
+      expected: %i{raised_load_error raised_other}, actual: outcome_for("pwsh", pwsh_run), detail: pwsh_run[:stderr])
     record("Higher-numbered but DLL-less gem shadows the real one -- fails loudly instead of silently (:powershell)",
-      expected: [:raised_load_error, :raised_other], actual: outcome_for("powershell", powershell_run), detail: powershell_run[:stderr])
+      expected: %i{raised_load_error raised_other}, actual: outcome_for("powershell", powershell_run), detail: powershell_run[:stderr])
   else
     skip("Stale gem version shadowing", "could not build good and/or evil .gem files")
   end
@@ -332,7 +332,7 @@ elsif ENV["CHEF_OMNIBUS_RUBY"]
     "r = powershell_exec('$PSVersionTable', :pwsh); puts \"RESULT pwsh=ok\"")
   actual = stdout.include?("RESULT pwsh=ok") ? :succeeded : :raised_or_crashed
   record("Untouched Omnibus install (#{ruby_exe}) -- gem version currently active",
-    expected: [:succeeded, :raised_or_crashed], actual: actual, detail: stderr.lines.first(5).join.strip)
+    expected: %i{succeeded raised_or_crashed}, actual: actual, detail: stderr.lines.first(5).join.strip)
 else
   skip("Forgot to replace vendored/bundled gem",
     "set CHEF_HAB_IDENT or CHEF_OMNIBUS_RUBY to a real (disposable!) Chef install to run this")
