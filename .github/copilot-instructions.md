@@ -204,6 +204,15 @@ chef-powershell-shim/
 - Documentation files
 - Build scripts (with caution)
 
+### File Encoding & Line Endings
+
+- New and edited files should match this repo's actual convention: UTF-8, LF (`\n`) line endings, no byte-order-mark (BOM) - except where a specific existing file already deviates (e.g. `.expeditor/build_gems.ps1` is UTF-8 with a BOM); don't introduce new inconsistency.
+- This repo relies on Git's `core.autocrlf` to convert line endings on checkout, so a file can show CRLF in your local working tree while still being stored as LF in the actual commit (and vice versa). **Verify the committed content, not just the working-tree copy**, e.g.:
+  ```bash
+  git cat-file -p HEAD:path/to/file | file -  # or inspect bytes directly
+  ```
+- If a new file ends up with the wrong encoding/line endings after committing, fix it and amend/recommit rather than leaving mixed conventions in the same file.
+
 ## MCP Server Integration
 
 ### Atlassian MCP Server Usage:
@@ -253,6 +262,12 @@ This project requires the [Developer Certificate of Origin](https://developercer
 - **Every commit must be signed off**, no exceptions: use `git commit -s` (or add a `Signed-off-by: Name <email@example.com>` trailer manually) so the commit's `Signed-off-by` trailer matches the committer's configured `user.name`/`user.email`.
 - When amending, rebasing, or squashing, re-check that every resulting commit still carries a valid `Signed-off-by` trailer (`git rebase --signoff` if needed).
 - If a PR contains any unsigned commits, fix them (e.g. `git commit --amend -s` or `git rebase --exec 'git commit --amend --no-edit -s'`) and force-push before considering the PR ready for review.
+
+### Secrets in Commit Messages / PR Text
+
+- Never write shell commands that let a secret-bearing environment variable (`HAB_AUTH_TOKEN`, `GEM_HOST_API_KEY`, API keys, etc.) get interpolated into a commit message, PR title/description, or comment.
+- On PowerShell in particular, double-quoted strings (`"..."` and `@"..."@` here-strings) expand `$env:VAR` - a stray unescaped `$` (or a backslash mistaken for an escape character, which PowerShell does not treat specially) is enough to leak a token. Prefer single-quoted strings/here-strings (`'...'`, `@'...'@`) for any literal text containing `$`, or write the message to a temp file and use `git commit -F <file>` / `gh pr create --body-file <file>`.
+- If a secret is ever committed by mistake and **not yet pushed**, fix it immediately with `git commit --amend` (rewriting the message/content) before it reaches the remote, and consider `git reflog expire --expire=now --all && git gc --prune=now` to remove the local dangling object. If it was already pushed, treat the secret as compromised and rotate it, in addition to rewriting history.
 
 ## Communication Protocol
 
