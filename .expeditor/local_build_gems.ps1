@@ -48,6 +48,14 @@
   Skips (re)building the Docker image and just runs -ImageTag as-is. Useful
   once you already have an image built and are iterating on build_gems.ps1.
 
+.PARAMETER HabAuthToken
+  Habitat Builder personal access token, forwarded into the container as
+  HAB_AUTH_TOKEN. Required because `hab pkg build` needs to install
+  chef/hab-studio (and this project's Habitat build dependencies) from
+  Habitat Builder, which returns 401 Unauthorized for the 'chef' origin's
+  packages without a valid token. Defaults to $env:HAB_AUTH_TOKEN if set;
+  generate one at https://bldr.habitat.sh/#/profile if you don't have one.
+
 .EXAMPLE
   .\.expeditor\local_build_gems.ps1
 
@@ -62,7 +70,8 @@ param(
     [Parameter()] [string] $ImageTag = 'chef-powershell-shim/windows2022-core:latest',
     [Parameter()] [switch] $NoCache,
     [Parameter()] [ValidateSet('process', 'hyperv')] [string] $Isolation = 'hyperv',
-    [Parameter()] [switch] $SkipImageBuild
+    [Parameter()] [switch] $SkipImageBuild,
+    [Parameter()] [string] $HabAuthToken = $env:HAB_AUTH_TOKEN
 )
 
 $ErrorActionPreference = 'Stop'
@@ -79,6 +88,15 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 $dockerOsType = (docker info --format '{{.OSType}}' 2>$null)
 if ($dockerOsType -ne 'windows') {
     throw "Docker is currently configured for '$dockerOsType' containers. Switch Docker Desktop to Windows containers and retry."
+}
+
+if ([string]::IsNullOrWhiteSpace($HabAuthToken)) {
+    Write-Warning (
+        "HAB_AUTH_TOKEN is not set. 'hab pkg build' needs it to install chef/hab-studio and " +
+        "this project's Habitat build dependencies, and will fail with '401 Unauthorized' " +
+        "without it. Set `$env:HAB_AUTH_TOKEN or pass -HabAuthToken before retrying " +
+        '(see https://bldr.habitat.sh/#/profile to generate a token).'
+    )
 }
 
 Write-Step 'Resolving project root'
@@ -177,7 +195,12 @@ $dockerRunArgs = @(
     '--workdir', 'C:\workdir'
 )
 
-foreach ($envVar in @('HAB_AUTH_TOKEN', 'GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE')) {
+if (-not [string]::IsNullOrWhiteSpace($HabAuthToken)) {
+    $dockerRunArgs += '-e'
+    $dockerRunArgs += "HAB_AUTH_TOKEN=$HabAuthToken"
+}
+
+foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE')) {
     $value = [Environment]::GetEnvironmentVariable($envVar, 'Process')
     if (-not [string]::IsNullOrWhiteSpace($value)) {
         $dockerRunArgs += '-e'
