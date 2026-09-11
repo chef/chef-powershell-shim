@@ -1,5 +1,5 @@
 #
-# Copyright:: Copyright (c) Chef Software Inc.
+# Copyright:: Copyright (c) 2018-2025 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,11 @@
 
 namespace :spellcheck do
   task run: :prereqs do
-    sh 'cspell lint --no-progress "**/*"'
+    if @spellcheck_config_invalid
+      puts "Skipping cspell lint run because of the config problem noted above"
+    else
+      sh 'cspell lint --no-progress "**/*"'
+    end
   end
 
   task prereqs: %i{cspell_check config_check fetch_common}
@@ -32,17 +36,20 @@ namespace :spellcheck do
     chef_dictionary = "chef_dictionary.txt"
 
     unless File.readable?(chef_dictionary)
-      abort "Dictionary file '#{chef_dictionary}' not found, skipping spellcheck"
+      puts "Dictionary file '#{chef_dictionary}' not found, skipping spellcheck"
+      @spellcheck_config_invalid = true
     end
 
     config_file = "cspell.json"
 
     unless File.readable?(config_file)
-      abort "Spellcheck config file '#{config_file}' not found, skipping spellcheck"
+      puts "Spellcheck config file '#{config_file}' not found, skipping spellcheck"
+      @spellcheck_config_invalid = true
     end
 
-    unless (JSON.parse(File.read(config_file)) rescue false)
-      abort "Failed to parse config file '#{config_file}', skipping spellcheck"
+    if !@spellcheck_config_invalid && !(JSON.parse(File.read(config_file)) rescue false)
+      puts "Failed to parse config file '#{config_file}', skipping spellcheck"
+      @spellcheck_config_invalid = true
     end
   end
 

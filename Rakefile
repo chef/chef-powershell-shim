@@ -1,6 +1,6 @@
 #
 # Author:: John McCrae (<john.mccrae@progress.com>)
-# Copyright:: Copyright, Chef Software Inc.
+# Copyright (c) 2018-2025 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 # Copyright:: Copyright, Progress Software Inc.
 # License:: Apache License, Version 2.0
 #
@@ -34,20 +34,31 @@ task :update_chef_powershell_dlls do
   require "mkmf"
   raise "Unable to locate Habitat cli. Please install Habitat cli before invoking this task!" unless find_executable "hab"
 
-  sh("hab pkg build Habitat")
-  sh("hab pkg install chef/chef-powershell-shim")
+  sh("hab pkg build habitat")
 
-  x64 = `hab pkg path chef/chef-powershell-shim`.chomp.tr("\\", "/")
+  latest_hart = Dir.glob("results/chef-chef-powershell-shim-*-x86_64-windows.hart").max_by { |f| File.mtime(f) }
+  raise "No built artifact found in results/. Run hab pkg build habitat first." unless latest_hart
 
-  arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
-  target = File.join(__dir__, "chef-powershell", "bin", "ruby_bin_folder", arch)
-  FileUtils.mkdir_p(target)
+  hart_name = File.basename(latest_hart, ".hart")
+  parts = hart_name.split("-")
 
-  puts "Cleaning #{target}"
-  FileUtils.rm_rf(Dir["#{target}/*"])
+  # chef-chef-powershell-shim-19.1.0-20260825145857-x86_64-windows
+  # [origin]-[name...]-[version]-[release]-x86_64-windows
+  origin = parts[0]
+  version = parts[-4]
+  release = parts[-3]
+  name = parts[1..-5].join("-")
+  ident = "#{origin}/#{name}/#{version}/#{release}"
 
-  puts "Copying #{x64}/bin/* to #{target}"
-  FileUtils.cp_r(Dir["#{x64}/bin/*"], target)
+  sh("hab pkg install #{latest_hart}")
+
+  x64 = `hab pkg path #{ident}`.chomp.tr("\\", "/")
+  raise "Unable to resolve package path for #{ident}" if x64.empty?
+
+  FileUtils.rm_rf(Dir["bin/ruby_bin_folder/AMD64/*"])
+  FileUtils.mkdir_p("chef-powershell/bin/ruby_bin_folder/AMD64")
+  puts "Copying #{x64}/bin/* to chef-powershell/bin/ruby_bin_folder/AMD64"
+  FileUtils.cp_r(Dir["#{x64}/bin/*"], "chef-powershell/bin/ruby_bin_folder/AMD64")
 end
 
 task all: %w{update_chef_powershell_dlls}.freeze

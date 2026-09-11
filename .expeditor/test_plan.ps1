@@ -6,11 +6,16 @@ param (
 )
 
 $env:HAB_LICENSE = "accept-no-persist"
-$env:HAB_ORIGIN = 'chef'
+$env:HAB_BLDR_CHANNEL = 'base-2025'
+$env:HAB_REFRESH_CHANNEL = 'base-2025'
 
 Write-Host "--- :8ball: :windows: Verifying $Plan"
 
 Write-Host "Using Habitat version $(hab --version)"
+
+# Set HAB_ORIGIN after Habitat installation
+Write-Host "HAB_ORIGIN set to 'ci' after installation."
+$env:HAB_ORIGIN = 'ci'
 
 if (Test-Path -PathType leaf "/hab/cache/keys/ci-*.sig.key") {
     Write-Host "--- :key: Using existing fake '$env:HAB_ORIGIN' origin key"
