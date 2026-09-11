@@ -19,6 +19,11 @@ by default):
 .\.expeditor\local_build_gems.ps1 -RubyVersion 3.1 -OutputPath C:\chef-powershell-shim-output
 ```
 
+You'll need a Habitat Builder personal access token for this too - `hab pkg build` installs
+chef/hab-studio and this project's Habitat build dependencies from Habitat Builder, which fails
+with `401 Unauthorized` without one. Generate one at https://bldr.habitat.sh/#/profile, then either
+set `$env:HAB_AUTH_TOKEN` before running the script or pass `-HabAuthToken`.
+
 You will need to have the following things installed:
 1) .net framework 4.8.1 development pack
 2) Windows 11 SDK build 26100
