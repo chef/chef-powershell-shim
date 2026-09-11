@@ -53,8 +53,9 @@
   HAB_AUTH_TOKEN. Required because `hab pkg build` needs to install
   chef/hab-studio (and this project's Habitat build dependencies) from
   Habitat Builder, which returns 401 Unauthorized for the 'chef' origin's
-  packages without a valid token. Defaults to $env:HAB_AUTH_TOKEN if set;
-  generate one at https://bldr.habitat.sh/#/profile if you don't have one.
+  packages without a valid token. Resolved from, in order: this parameter,
+  $env:HAB_AUTH_TOKEN, then a HAB_AUTH_TOKEN=... entry in ~/.env. Generate
+  one at https://bldr.habitat.sh/#/profile if you don't have one.
 
 .EXAMPLE
   .\.expeditor\local_build_gems.ps1
@@ -81,6 +82,35 @@ function Write-Step {
     Write-Output "--- :whale: $Message"
 }
 
+function Get-DotEnvValue {
+    # Minimal ~/.env reader: looks for a KEY=value (optionally quoted) line,
+    # ignoring blank lines and '#' comments. Does not mutate the process
+    # environment - just returns the value for this script to use directly.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Path,
+        [Parameter(Mandatory = $true)] [string] $Key
+    )
+
+    if (-not (Test-Path -Path $Path -PathType Leaf)) {
+        return $null
+    }
+
+    foreach ($line in Get-Content -Path $Path) {
+        $trimmed = $line.Trim()
+        if (-not $trimmed -or $trimmed.StartsWith('#')) {
+            continue
+        }
+        if ($trimmed -match "^(?:export\s+)?$([regex]::Escape($Key))\s*=\s*(.*)$") {
+            $value = $Matches[1].Trim()
+            if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+                $value = $value.Substring(1, $value.Length - 2)
+            }
+            return $value
+        }
+    }
+    return $null
+}
+
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw 'Docker CLI not found. Install Docker Desktop (with Windows container support) and retry.'
 }
@@ -91,11 +121,20 @@ if ($dockerOsType -ne 'windows') {
 }
 
 if ([string]::IsNullOrWhiteSpace($HabAuthToken)) {
+    $dotEnvPath = Join-Path $HOME '.env'
+    $dotEnvToken = Get-DotEnvValue -Path $dotEnvPath -Key 'HAB_AUTH_TOKEN'
+    if (-not [string]::IsNullOrWhiteSpace($dotEnvToken)) {
+        Write-Output "Using HAB_AUTH_TOKEN from $dotEnvPath"
+        $HabAuthToken = $dotEnvToken
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($HabAuthToken)) {
     Write-Warning (
         "HAB_AUTH_TOKEN is not set. 'hab pkg build' needs it to install chef/hab-studio and " +
         "this project's Habitat build dependencies, and will fail with '401 Unauthorized' " +
-        "without it. Set `$env:HAB_AUTH_TOKEN or pass -HabAuthToken before retrying " +
-        '(see https://bldr.habitat.sh/#/profile to generate a token).'
+        "without it. Set `$env:HAB_AUTH_TOKEN, add HAB_AUTH_TOKEN=... to ~/.env, or pass " +
+        '-HabAuthToken before retrying (see https://bldr.habitat.sh/#/profile to generate a token).'
     )
 }
 
