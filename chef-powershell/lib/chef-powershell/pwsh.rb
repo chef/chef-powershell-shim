@@ -20,7 +20,7 @@ class ChefPowerShell
 
     def self.resolve_core_wrapper_dll
       gem_spec = Gem.loaded_specs["chef-powershell"]
-      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+      arch = ENV["PROCESSOR_ARCHITECTURE"].to_s.empty? ? "AMD64" : ENV["PROCESSOR_ARCHITECTURE"]
 
       if gem_spec
         base = gem_spec.full_gem_path
@@ -66,7 +66,7 @@ class ChefPowerShell
       ENV["DOTNET_MULTILEVEL_LOOKUP"] = "0"
       gem_spec = Gem.loaded_specs["chef-powershell"]
       if gem_spec
-        arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+        arch = ENV["PROCESSOR_ARCHITECTURE"].to_s.empty? ? "AMD64" : ENV["PROCESSOR_ARCHITECTURE"]
         arch_root = File.join(gem_spec.full_gem_path, "bin", "ruby_bin_folder", arch)
         ENV["DOTNET_ROOT"] = arch_root
       end

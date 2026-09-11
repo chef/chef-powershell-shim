@@ -18,9 +18,9 @@ require "bundler"
 require "open3"
 require "tempfile"
 
-# Snapshot CHEF_POWERSHELL_BIN *before* require "chef-powershell", because
-# powershell_exec.rb unconditionally overwrites it with the gem's own bin path
-# at module load time.
+# Snapshot CHEF_POWERSHELL_BIN *before* require "chef-powershell". powershell_exec.rb
+# no longer clobbers an existing override at module load time, but this snapshot is
+# kept as a belt-and-suspenders guard against a regression of that behavior.
 # rubocop:disable Lint/UnderscorePrefixedVariableName
 _hab_bin_override = ENV["CHEF_POWERSHELL_BIN"].dup if ENV["CHEF_POWERSHELL_BIN"] && !ENV["CHEF_POWERSHELL_BIN"].empty?
 # rubocop:enable Lint/UnderscorePrefixedVariableName
@@ -42,7 +42,7 @@ NET10_DLL   = File.join(DLL_BIN_DIR, "shared", "Microsoft.NETCore.App", "10.0.0"
 
 # Re-pin CHEF_POWERSHELL_BIN to the Hab package dir so the C++/CLI assembly
 # resolver (currentDomain_AssemblyResolve in Wrapper.cpp) finds Chef.PowerShell.dll
-# in the right place. powershell_exec.rb overwrote it with the gem's own path.
+# in the right place.
 ENV["CHEF_POWERSHELL_BIN"] = DLL_BIN_DIR
 
 # ---------------------------------------------------------------------------
@@ -455,5 +455,34 @@ RSpec.describe "PowerShell#initialize DLL directory registration (process isolat
     expect(ChefPowerShell::Kernel32).to have_received(:SetDllDirectoryA).with(DLL_BIN_DIR)
   ensure
     ENV["CHEF_POWERSHELL_BIN"] = orig_bin
+  end
+
+  # Regression coverage for a real bug: powershell_exec.rb used to unconditionally
+  # overwrite CHEF_POWERSHELL_BIN with the loaded gem's own bin path at require time,
+  # silently clobbering an explicit override (e.g. pointing at a freshly built Habitat
+  # package) whenever the gem's own bundled ruby_bin_folder also happened to exist.
+  it "does not clobber an explicit CHEF_POWERSHELL_BIN override when requiring chef-powershell" do
+    gem_root = File.expand_path("../..", __dir__)
+    sentinel = File.join("C:", "explicit_chef_powershell_bin_override")
+
+    script = <<~'RUBY'
+      require "chef-powershell"
+      puts ENV["CHEF_POWERSHELL_BIN"]
+    RUBY
+
+    env = { "CHEF_POWERSHELL_BIN" => sentinel }
+
+    stdout, stderr, status = Tempfile.create(["chef_powershell_bin_override_check", ".rb"]) do |file|
+      file.write(script)
+      file.close
+
+      Bundler.with_unbundled_env do
+        Open3.capture3(env, "bundle", "exec", "ruby", file.path, chdir: gem_root)
+      end
+    end
+
+    expect(status.success?).to be(true),
+      "subprocess failed (exit #{status.exitstatus}):\nSTDOUT:\n#{stdout}\nSTDERR:\n#{stderr}"
+    expect(stdout.strip).to eq(sentinel)
   end
 end

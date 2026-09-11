@@ -48,7 +48,7 @@ class ChefPowerShell
     attr_reader :verbose
 
     def self.resolve_wrapper_dll
-      arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
+      arch = ENV["PROCESSOR_ARCHITECTURE"].to_s.empty? ? "AMD64" : ENV["PROCESSOR_ARCHITECTURE"]
       searched = []
 
       # Gem path
