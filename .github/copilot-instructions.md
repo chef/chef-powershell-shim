@@ -121,8 +121,8 @@ chef-powershell-shim/
    - Validate against JIRA acceptance criteria
 
 5. **Branch and PR Creation**
-   - Create branch using JIRA ID as branch name
-   - Commit changes with descriptive messages
+   - Determine the user's initials (see Branch Naming below) and create a branch prefixed with them
+   - Commit changes with descriptive, DCO-signed-off messages (see Commit Sign-off (DCO) below)
    - Push to remote repository
    - Create pull request with detailed description
 
@@ -130,12 +130,14 @@ chef-powershell-shim/
 
 **When prompted to create a PR:**
 
-1. **Branch Creation**: Use JIRA ID as branch name
+1. **Branch Naming**: Prefix every branch with the user's initials, followed by the JIRA ID (or a short descriptive slug when there's no JIRA ID): `[initials]/[JIRA_ID-or-description]`.
+   - Determine the initials from, in order of preference: an explicit value the user has given in this conversation, `git config user.initials` if set, or initials derived from `git config user.name`.
+   - **If no initials can be determined, prompt the user for their initials before creating the branch.** Do not guess or fall back to a generic prefix such as `copilot/`.
    ```bash
-   git checkout -b [JIRA_ID]
+   git checkout -b [initials]/[JIRA_ID-or-description]
    git add .
-   git commit -m "Implement [JIRA_ID]: [Brief description]"
-   git push origin [JIRA_ID]
+   git commit -s -m "Implement [JIRA_ID]: [Brief description]"
+   git push origin [initials]/[JIRA_ID-or-description]
    ```
 
 2. **PR Creation using GitHub CLI**:
@@ -240,8 +242,17 @@ When working with JIRA issues, use the `atlassian-mcp-server` MCP server:
 
 - Use descriptive commit messages referencing JIRA IDs
 - Create focused, single-purpose branches
+- Prefix every branch name with the user's initials (see Branch Naming above)
 - Include comprehensive PR descriptions with HTML formatting
 - Link PRs to corresponding JIRA issues
+
+### Commit Sign-off (DCO)
+
+This project requires the [Developer Certificate of Origin](https://developercertificate.org/) on every commit, per the [Community Contributions Guidelines](https://docs.chef.io/community_contributions.html).
+
+- **Every commit must be signed off**, no exceptions: use `git commit -s` (or add a `Signed-off-by: Name <email@example.com>` trailer manually) so the commit's `Signed-off-by` trailer matches the committer's configured `user.name`/`user.email`.
+- When amending, rebasing, or squashing, re-check that every resulting commit still carries a valid `Signed-off-by` trailer (`git rebase --signoff` if needed).
+- If a PR contains any unsigned commits, fix them (e.g. `git commit --amend -s` or `git rebase --exec 'git commit --amend --no-edit -s'`) and force-push before considering the PR ready for review.
 
 ## Communication Protocol
 
@@ -275,7 +286,7 @@ This AI compliance checklist should be integrated into the main development work
 
 ```
 Step 4: Pull Request Creation & AI Compliance
-- Step 4.1: Create branch and commit changes WITH SIGNED-OFF COMMITS
+- Step 4.1: Create an initials-prefixed branch (prompting for initials if none are known) and commit changes WITH SIGNED-OFF COMMITS
 - Step 4.2: Push changes to remote
 - Step 4.3: Create PR with ai-assisted label
 - Step 4.4: IMMEDIATELY update Jira customfield_11170 to "Yes"
