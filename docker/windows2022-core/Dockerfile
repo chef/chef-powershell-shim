@@ -28,6 +28,15 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force ; `
 
 RUN choco feature enable -n allowGlobalConfirmation
 
+# Chef.PowerShell.Wrapper.dll (the Windows PowerShell / .NET Framework side of
+# this gem, built as a mixed-mode C++/CLI assembly with the VS2022 (v145)
+# toolset) depends on the matching Visual C++ Redistributable at load time.
+# The minimal servercore image doesn't ship it, so ffi_lib fails with Win32
+# error 126 ("The specified module could not be found") even though the DLL
+# itself is present on disk - it's a transitive native dependency of the DLL,
+# not the DLL itself, that's missing.
+RUN choco install vcredist140 -y
+
 # Installs Git plus a Chocolatey "ruby" package resolved from RUBY_VERSION.
 # Kept as an external script (rather than an inline RUN one-liner) to avoid
 # Dockerfile/PowerShell quoting collisions - see Install-Ruby.ps1 for why.

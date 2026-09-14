@@ -41,3 +41,24 @@ Write-Output "Resolved Chocolatey ruby package version '$RubyVersion' -> '$resol
 
 choco install ruby --version=$resolved --no-progress
 if ($LASTEXITCODE -ne 0) { throw "choco install ruby failed with exit code $LASTEXITCODE" }
+
+# The Chocolatey "ruby" package doesn't ship (or run) the MSYS2/MINGW devkit
+# toolchain that "ridk install" normally sets up, and several gems pulled in
+# below (json, racc, libyajl2, ffi, ffi-yajl) need it to compile native
+# extensions. Buildkite's "rubydistros" agents provide this out of the box;
+# this image needs to install it explicitly. "ridk install" is an
+# interactive-only menu with no reliable non-interactive/piped mode on
+# Windows, so instead install MSYS2 directly to C:\msys64 - one of the
+# default locations RubyInstaller's Msys2Installation#iterate_msys_paths
+# auto-detects - and provision the MINGW toolchain via pacman.
+choco install msys2 -y --no-progress --params "/InstallDir:C:\msys64 /NoUpdate"
+if ($LASTEXITCODE -ne 0) { throw "choco install msys2 failed with exit code $LASTEXITCODE" }
+
+$msysBash = "C:\msys64\usr\bin\bash.exe"
+
+# Ruby built for the x64-mingw-ucrt platform (what Chocolatey's ruby package
+# targets) needs the "ucrt64" MINGW toolchain, not the older "mingw64" one.
+& $msysBash -lc "pacman -Syu --noconfirm"
+if ($LASTEXITCODE -ne 0) { throw "pacman -Syu failed with exit code $LASTEXITCODE" }
+& $msysBash -lc "pacman -S --needed --noconfirm base-devel mingw-w64-ucrt-x86_64-toolchain"
+if ($LASTEXITCODE -ne 0) { throw "pacman toolchain install failed with exit code $LASTEXITCODE" }
