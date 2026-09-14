@@ -95,6 +95,40 @@ This checks for the presence of:
 - `bin\host\fxr\10.0.0\hostfxr.dll`
 - VC++ CRT redist DLLs (`vcruntime140.dll`, `msvcp140.dll`, etc.)
 
+### 1.4 Memory-pressure / heap-lifetime regression test
+
+PRs #187, #196, and #205 fixed a class of bug where the buffer the native wrapper used to hand a
+result back to Ruby could be collected/reused before Ruby finished reading it -- silently
+corrupting or truncating the payload, even for values as trivial as a bare boolean. This mostly
+showed up under memory pressure (e.g. constrained CI agents).
+
+`memory_pressure_test.rb` guards against a regression of that bug: it round-trips a matrix of
+payload shapes (booleans, integers, floats, strings including multi-byte Unicode, arrays,
+hashtables, and a large string) through both interpreters, many times, forcing a full GC before
+every single round-trip (or, opt-in, `GC.stress = true` for the whole run) and asserts *exact*
+equality every time.
+
+```powershell
+cd C:\localrepo\chef-powershell-shim\chef-powershell
+ruby memory_pressure_test.rb            # 15 iterations by default
+ruby memory_pressure_test.rb 50         # or pass an iteration count
+$env:CHEF_POWERSHELL_GC_STRESS = "1"    # opt-in to the slower, more thorough GC.stress mode
+ruby memory_pressure_test.rb
+```
+
+`.expeditor\local_low_memory_test.ps1` runs this same script inside a memory-constrained (default
+512MB) Windows Docker container, using whatever DLLs are currently under
+`chef-powershell\bin\ruby_bin_folder\<ARCH>` (i.e. the output of a local
+`.expeditor\build_gems.ps1` / `local_build_gems.ps1` run), so the .NET/CLR side is also put under
+genuine OS-level memory pressure, not just the Ruby side:
+
+```powershell
+.\.expeditor\local_build_gems.ps1          # produces fresh DLLs under chef-powershell\bin\...
+.\.expeditor\local_low_memory_test.ps1     # runs memory_pressure_test.rb in a 512MB container
+```
+
+Exit code 0 = every round-trip came back exact.
+
 ---
 
 ## Part 2 — Testing against Chef-19 (Habitat only)
@@ -538,6 +572,7 @@ hab pkg install C:\localrepo\chef-powershell-shim\results\chef-chef-powershell-s
 | Run RSpec unit tests | `bundle exec rake spec` (from `chef-powershell/`) |
 | Smoke test local Hab build | `bundle exec ruby smoke_test_dlls.rb <pkg>\bin` |
 | Full layout verification | `bundle exec ruby verify_hab_build.rb <pkg>\bin` |
+| Memory-pressure / heap-lifetime regression test | `ruby memory_pressure_test.rb` (or `.expeditor\local_low_memory_test.ps1` for the low-memory container version) |
 | Test under Chef-19 Hab | `hab pkg exec chef/chef-infra-client ruby -e "..."` (`--channel stable` on install; replace vendored gem first, see 2.2) |
 | Test under Chef-18 Hab | `hab pkg exec $chef18Ident ruby -e "..."` (replace vendored gem first, see 3.2) |
 | Test under Chef-18 Omnibus | `C:\opscode\chef\embedded\bin\ruby -e "..."` |
