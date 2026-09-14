@@ -13,21 +13,39 @@ using namespace System::Reflection;
 // for assemblies.
 Assembly^ currentDomain_AssemblyResolve(Object^ sender, ResolveEventArgs^ args)
 {
+    AssemblyName^ name = gcnew AssemblyName(args->Name);
+
+    // Prefer CHEF_POWERSHELL_BIN when it actually has the assembly, so operators can
+    // still point at a different/updated DLL set without moving files around.
     String^ prefix = Environment::GetEnvironmentVariable("CHEF_POWERSHELL_BIN");
     if (prefix) {
         try
         {
-            AssemblyName^ name = gcnew AssemblyName(args->Name);
             String^ finalPath = Path::Combine(prefix, name->Name + ".dll");
-            Assembly^ retval = Assembly::LoadFrom(finalPath);
-            return retval;
+            return Assembly::LoadFrom(finalPath);
         }
         catch (FileNotFoundException^)
         {
+            // Fall through -- CHEF_POWERSHELL_BIN may be stale or unrelated to wherever
+            // this wrapper assembly actually got loaded from (see fallback below).
         }
     }
-    else if (args->Name->ToLower()->StartsWith("chef.powershell")) {
-        throw gcnew FileNotFoundException("Unable to load Chef.Powershell.dll. Make sure the file is located in the same directory as ruby.exe or in CHEF_POWERSHELL_BIN.");
+
+    // Fall back to the directory this wrapper assembly itself was loaded from. Without
+    // this, an unset/stale/wrong CHEF_POWERSHELL_BIN breaks assembly resolution even
+    // though Chef.PowerShell.dll is sitting right next to this wrapper DLL.
+    try
+    {
+        String^ ownDir = Path::GetDirectoryName(Assembly::GetExecutingAssembly()->Location);
+        String^ finalPath = Path::Combine(ownDir, name->Name + ".dll");
+        return Assembly::LoadFrom(finalPath);
+    }
+    catch (FileNotFoundException^)
+    {
+    }
+
+    if (name->Name->ToLower()->StartsWith("chef.powershell")) {
+        throw gcnew FileNotFoundException("Unable to load " + name->Name + ".dll. Make sure the file is located in the same directory as this wrapper assembly or in CHEF_POWERSHELL_BIN.");
     }
 
     return nullptr;

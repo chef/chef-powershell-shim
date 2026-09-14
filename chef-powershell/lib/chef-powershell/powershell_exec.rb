@@ -102,22 +102,26 @@ class ChefPowerShell
       # We don't want to move files around so we're setting the variable here to keep everything tidy.
       # file_path = Gem.loaded_specs["chef-powershell"].full_gem_path + "/bin/ruby_bin_folder/#{ENV["PROCESSOR_ARCHITECTURE"]}/"
       # ENV["CHEF_POWERSHELL_BIN"] = file_path
-      gem_spec = Gem.loaded_specs["chef-powershell"]
-      if gem_spec
-        arch = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
-        file_path = File.join(gem_spec.full_gem_path, "bin", "ruby_bin_folder", arch)
-        if File.directory?(file_path)
-          ENV["CHEF_POWERSHELL_BIN"] = file_path
-        else
-          # Habitat fallback: try locating the built package and use its bin directory
-          begin
-            hab_path = `hab pkg path chef/chef-powershell-shim 2>NUL`.strip
-            if hab_path != "" && File.directory?(hab_path)
-              candidate = File.join(hab_path, "bin")
-              ENV["CHEF_POWERSHELL_BIN"] = candidate if File.directory?(candidate)
+      # Respect an explicit override (e.g. pointing at a freshly built Habitat package) --
+      # don't clobber it just because the loaded gem's own bundled DLLs also happen to exist.
+      if ENV["CHEF_POWERSHELL_BIN"].to_s.empty?
+        gem_spec = Gem.loaded_specs["chef-powershell"]
+        if gem_spec
+          arch = ENV["PROCESSOR_ARCHITECTURE"].to_s.empty? ? "AMD64" : ENV["PROCESSOR_ARCHITECTURE"]
+          file_path = File.join(gem_spec.full_gem_path, "bin", "ruby_bin_folder", arch)
+          if File.directory?(file_path)
+            ENV["CHEF_POWERSHELL_BIN"] = file_path
+          else
+            # Habitat fallback: try locating the built package and use its bin directory
+            begin
+              hab_path = `hab pkg path chef/chef-powershell-shim 2>NUL`.strip
+              if hab_path != "" && File.directory?(hab_path)
+                candidate = File.join(hab_path, "bin")
+                ENV["CHEF_POWERSHELL_BIN"] = candidate if File.directory?(candidate)
+              end
+            rescue
+              # ignore habitat lookup failures
             end
-          rescue
-            # ignore habitat lookup failures
           end
         end
       end
