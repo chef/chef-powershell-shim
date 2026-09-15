@@ -183,6 +183,7 @@ Write-Output "`r"
 
 Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update
+if (-not $?) { throw "Bundle update failed"}
 bundle exec rake gem_check
 if (-not $?) { throw "Bundle Gem failed"}
 
