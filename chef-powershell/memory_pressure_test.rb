@@ -215,7 +215,7 @@ PAYLOADS = [
   ["-17",                                             -17],
   ["3.14",                                            3.14],
   ["'hello from powershell'",                         "hello from powershell"],
-  ["'unicode: héllo wörld 日本語 🎉'",                  "unicode: héllo wörld 日本語 🎉"],
+  ["'unicode: héllo wörld 日本語 🎉'", "unicode: héllo wörld 日本語 🎉"],
   ["@(1, 2, 3, 4, 5)",                                [1, 2, 3, 4, 5]],
   ["@{ Name = 'Chef'; Version = '19' }",              { "Name" => "Chef", "Version" => "19" }],
   ["'x' * 20000",                                     nil], # validated separately below (length check)
