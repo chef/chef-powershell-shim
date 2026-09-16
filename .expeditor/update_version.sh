@@ -11,7 +11,7 @@
 
 set -evx
 
-VERSION=$(cat chef-powershell/lib/chef-powershell/VERSION)
+VERSION=$(cat VERSION)
 
 sed -i -r "s/^(\s*)VERSION = \".+\"/\1VERSION = \"${VERSION}\"/" chef-powershell/lib/chef-powershell/version.rb
 
