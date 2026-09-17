@@ -5,11 +5,11 @@ on:
   pull_request:
     branches:
       - 18-Stable
-    types: [closed]
+    types: [labeled]
 
 jobs:
   Build-And-Push-Chef-PowerShell-Gem:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && github.event.label.name == 'build and release'
     runs-on: windows-latest
     steps:
       - name: Check out repo
