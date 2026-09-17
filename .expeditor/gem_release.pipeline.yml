@@ -1,0 +1,23 @@
+---
+expeditor:
+  defaults:
+    buildkite:
+      retry:
+        automatic:
+          limit: 1
+      timeout_in_minutes: 60
+
+steps:
+
+- label: ":windows: push chef-powershell gem to artifactory"
+  commands:
+    - .expeditor/scripts/gem_push_artifactory.ps1
+  expeditor:
+    executor:
+      docker:
+        host_os: windows
+        image: rubydistros/windows-2019:3.4
+        shell: [ "powershell", "-Command" ]
+        environment:
+          - HAB_AUTH_TOKEN
+          - ARTIFACTORY_LITA_PASSWORD

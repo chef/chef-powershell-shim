@@ -17,6 +17,9 @@ pipelines:
       public: true
   - habitat/build:
       definition: .expeditor/build.habitat.yml
+  - gem_validate/release:
+      description: Builds and uploads the chef-powershell gem to Artifactory
+      definition: .expeditor/gem_release.pipeline.yml
 
 github:
   # This deletes the GitHub PR branch after successfully merged into the release branch
@@ -57,6 +60,11 @@ subscriptions:
       - trigger_pipeline:habitat/build:    
           ignore_labels:
             - "Expeditor: Skip Habitat"
+            - "Expeditor: Skip All"
+      - trigger_pipeline:gem_validate/release:
+          only_if: built_in:bump_version
+          ignore_labels:
+            - "Expeditor: Skip Version Bump"
             - "Expeditor: Skip All"
 
   # - workload: project_promoted:{{agent_id}}:*

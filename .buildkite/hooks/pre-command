@@ -7,3 +7,15 @@ elif [[ $BUILDKITE_ORGANIZATION_SLUG = 'chef' ]] || [[ $BUILDKITE_ORGANIZATION_S
 fi
 
 export HAB_AUTH_TOKEN=$(aws ssm get-parameter --name 'habitat-prod-auth-token' --with-decryption --query Parameter.Value --output text --region ${AWS_REGION})
+
+# Inject Artifactory credentials for the gem_validate/release pipeline
+if [[ "$BUILDKITE_PIPELINE_SLUG" == *"gem-validate-release"* ]]; then
+  echo "Fetching Artifactory credentials for gem release pipeline..."
+  ARTIFACTORY_LITA_PASSWORD=$(aws ssm get-parameter --name 'artifactory-lita-password' --with-decryption --query Parameter.Value --output text --region ${AWS_REGION})
+  if [[ -z "$ARTIFACTORY_LITA_PASSWORD" ]]; then
+    echo "ERROR: Failed to retrieve Artifactory password from SSM"
+    exit 1
+  fi
+  export ARTIFACTORY_LITA_PASSWORD
+fi
+
