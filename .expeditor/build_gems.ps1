@@ -29,14 +29,63 @@ $env:HAB_REFRESH_CHANNEL = "base-2025"
 Write-Output "`r"
 
 Write-Host "--- :screwdriver: Installing Habitat"
-Set-ExecutionPolicy Bypass -Scope Process -Force
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
-if (-not $?) { throw "unable to install Habitat"}
+if (-not (Get-Command -Name hab -ErrorAction SilentlyContinue)) {
+  Write-Output "--- Now Installing Habitat via Choco"
+  choco install habitat -y
+  Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+  refreshenv
+  if (-not $?) { throw "unable to install Habitat" }
+}
 Write-Output "`r"
 
-Write-Output "--- :screwdriver: Installing the latest Chef-Client"
-choco install chef-client -y
-if (-not $?) { throw "unable to install Chef-Client" }
+Write-Output "--- :screwdriver: Installing Chef-Client 18.11.11 from the licensed Chef download API"
+# 18.11.11 is the last Chef-18 release; packages.chef.io returns 402 without a license key.
+if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) {
+  $chef_msi = Join-Path $env:TEMP "chef-client-18.11.11.msi"
+  $chef_url = "https://packages.chef.io/files/current/chef/18.11.11/windows/2022/chef-client-18.11.11-1-x64.msi"
+  # The progress bar makes Invoke-WebRequest extremely slow in Windows PowerShell 5.
+  $ProgressPreference = 'SilentlyContinue'
+  Write-Output "Downloading $chef_url"
+  Invoke-WebRequest -UseBasicParsing -Uri $chef_url -OutFile $chef_msi -TimeoutSec 600
+  Write-Output "Downloaded $([math]::Round((Get-Item $chef_msi).Length / 1MB, 1)) MB, installing"
+  $chef_msi_log = Join-Path $env:TEMP "chef-client-install.log"
+  # Prints the install log tail and the installer process tree; only used when the install fails or hangs.
+  function Write-MsiDiagnostics {
+    Get-Content $chef_msi_log -Tail 50 -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "  log> $_" }
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -in 'msiexec.exe', 'rundll32.exe', '7z.exe' } |
+      Select-Object ProcessId, ParentProcessId, Name, @{ n = 'Cmd'; e = { "$($_.CommandLine)".Substring(0, [math]::Min(120, "$($_.CommandLine)".Length)) } } |
+      Format-Table -AutoSize | Out-String -Width 250 | Write-Output
+  }
+
+  # Start-Process hung in this container; Process.Start does not.
+  $msi_psi = New-Object System.Diagnostics.ProcessStartInfo
+  $msi_psi.FileName = "msiexec.exe"
+  $msi_psi.Arguments = "/i `"$chef_msi`" /qn /norestart /l*v `"$chef_msi_log`""
+  $msi_psi.UseShellExecute = $false
+  $msi_psi.CreateNoWindow = $true
+  $msi = [System.Diagnostics.Process]::Start($msi_psi)
+  $msi_started = Get-Date
+  Write-Output "$(Get-Date -Format 'HH:mm:ss') started msiexec PID $($msi.Id), log at $chef_msi_log"
+  while (-not $msi.HasExited) {
+    $elapsed = [int]((Get-Date) - $msi_started).TotalSeconds
+    if ($elapsed -gt 600) {
+      Write-MsiDiagnostics
+      $msi.Kill()
+      throw "Chef-Client MSI install timed out after 10 minutes"
+    }
+    Start-Sleep -Seconds 30
+    Write-Output "$(Get-Date -Format 'HH:mm:ss') msiexec still running after $($elapsed + 30)s"
+  }
+  $msi.WaitForExit()
+  Write-Output "msiexec exited with code $($msi.ExitCode) after $([int]((Get-Date) - $msi_started).TotalSeconds)s"
+  if ($msi.ExitCode -notin 0, 3010) {
+    Write-MsiDiagnostics
+    throw "Chef-Client MSI install failed with exit code $($msi.ExitCode)"
+  }
+  Remove-Item $chef_msi -Force -ErrorAction SilentlyContinue
+  if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) { throw "unable to install Chef-Client" }
+}
 Write-Output "`r"
 
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
@@ -128,8 +177,12 @@ Write-Output "--- :bank: Installing Node via Choco"
 # pre-release/alpha builds (e.g. 26.8.0-alpha.x), which cspell's engines check
 # rejects with "Unsupported NodeJS version" even though it's technically newer
 # than the minimum supported version.
-choco install nodejs-lts -y
-if (-not $?) { throw "unable to install Node"}
+if (Get-Command -Name node -ErrorAction SilentlyContinue) {
+  Write-Output "Node is already installed ($(node --version)), skipping"
+} else {
+  choco install nodejs-lts -y
+  if (-not $?) { throw "unable to install Node"}
+}
 Write-Output "`r"
 
 Write-Output "--- :bank: Refreshing the build environment to pick up Node.js binaries"
