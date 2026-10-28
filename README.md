@@ -1,3 +1,10 @@
+# UPDATE: In the interest of keeping our sanity, we recently pruned this repo. There is only 1 branch to use going forward and that is "main".
+The old chef-19 focused branch has been retired to a "main-stale" branch for reference. Any relevant updates have been moved to the new main
+branch.
+
+
+
+
 # chef-powershell-shim
 
 A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform. This repo now also contains the chef-powershell Ruby gem which consumes the the .NET Assembly and provides the interface between Chef and PowerShell via ffi.
