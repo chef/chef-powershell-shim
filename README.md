@@ -1,6 +1,11 @@
-# UPDATE: In the interest of keeping our sanity, we recently pruned this repo. There is only 1 branch to use going forward and that is "main".
-The old chef-19 focused branch has been retired to a "main-stale" branch for reference. Any relevant updates have been moved to the new main
-branch.
+## UPDATE (November, 2026): Repository branch structure changed
+
+We pruned this repository to simplify maintenance. **`main` is now the only active branch.** All development, pull requests, and releases target it.
+
+- The former `18-Stable` branch was renamed `main-stale` and retired. It is kept for reference only and is not maintained.
+- Any relevant changes from the retired branch were merged into `main`.
+- If your fork or local clone tracks a retired branch, re-point it to `main`:
+  `git fetch origin && git checkout main && git branch -u origin/main`
 
 
 
