@@ -1,3 +1,15 @@
+## UPDATE (November, 2026): Repository branch structure changed
+
+We pruned this repository to simplify maintenance. **`main` is now the only active branch.** All development, pull requests, and releases target it.
+
+- The former `18-Stable` branch was renamed `main-stale` and retired. It is kept for reference only and is not maintained.
+- Any relevant changes from the retired branch were merged into `main`.
+- If your fork or local clone tracks a retired branch, re-point it to `main`:
+  `git fetch origin && git checkout main && git branch -u origin/main`
+
+
+
+
 # chef-powershell-shim
 
 A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform. This repo now also contains the chef-powershell Ruby gem which consumes the the .NET Assembly and provides the interface between Chef and PowerShell via ffi.
