@@ -20,6 +20,8 @@ steps:
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
+          - CHEF_LICENSE_KEY
+          
 
 - label: ":windows: pre-build-verify-windows-gem - Ruby 3.4.8"
   commands:
@@ -32,6 +34,7 @@ steps:
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
+          - CHEF_LICENSE_KEY
 
 - label: ":windows: What version of Ruby are we using?"
   command: 
