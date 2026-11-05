@@ -57,6 +57,12 @@
   $env:HAB_AUTH_TOKEN, then a HAB_AUTH_TOKEN=... entry in ~/.env. Generate
   one at https://bldr.habitat.sh/#/profile if you don't have one.
 
+  Chef license key: build_gems.ps1 downloads Chef-Client 18.11.11 from the
+  licensed Chef download API, which requires a license key. Set
+  $env:CHEF_LICENSE_KEY (environment variable names are case-insensitive on
+  Windows, so an existing $env:chef_license_key works); it is forwarded into
+  the container automatically.
+
 .EXAMPLE
   .\.expeditor\local_build_gems.ps1
 
@@ -239,7 +245,7 @@ if (-not [string]::IsNullOrWhiteSpace($HabAuthToken)) {
     $dockerRunArgs += "HAB_AUTH_TOKEN=$HabAuthToken"
 }
 
-foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE')) {
+foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE', 'CHEF_LICENSE_KEY')) {
     $value = [Environment]::GetEnvironmentVariable($envVar, 'Process')
     if (-not [string]::IsNullOrWhiteSpace($value)) {
         $dockerRunArgs += '-e'

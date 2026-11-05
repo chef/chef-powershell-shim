@@ -123,9 +123,17 @@ ruby memory_pressure_test.rb
 genuine OS-level memory pressure, not just the Ruby side:
 
 ```powershell
+$env:CHEF_LICENSE_KEY = "<your Chef license key>"   # required: build_gems.ps1 downloads Chef-18 from the licensed API
 .\.expeditor\local_build_gems.ps1          # produces fresh DLLs under chef-powershell\bin\...
 .\.expeditor\local_low_memory_test.ps1     # runs memory_pressure_test.rb in a 512MB container
 ```
+
+`packages.chef.io` now returns `402` without a license key, so `build_gems.ps1` downloads the
+Chef-18 MSI from `https://chefdownload-commercial.chef.io/stable/chef/download` with
+`p=windows&pv=2022&m=x86_64&v=18.11.11&license_id=$env:CHEF_LICENSE_KEY`. `local_build_gems.ps1`
+forwards `CHEF_LICENSE_KEY` into the container. Treat the key as a secret: don't commit it or
+paste URLs containing `license_id=` into logs, commits or PRs. Buildkite must also provide
+`CHEF_LICENSE_KEY` to the build.
 
 Exit code 0 = every round-trip came back exact.
 

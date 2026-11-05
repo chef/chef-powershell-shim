@@ -39,13 +39,18 @@ if (-not (Get-Command -Name hab -ErrorAction SilentlyContinue)) {
 Write-Output "`r"
 
 Write-Output "--- :screwdriver: Installing Chef-Client 18.11.11 from the licensed Chef download API"
-# 18.11.11 is the last Chef-18 release; packages.chef.io returns 402 without a license key.
+# 18.11.11 is the last Chef-18 release; packages.chef.io returns 402 without a license key,
+# so the download goes through the licensed API and needs CHEF_LICENSE_KEY.
 if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) {
+  if ([string]::IsNullOrWhiteSpace($env:CHEF_LICENSE_KEY)) {
+    throw "CHEF_LICENSE_KEY is not set; it is required to download Chef-Client from the licensed Chef download API"
+  }
   $chef_msi = Join-Path $env:TEMP "chef-client-18.11.11.msi"
-  $chef_url = "https://packages.chef.io/files/current/chef/18.11.11/windows/2022/chef-client-18.11.11-1-x64.msi"
+  $chef_url = "https://chefdownload-commercial.chef.io/stable/chef/download?p=windows&pv=2022&m=x86_64&v=18.11.11&license_id=$($env:CHEF_LICENSE_KEY)"
   # The progress bar makes Invoke-WebRequest extremely slow in Windows PowerShell 5.
   $ProgressPreference = 'SilentlyContinue'
-  Write-Output "Downloading $chef_url"
+  # The URL contains the license key, so it is deliberately not printed.
+  Write-Output "Downloading Chef-Client 18.11.11 for windows/2022/x86_64 from chefdownload-commercial.chef.io"
   Invoke-WebRequest -UseBasicParsing -Uri $chef_url -OutFile $chef_msi -TimeoutSec 600
   Write-Output "Downloaded $([math]::Round((Get-Item $chef_msi).Length / 1MB, 1)) MB, installing"
   $chef_msi_log = Join-Path $env:TEMP "chef-client-install.log"
