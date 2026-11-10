@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.WSMan.Runtime" Version="7.6.9" />
     <PackageReference Include="System.Management.Automation" Version="7.6.9" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="10.0.14" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
   </ItemGroup>
 
 </Project>
