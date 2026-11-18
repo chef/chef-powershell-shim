@@ -123,6 +123,19 @@ This ensures that chef-powershell updates can be deployed independently of Chef 
 
 If the automatic installation fails or you need to manually install the DLL files, you can find them in the gem's installation directory under `bin\ruby_bin_folder\AMD64\` and copy them to your Chef installation's `embedded\bin` directory.
 
+## Testing a Built Package
+
+Point the scripts in this directory at the `bin` folder of a built Habitat package, either as an argument or with `CHEF_POWERSHELL_BIN`:
+
+```powershell
+$env:CHEF_POWERSHELL_BIN = "C:\hab\pkgs\chef\chef-powershell-shim\<version>\<timestamp>\bin"
+bundle exec ruby smoke_test_dlls.rb
+bundle exec ruby verify_hab_build.rb
+bundle exec ruby memory_pressure_test.rb
+```
+
+`chef_gem_break_test.rb` (fault injection) and `chef_gem_integration_test.rb` (run through a real Chef install's Ruby) have their own usage notes in the header comments. Each script exits `0` when everything passes and `1` otherwise.
+
 ## Getting Involved
 
 We'd love to have your help developing Chef Infra. See our [Contributing Document](../CONTRIBUTING.md) for more information on getting started.

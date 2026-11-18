@@ -27,12 +27,12 @@ function Invoke-Build {
   $vcTargetsPath = "$vsBuildToolsPath\MSBuild\Microsoft\VC\v180\"
   $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
 
-  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.PowerShell/Chef.PowerShell.csproj /t:Restore /p:Configuration=Release /p:Platform=x64
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.PowerShell/Chef.PowerShell.csproj /t:Restore /p:Configuration=Release /p:Platform=x64 /p:MSBuildEnableWorkloadResolver=false
   if($LASTEXITCODE -ne 0) {
     Write-Error "nuget restore failed!"
   }
 
-  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64 /p:MSBuildEnableWorkloadResolver=false
   if($LASTEXITCODE -ne 0) {
     Write-Error "dotnet build failed!"
   }
