@@ -41,6 +41,16 @@ Write-Output "--- :muscle: Setting the Project Root"
 Set-Location $project_root
 Write-Output "`r"
 
+Write-Output "--- :screwdriver: Is Habitat installed?"
+if (-not (Get-Command -Name hab -ErrorAction SilentlyContinue)) {
+  Write-Output "--- Now Installing Habitat via Choco"
+  choco install habitat -y
+  Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+  refreshenv
+  if (-not $?) { throw "unable to install Habitat" }
+}
+Write-Output "`r"
+
 if (Test-Path -PathType leaf "/hab/cache/keys/$env:HAB_ORIGIN-*.sig.key") {
   Write-Output "--- :key: Using existing '$env:HAB_ORIGIN' origin key"
 }
