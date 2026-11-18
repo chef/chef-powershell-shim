@@ -23,14 +23,14 @@ function Invoke-SetupEnvironment {
 function Invoke-Build {
   Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -Recurse -Force -Exclude ".vs"
 
-  nuget restore `
-    "$HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell/packages.config" `
-    -PackagesDirectory "$HAB_CACHE_SRC_PATH/$pkg_dirname/packages" `
-    -Source "https://www.nuget.org/api/v2"
-
   $vsBuildToolsPath = "$(Get-HabPackagePath visual-build-tools-2026)\Contents"
   $vcTargetsPath = "$vsBuildToolsPath\MSBuild\Microsoft\VC\v180\"
   $msbuildExe = "$vsBuildToolsPath\MSBuild\Current\Bin\amd64\MSBuild.exe"
+
+  & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.PowerShell/Chef.PowerShell.csproj /t:Restore /p:Configuration=Release /p:Platform=x64
+  if($LASTEXITCODE -ne 0) {
+    Write-Error "nuget restore failed!"
+  }
 
   & $msbuildExe $HAB_CACHE_SRC_PATH/$pkg_dirname/Chef.Powershell.Wrapper/Chef.Powershell.Wrapper.vcxproj /t:Build /p:Configuration=Release /p:Platform=x64
   if($LASTEXITCODE -ne 0) {
