@@ -193,6 +193,22 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
+Write-Output "--- :microscope: Diagnosing whether the wrapper DLL loads in this image (informational)"
+# Error 126 means the DLL or one of its dependencies could not be found. This probes the load outside Ruby.
+$net_release = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue).Release
+Write-Output ".NET Framework release key: $net_release (533320 or higher = 4.8.1)"
+Add-Type -Namespace Probe -Name Native -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern System.IntPtr LoadLibraryEx(string path, System.IntPtr file, uint flags);
+'@
+foreach ($flags in @(0x8, 0x1100)) {
+  # 0x8 = LOAD_WITH_ALTERED_SEARCH_PATH, 0x1100 = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR
+  $handle = [Probe.Native]::LoadLibraryEx("$x64_bin_path\Chef.PowerShell.Wrapper.dll", [System.IntPtr]::Zero, $flags)
+  $win32_error = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+  Write-Output ("LoadLibraryEx flags 0x{0:X}: handle={1} last error={2}" -f $flags, $handle, $win32_error)
+}
+Write-Output "`r"
+
 Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update
 if (-not $?) { throw "Bundle update failed"}
