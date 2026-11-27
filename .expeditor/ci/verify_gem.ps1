@@ -11,12 +11,10 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Output "--- :ruby: Removing existing Ruby instances"
-
-$rubies = Get-ChildItem -Path "C:\ruby*"
-foreach ($ruby in $rubies){
-  Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
-}
+# Keep the Ruby that ships in the docker image (3.1.x or 3.4.x): the Ruby version selects which Chef
+# major version this job tests. Chef's own Ruby must never be the one running this script.
+$image_ruby = Get-Command ruby -ErrorAction Stop
+Write-Output "Image Ruby: $($image_ruby.Source) ($(& ruby --version))"
 Write-Output "`r"
 
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
@@ -41,7 +39,8 @@ Write-Output "`r"
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+# refreshenv can drop the image's Ruby from PATH; put its folder back first
+$env:Path = (Split-Path $image_ruby.Source) + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 Write-Output "`r"
 
 # Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
@@ -137,7 +136,8 @@ Write-Output "`r"
 
 Write-Output "--- :bank: Refreshing the build environment to pick up Node.js binaries"
 refreshenv
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+# refreshenv can drop the image's Ruby from PATH; put its folder back first
+$env:Path = (Split-Path $image_ruby.Source) + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 Write-Output "`r"
 
 Write-Output "--- :bank: Installing CSPell via NPM, Getting Ready to SpellCheck the Gem code"
@@ -348,7 +348,7 @@ function Invoke-ChefPowerShellIntegrationTest {
 
 Write-Output "--- :mag: Determining which Chef version to integration-test against this Ruby"
 $ruby_version = (ruby -e "puts RbConfig::CONFIG['ruby_version']").Trim()
-Write-Output "System Ruby under test: $ruby_version"
+Write-Output "System Ruby under test: $ruby_version ($((Get-Command ruby).Source))"
 Write-Output "`r"
 
 $integration_test_script = "$project_root\chef-powershell\chef_gem_integration_test.rb"
