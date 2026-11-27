@@ -212,10 +212,9 @@ function Get-LatestHabPackageIdent {
 
 # Habitat's chef-infra-client carries its own copy of chef-powershell under
 # vendor\gems\chef-powershell-<version> and pins it in its Bundler files. To simulate a real
-# release, this swaps that copy for the contents of the gem built from this branch (gem unpack
-# honours the gemspec's files list, so it holds exactly what would ship, DLLs included) and
+# release, this uninstalls that copy and `gem install`s the gem built from this branch with the
+# package's own Ruby and gem environment (so extconf.rb runs and the gemspec is registered), then
 # repoints the package's Bundler pin at the new version. Nothing is copied piecemeal from the repo.
-# Not replicated: ext/chef-powershell/extconf.rb (it only copies DLLs into an Omnibus embedded\bin).
 # Whether Bundler then really activates this copy is asserted by chef_gem_integration_test.rb
 # (CHEF_POWERSHELL_EXPECTED_VERSION and CHEF_POWERSHELL_EXPECTED_LIB), so a pin that wins fails the job.
 function Install-BuiltGemIntoHabitatChef {
@@ -239,20 +238,13 @@ function Install-BuiltGemIntoHabitatChef {
     Select-String -Path $_.FullName -Pattern "chef-powershell" | ForEach-Object { Write-Output "    $($_.Line.Trim())" }
   }
 
-  $unpack_root = Join-Path $env:TEMP "chef-powershell-unpack-$([guid]::NewGuid().ToString('N'))"
-  New-Item -ItemType Directory -Force -Path $unpack_root | Out-Null
-  gem unpack $BuiltGem --target $unpack_root
-  if (-not $?) { throw "unable to unpack $BuiltGem" }
-  gem unpack $BuiltGem --spec --target $unpack_root
-  if (-not $?) { throw "unable to extract the gemspec from $BuiltGem" }
-  $unpacked_dir = Join-Path $unpack_root "chef-powershell-$new_version"
-  $unpacked_spec = Get-ChildItem $unpack_root -Filter "chef-powershell-*.gemspec" -File | Select-Object -First 1
-  if (-not (Test-Path $unpacked_dir) -or -not $unpacked_spec) { throw "gem unpack did not produce $unpacked_dir and its gemspec" }
-  Copy-Item $unpacked_spec.FullName (Join-Path $unpacked_dir "chef-powershell.gemspec") -Force
-
-  Remove-Item $vendored_dir.FullName -Recurse -Force
-  Move-Item $unpacked_dir "$chef_pkg_path\vendor\gems\chef-powershell-$new_version"
-  Remove-Item $unpack_root -Recurse -Force -ErrorAction SilentlyContinue
+  # Run the package's own gem with its runtime environment (GEM_HOME/GEM_PATH point at its vendor
+  # directory) so the old gem is replaced the way RubyGems would, including vendor\specifications.
+  hab pkg exec $ChefPkgIdent gem uninstall chef-powershell --all --executables --ignore-dependencies --force
+  if ($LASTEXITCODE -ne 0) { throw "unable to uninstall the vendored chef-powershell $old_version from $ChefPkgIdent" }
+  hab pkg exec $ChefPkgIdent gem install $BuiltGem --local --ignore-dependencies --no-document
+  if ($LASTEXITCODE -ne 0) { throw "unable to install $BuiltGem into $ChefPkgIdent" }
+  if (-not (Test-Path "$chef_pkg_path\vendor\gems\chef-powershell-$new_version")) { throw "chef-powershell-$new_version was not installed under $chef_pkg_path\vendor\gems" }
 
   if ($old_version -ne $new_version) {
     $bundler_files | ForEach-Object {
@@ -339,8 +331,10 @@ function Invoke-ChefPowerShellIntegrationTest {
   $original_chef_bin = $env:CHEF_POWERSHELL_BIN
   try {
     if ($ChefPowerShellBin) { $env:CHEF_POWERSHELL_BIN = $ChefPowerShellBin } else { Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue }
+    $global:LASTEXITCODE = 0
     & $Invocation
-    if (-not $?) { throw "$Label failed" }
+    # $? is not reliable for a native command run inside a scriptblock; the exit code is
+    if ($LASTEXITCODE -ne 0) { throw "$Label failed with exit code $LASTEXITCODE" }
   }
   finally {
     if ($null -eq $original_chef_bin) { Remove-Item Env:\CHEF_POWERSHELL_BIN -ErrorAction SilentlyContinue } else { $env:CHEF_POWERSHELL_BIN = $original_chef_bin }

@@ -180,11 +180,13 @@ cd C:\localrepo\chef-powershell-shim\chef-powershell
 gem build chef-powershell.gemspec      # run after the DLLs are in bin\ruby_bin_folder\<ARCH>
 ```
 
-then, for the Habitat package, `gem unpack` the built `.gem` over the vendored folder (named for the built
-version), and repoint the `chef-powershell` pin in the package's `Gemfile`/`Gemfile.lock` at that version.
+then, for the Habitat package, uninstall the vendored gem and install the built `.gem` with the package's own
+Ruby (`hab pkg exec $chefPkg gem uninstall chef-powershell --all --force`, then
+`hab pkg exec $chefPkg gem install <built .gem> --local --ignore-dependencies --no-document`; the package's runtime
+`GEM_HOME` is its `vendor` directory, so the gem and its gemspec land where RubyGems looks), and repoint the
+`chef-powershell` pin in the package's `Gemfile`/`Gemfile.lock` at that version.
 `Install-BuiltGemIntoHabitatChef` in `.expeditor/ci/verify_gem.ps1` does exactly this and logs the Bundler
-files it changes. Not replicated for Habitat: `ext/chef-powershell/extconf.rb`, which only copies DLLs into an
-Omnibus `embedded\bin`.
+files it changes.
 
 Whether Bundler really activates the installed copy is not assumed:
 `chef_gem_integration_test.rb` fails if `CHEF_POWERSHELL_EXPECTED_VERSION` / `CHEF_POWERSHELL_EXPECTED_GEM_DIR`
@@ -288,8 +290,8 @@ hab pkg install $chef18Ident --channel stable
 
 ### 3.2 Install the gem built from this branch into the Chef-18 package
 
-Same approach and caveats as Chef-19 (see 2.2): build the gem, `gem unpack` it over the package's vendored
-`chef-powershell-<version>` folder and repoint the Bundler pin. `Install-BuiltGemIntoHabitatChef` in
+Same approach and caveats as Chef-19 (see 2.2): build the gem, uninstall the package's vendored chef-powershell, `gem install` the
+built gem with the package's Ruby and repoint the Bundler pin. `Install-BuiltGemIntoHabitatChef` in
 `.expeditor/ci/verify_gem.ps1` is used for both Chef-18 and Chef-19 Habitat.
 
 ### 3.3 Quick runtime test (same as Chef-19 above, different exec target)
