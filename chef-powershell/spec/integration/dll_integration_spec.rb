@@ -53,6 +53,14 @@ ENV["CHEF_POWERSHELL_BIN"] = DLL_BIN_DIR
 def raw_powershell(script, timeout: -1)
   orig_bin = ENV["CHEF_POWERSHELL_BIN"]
   ENV["CHEF_POWERSHELL_BIN"] = DLL_BIN_DIR
+
+  # allocate skips PowerShell#initialize, which is what registers the DLL directory so the
+  # wrapper's VC++ runtime dependencies resolve. Do the same here (as raw_pwsh does) rather
+  # than relying on the Ruby's own directory happening to contain those DLLs.
+  ChefPowerShell::Kernel32.SetDefaultDllDirectories(ChefPowerShell::Kernel32::LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)
+  ChefPowerShell::Kernel32.register_search_directory(DLL_BIN_DIR)
+  ChefPowerShell::Kernel32.SetDllDirectoryA(DLL_BIN_DIR)
+
   ps = ChefPowerShell::PowerShell.allocate
   ps.instance_variable_set(:@powershell_dll, NET481_DLL)
   ps.send(:exec, script, timeout: timeout)
