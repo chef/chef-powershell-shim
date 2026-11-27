@@ -22,7 +22,7 @@ A .NET Assembly to facilitate communication between Chef and PowerShell on the W
 | `.expeditor/ci/local_verify_in_docker.ps1` | Developers | Runs `verify_gem.ps1` locally in a disposable Windows container. |
 | `.expeditor/ci/local_low_memory_test.ps1` | Developers | Memory-pressure regression test using locally built DLLs. Not run in CI. |
 | `.expeditor/scripts/gem_push_artifactory.ps1` | Buildkite `gem_validate/release` pipeline, triggered by Expeditor after a merge that bumps the version | Builds the gem and pushes it to the internal Artifactory gems repo. |
-| `.expeditor/manual_gem_release.ps1` | Releng, by hand on a Windows machine | Builds the gem and publishes it to RubyGems.org. `built_in:publish_rubygems` is commented out in `.expeditor/config.yml`, so this step is manual. |
+| `.expeditor/manual_gem_release.ps1` | Releng, by hand on a Windows machine | Builds the gem and publishes it to RubyGems.org (see "How the gem is released today"). |
 
 ### Development Prerequisites
 
@@ -66,18 +66,32 @@ Finally, ensure that nuget is correctly setup by adding a repo source
 dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
 ```
 
-### Build on merge
+### How the gem is released today
 
-(Broken due to credentials for pushing gem, but also `.\.expeditor\update_version.sh` appears to be broken as well.
+The gem contains compiled DLLs, so it can only be built on Windows. This is read from the repo configuration; it
+has not been re-run end to end.
 
-`workflows/gem-build.yml` should normally build on merge to `18-Stable`
+1. **PR validation (every PR):** the Buildkite `verify` pipeline runs `.expeditor/ci/verify_gem.ps1`.
+   It publishes nothing.
+2. **On merge to `main` (automatic, Expeditor, see `.expeditor/config.yml`):**
+   - bumps the version in the `VERSION` file (patch by default; use the `Expeditor: Bump Version Minor/Major`
+     labels for larger bumps, or `Expeditor: Skip Version Bump` to skip),
+   - runs `.expeditor/update_version.sh`, which copies `VERSION` into `chef-powershell/lib/chef-powershell/version.rb`
+     and runs `bundle update chef-powershell --conservative`,
+   - updates the changelog, tags the release, and triggers the `habitat/build` and `gem_validate/release` pipelines.
+3. **`gem_validate/release` (Buildkite, `.expeditor/gem_release.pipeline.yml`):** runs
+   `.expeditor/scripts/gem_push_artifactory.ps1`, which builds the DLLs with Habitat, builds the gem and pushes it to
+   the internal Artifactory gems repo. The Artifactory host and repo name in that script still carry a
+   `TODO: confirm` comment.
+4. **Publishing to RubyGems.org is manual.** The Expeditor `built_in:publish_rubygems` action is commented out in
+   `.expeditor/config.yml`. Someone with RubyGems.org access publishes the merged version using either:
+   - `.\.expeditor\manual_gem_release.ps1` on a Windows machine (builds the DLLs and gem, then runs `gem push` to
+     RubyGems.org), or
+   - the `Manually triggered workflow` GitHub Action (`.github/workflows/manual-gem-build.yml`, `workflow_dispatch`),
+     which pushes with the `GEM_HOST_API_KEY` repository secret.
 
-### Manual build
-
-Then run `.\.expeditor\manual_gem_release.ps1` to build the gem and push it out. Releng does not have a Windows centric
-facility to build and push gems to Artifactory automatically. You will need:
-1) Access to the Chef internal Artifactory repo
-2) a Windows build system
+`.github/workflows/gem-build.yml` only runs when a merged PR targeting the retired `18-Stable` branch is labelled
+`build and release`, so it no longer triggers. `.github/workflows/tester.yml` is a manual test workflow.
 
 ## Contributing/Development
 
