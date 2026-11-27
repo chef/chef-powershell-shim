@@ -36,6 +36,13 @@ if (-not (Get-Command -Name hab -ErrorAction SilentlyContinue)) {
 }
 Write-Output "`r"
 
+Write-Output "--- :wrench: Installing the Visual C++ runtime that Chef.PowerShell.Wrapper.dll depends on"
+# Without it ffi_lib fails with error 126 ("module could not be found") although the DLL exists.
+# Previously the Chef Omnibus install happened first and happened to provide it.
+choco install vcredist140 -y
+if ($LASTEXITCODE -notin 0, 1641, 3010) { throw "unable to install the Visual C++ runtime (choco exit code $LASTEXITCODE)" }
+Write-Output "`r"
+
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
