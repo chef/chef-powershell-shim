@@ -111,6 +111,15 @@ else{
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
 
+Write-Output "--- :mag: Checking the DLL payload copied from the Habitat package"
+# chef-powershell-shim's habitat/plan.ps1 ships the VC++ runtime next to the wrapper DLLs; the gem loads them from here.
+Get-ChildItem -Path $x64_bin_path -File | Sort-Object Name | ForEach-Object { Write-Output ("  {0,-48} {1,10:N0} bytes" -f $_.Name, $_.Length) }
+$expected_dlls = @("Chef.PowerShell.Wrapper.dll", "Chef.PowerShell.dll", "vcruntime140.dll", "msvcp140.dll")
+foreach ($dll in $expected_dlls) {
+  if (-not (Test-Path (Join-Path $x64_bin_path $dll))) { throw "$dll is missing from $x64_bin_path - the Habitat build or the copy above did not produce a complete payload" }
+}
+Write-Output "`r"
+
 Write-Output "--- :truck: Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
 Write-Output "We are now here : $(Get-Location)"
