@@ -14,21 +14,31 @@ We pruned this repository to simplify maintenance. **`main` is now the only acti
 
 A .NET Assembly to facilitate communication between Chef and PowerShell on the Windows platform. This repo now also contains the chef-powershell Ruby gem which consumes the the .NET Assembly and provides the interface between Chef and PowerShell via ffi.
 
+### Which script does what
+
+| Script | Used by | Purpose |
+|---|---|---|
+| `.expeditor/ci/verify_gem.ps1` | Buildkite `verify` pipeline (`.expeditor/verify.pipeline.yml`), every PR | Builds the DLLs, checks the gem, and tests this branch's chef-powershell against Chef 18 (Omnibus + Habitat) and Chef 19 (Habitat). Verification only: it publishes nothing. |
+| `.expeditor/ci/local_verify_in_docker.ps1` | Developers | Runs `verify_gem.ps1` locally in a disposable Windows container. |
+| `.expeditor/ci/local_low_memory_test.ps1` | Developers | Memory-pressure regression test using locally built DLLs. Not run in CI. |
+| `.expeditor/scripts/gem_push_artifactory.ps1` | Buildkite `gem_validate/release` pipeline, triggered by Expeditor after a merge that bumps the version | Builds the gem and pushes it to the internal Artifactory gems repo. |
+| `.expeditor/manual_gem_release.ps1` | Releng, by hand on a Windows machine | Builds the gem and publishes it to RubyGems.org. `built_in:publish_rubygems` is commented out in `.expeditor/config.yml`, so this step is manual. |
+
 ### Development Prerequisites
 
-Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\build_gems.ps1` to test your changes locally.
+Binaries can be built with Habitat. See the PowerShell script `.\.expeditor\ci\verify_gem.ps1` to test your changes locally.
 
 If you'd rather not install Habitat, Chef-Client, and the other build dependencies directly on your
-workstation, `.\.expeditor\local_build_gems.ps1` runs the exact same `build_gems.ps1` build inside a
+workstation, `.\.expeditor\ci\local_verify_in_docker.ps1` runs the exact same `verify_gem.ps1` build inside a
 disposable Windows Server 2022 Core Docker container (Docker Desktop with Windows containers enabled
 is required). It mounts your repo checkout read-write into the container and copies the resulting
 Habitat artifacts, built gem, and compiled DLLs out to an output directory on your host (`.\build-output`
 by default):
 
 ```powershell
-.\.expeditor\local_build_gems.ps1
+.\.expeditor\ci\local_verify_in_docker.ps1
 # or, to control the Ruby version / output location:
-.\.expeditor\local_build_gems.ps1 -RubyVersion 3.1 -OutputPath C:\chef-powershell-shim-output
+.\.expeditor\ci\local_verify_in_docker.ps1 -RubyVersion 3.1 -OutputPath C:\chef-powershell-shim-output
 ```
 
 You'll need a Habitat Builder personal access token for this too - `hab pkg build` installs

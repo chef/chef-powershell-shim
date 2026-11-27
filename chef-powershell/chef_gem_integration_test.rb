@@ -6,7 +6,7 @@
 # its own build time) is what actually executes powershell_exec.
 #
 # This is intentionally invoked through Chef's own Ruby (embedded/Habitat), with this
-# repo's lib/ forced ahead of Chef's bundled copy on the load path (see build_gems.ps1),
+# repo's lib/ forced ahead of Chef's bundled copy on the load path (see verify_gem.ps1),
 # so it reproduces exactly what a real Chef run would do.
 #
 # Usage: ruby chef_gem_integration_test.rb

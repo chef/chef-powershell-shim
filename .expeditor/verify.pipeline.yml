@@ -11,7 +11,7 @@ steps:
 
 - label: ":windows: Verify gem + test with Chef 18 (Omnibus + Habitat) - Ruby 3.1.7"
   commands:
-    - .expeditor/build_gems.ps1
+    - .expeditor/ci/verify_gem.ps1
   expeditor:
     executor:
       docker:
@@ -24,7 +24,7 @@ steps:
 
 - label: ":windows: Verify gem + test with Chef 19 (Habitat) - Ruby 3.4"
   commands:
-    - .expeditor/build_gems.ps1
+    - .expeditor/ci/verify_gem.ps1
   expeditor:
     executor:
       docker:
@@ -33,4 +33,3 @@ steps:
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
-          - CHEF_LICENSE_KEY
