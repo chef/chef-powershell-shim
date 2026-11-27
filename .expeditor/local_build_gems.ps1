@@ -57,6 +57,11 @@
   $env:HAB_AUTH_TOKEN, then a HAB_AUTH_TOKEN=... entry in ~/.env. Generate
   one at https://bldr.habitat.sh/#/profile if you don't have one.
 
+  Chef license key: with -RubyVersion 3.1, build_gems.ps1 downloads the newest
+  Chef-18 Omnibus from the 'current' channel of the licensed Chef download API
+  to test the gem against it. Set $env:CHEF_LICENSE_KEY (forwarded into the
+  container); it is not needed for Ruby 3.4.
+
 .EXAMPLE
   .\.expeditor\local_build_gems.ps1
 
@@ -239,7 +244,7 @@ if (-not [string]::IsNullOrWhiteSpace($HabAuthToken)) {
     $dockerRunArgs += "HAB_AUTH_TOKEN=$HabAuthToken"
 }
 
-foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE')) {
+foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE', 'CHEF_LICENSE_KEY')) {
     $value = [Environment]::GetEnvironmentVariable($envVar, 'Process')
     if (-not [string]::IsNullOrWhiteSpace($value)) {
         $dockerRunArgs += '-e'

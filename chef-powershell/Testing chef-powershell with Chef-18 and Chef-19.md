@@ -136,6 +136,12 @@ Exit code 0 = every round-trip came back exact.
 Chef-19 is only distributed as a Habitat package. There is no Omnibus installer or standalone gem
 path.
 
+> **What CI (`.expeditor/build_gems.ps1`) tests against:** moving targets, not pins, so every
+> unreleased Chef build exercises this repo's chef-powershell code. Chef-18 Omnibus (Ruby 3.1 job
+> only) comes from the `current` channel of the licensed download API and needs `CHEF_LICENSE_KEY`;
+> Chef-18 and Chef-19 Habitat packages are the newest `18.*`/`19.*` in the `unstable` channel.
+> `chef_gem_integration_test.rb` fails if the `powershell_exec.rb` it loads differs from this repo's.
+
 ### 2.1 Install Chef-19 via Habitat
 
 **If you've set `$env:HAB_BLDR_CHANNEL`/`$env:HAB_REFRESH_CHANNEL` to build this repo's own

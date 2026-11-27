@@ -20,6 +20,22 @@ failures = []
 spec = Gem.loaded_specs["chef-powershell"]
 puts "Loaded chef-powershell #{spec&.version} from #{spec&.full_gem_path || "$LOAD_PATH override"}"
 
+# When the harness tells us where this repo's lib/ lives, prove the code actually executing is that
+# code and not the copy Chef bundled. Comparing file content is stricter than comparing versions,
+# which are often identical between the bundled gem and a PR.
+if (expected_lib = ENV["CHEF_POWERSHELL_EXPECTED_LIB"]) && !expected_lib.empty?
+  require "digest"
+  loaded_file = ChefPowerShell::ChefPowerShellModule::PowerShellExec.instance_method(:powershell_exec).source_location&.first
+  expected_file = File.join(expected_lib, "chef-powershell", "powershell_exec.rb")
+  if loaded_file.nil? || !File.exist?(expected_file)
+    failures << "could not locate the loaded (#{loaded_file.inspect}) or expected (#{expected_file}) powershell_exec.rb"
+  elsif Digest::SHA256.file(loaded_file).hexdigest != Digest::SHA256.file(expected_file).hexdigest
+    failures << "powershell_exec.rb loaded from #{loaded_file} does not match this repo's #{expected_file}; the PR's gem is not what is being tested"
+  else
+    puts "Verified the loaded powershell_exec.rb (#{loaded_file}) matches this repo's code"
+  end
+end
+
 begin
   result = powershell_exec("$PSVersionTable", :powershell)
   if result.result["PSEdition"] != "Desktop"
