@@ -9,7 +9,7 @@ expeditor:
 
 steps:
 
-- label: ":windows: pre-build-verify-windows-gem - Ruby 3.1.7"
+- label: ":windows: Verify gem + test with Chef 18 (Omnibus + Habitat) - Ruby 3.1.7"
   commands:
     - .expeditor/build_gems.ps1
   expeditor:
@@ -22,7 +22,7 @@ steps:
           - HAB_AUTH_TOKEN
           - CHEF_LICENSE_KEY
 
-- label: ":windows: pre-build-verify-windows-gem - Ruby 3.4.8"
+- label: ":windows: Verify gem + test with Chef 19 (Habitat) - Ruby 3.4"
   commands:
     - .expeditor/build_gems.ps1
   expeditor:
@@ -33,14 +33,3 @@ steps:
         shell: [ "powershell", "-Command" ]
         environment:
           - HAB_AUTH_TOKEN
-
-- label: ":windows: What version of Ruby are we using?"
-  command: 
-    Get-Command ruby;
-    ruby --version
-  expeditor:
-    executor:
-      docker:
-        host_os: windows
-        image: rubydistros/windows-2019:3.4
-        shell: [ "powershell", "-Command" ]
