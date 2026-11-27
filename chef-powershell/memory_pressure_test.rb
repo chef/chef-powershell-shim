@@ -13,7 +13,7 @@
 #   - the *process* is put under heavy GC churn (large, constantly-discarded Ruby
 #     allocations, plus GC.stress to force a collection around every allocation), and
 #   - it is intended to be run inside a memory-constrained container (see
-#     .expeditor/local_low_memory_test.ps1), so the .NET/CLR side is also forced to
+#     .expeditor/ci/local_low_memory_test.ps1), so the .NET/CLR side is also forced to
 #     collect aggressively rather than comfortably holding on to short-lived buffers.
 #
 # It then repeatedly round-trips a variety of payload shapes/sizes (including the

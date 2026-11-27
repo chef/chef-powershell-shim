@@ -5,17 +5,17 @@
 <#
 .SYNOPSIS
   Runs chef-powershell/memory_pressure_test.rb inside a memory-constrained Windows
-  container, using the DLLs produced by a local .expeditor/build_gems.ps1 run (see
-  local_build_gems.ps1), to guard against a regression of the heap-lifetime bug fixed
+  container, using the DLLs produced by a local .expeditor/ci/verify_gem.ps1 run (see
+  local_verify_in_docker.ps1), to guard against a regression of the heap-lifetime bug fixed
   in PRs #187, #196, #205 (result payloads getting corrupted/lost on the way back from
   the native wrapper to Ruby, particularly under memory pressure).
 
 .DESCRIPTION
   1. Requires that chef-powershell/bin/ruby_bin_folder/<ARCH> already contains freshly
-     built DLLs (i.e. you've already run .\.expeditor\local_build_gems.ps1, or copied a
+     built DLLs (i.e. you've already run .\.expeditor\ci\local_verify_in_docker.ps1, or copied a
      built Habitat package's bin/ over that folder yourself).
   2. Reuses the same minimal Windows Server 2022 Core + Ruby/Git/vcredist image that
-     local_build_gems.ps1 builds (docker/windows2022-core/Dockerfile) -- no Habitat/
+     local_verify_in_docker.ps1 builds (docker/windows2022-core/Dockerfile) -- no Habitat/
      Chef-Client/Node install is needed just to run this Ruby-only test.
   3. Runs that image as a *memory-limited* container (-MemoryLimit, default 512MB)
      with the repo mounted read-only at C:\workdir, and executes
@@ -24,7 +24,7 @@
      Ruby heap and, via reduced available system memory, the CLR heap the native
      wrapper allocates from are put under realistic pressure.
   4. Surfaces the container's exit code as this script's exit code/throw, so it can be
-     wired into CI the same way build_gems.ps1's other verification steps are.
+     wired into CI the same way verify_gem.ps1's other verification steps are.
 
 .PARAMETER MemoryLimit
   Docker `--memory` limit to apply to the test container, e.g. "384m" or "512m". Low
@@ -35,11 +35,11 @@
 
 .PARAMETER ImageTag
   Tag of the Windows Server 2022 Core build image to (re)use. Defaults to the same tag
-  local_build_gems.ps1 builds, so a prior local build run's image is reused as-is.
+  local_verify_in_docker.ps1 builds, so a prior local build run's image is reused as-is.
 
 .PARAMETER Isolation
   Container isolation mode to use ("process" or "hyperv"). Defaults to "hyperv" for
-  broader host/image version compatibility -- see local_build_gems.ps1.
+  broader host/image version compatibility -- see local_verify_in_docker.ps1.
 
 .PARAMETER SkipImageBuild
   Skips (re)building the Docker image and just runs -ImageTag as-is.
@@ -49,11 +49,11 @@
   round-trips the full payload matrix through both interpreters). Defaults to 40.
 
 .EXAMPLE
-  .\.expeditor\build_gems.ps1        # or local_build_gems.ps1, to produce fresh DLLs
-  .\.expeditor\local_low_memory_test.ps1
+  .\.expeditor\ci\verify_gem.ps1        # or local_verify_in_docker.ps1, to produce fresh DLLs
+  .\.expeditor\ci\local_low_memory_test.ps1
 
 .EXAMPLE
-  .\.expeditor\local_low_memory_test.ps1 -MemoryLimit 128m -Iterations 100
+  .\.expeditor\ci\local_low_memory_test.ps1 -MemoryLimit 128m -Iterations 100
 #>
 
 [CmdletBinding()]
@@ -95,8 +95,8 @@ $binDir = Join-Path $projectRoot "chef-powershell\bin\ruby_bin_folder\$arch"
 $wrapperDll = Join-Path $binDir 'Chef.PowerShell.Wrapper.dll'
 if (-not (Test-Path -Path $wrapperDll -PathType Leaf)) {
     throw (
-        "No locally built DLLs found at '$binDir'. Run '.\.expeditor\local_build_gems.ps1' " +
-        "(or '.\.expeditor\build_gems.ps1' directly) first to produce the DLLs this test " +
+        "No locally built DLLs found at '$binDir'. Run '.\.expeditor\ci\local_verify_in_docker.ps1' " +
+        "(or '.\.expeditor\ci\verify_gem.ps1' directly) first to produce the DLLs this test " +
         'exercises -- this script intentionally does not build them itself.'
     )
 }

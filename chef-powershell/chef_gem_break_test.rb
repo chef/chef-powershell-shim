@@ -35,15 +35,15 @@ ARCH = ENV["PROCESSOR_ARCHITECTURE"] || "AMD64"
 GOOD_BIN_DIR = File.join(GEM_ROOT, "bin", "ruby_bin_folder", ARCH)
 
 unless File.directory?(GOOD_BIN_DIR)
-  abort "No built DLLs found at #{GOOD_BIN_DIR}. Build/install the Habitat package first (see build_gems.ps1)."
+  abort "No built DLLs found at #{GOOD_BIN_DIR}. Build/install the Habitat package first (see verify_gem.ps1)."
 end
 
-# Two facts about the environment that are inherent to having run build_gems.ps1 at all --
+# Two facts about the environment that are inherent to having run verify_gem.ps1 at all --
 # true on a freshly built clean container just as much as a long-lived dev box -- not
 # leftover test pollution. Scenarios below that would otherwise "expect failure" need to
 # account for them, or they report false failures that don't reflect a real code defect.
 #
-# 1. build_gems.ps1 itself runs `hab pkg install results/$pkg_artifact`, so the real shim
+# 1. verify_gem.ps1 itself runs `hab pkg install results/$pkg_artifact`, so the real shim
 #    package is always resolvable via `hab pkg path chef/chef-powershell-shim` afterward --
 #    which is exactly the fallback resolve_wrapper_dll intentionally uses for resilience.
 HAB_SHIM_FALLBACK_AVAILABLE = system("hab", "pkg", "path", "chef/chef-powershell-shim", out: File::NULL, err: File::NULL)
@@ -206,7 +206,7 @@ section("Corrupted / partial DLL layout")
     corrupt: ->(bin_dir) { FileUtils.rm_f(File.join(bin_dir, "Chef.Powershell.Wrapper.dll")) },
     expect_pwsh: :succeeded,
     # resolve_wrapper_dll's Habitat-package fallback is intentional resilience, always
-    # available once build_gems.ps1 has installed the shim package -- not a bypass.
+    # available once verify_gem.ps1 has installed the shim package -- not a bypass.
     expect_powershell: HAB_SHIM_FALLBACK_AVAILABLE ? :succeeded : %i{raised_load_error raised_other crashed},
   },
   "vcruntime140.dll (CRT dependency) missing, wrapper DLLs still present" => {

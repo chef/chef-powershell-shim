@@ -11,12 +11,10 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Output "--- :ruby: Removing existing Ruby instances"
-
-$rubies = Get-ChildItem -Path "C:\ruby*"
-foreach ($ruby in $rubies){
-  Remove-Item -LiteralPath $ruby.FullName -Recurse -Force -ErrorAction SilentlyContinue
-}
+# Keep the Ruby that ships in the docker image (3.1.x or 3.4.x): the Ruby version selects which Chef
+# major version this job tests. Chef's own Ruby must never be the one running this script.
+$image_ruby = Get-Command ruby -ErrorAction Stop
+Write-Output "Image Ruby: $($image_ruby.Source) ($(& ruby --version))"
 Write-Output "`r"
 
 # Need to set this variable to keep the build from failing while trying to resolve nonsense sdk paths
@@ -38,60 +36,11 @@ if (-not (Get-Command -Name hab -ErrorAction SilentlyContinue)) {
 }
 Write-Output "`r"
 
-Write-Output "--- :screwdriver: Installing Chef-Client 18.11.11 from the licensed Chef download API"
-# 18.11.11 is the last Chef-18 release; packages.chef.io returns 402 without a license key.
-if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) {
-  $chef_msi = Join-Path $env:TEMP "chef-client-18.11.11.msi"
-  $chef_url = "https://packages.chef.io/files/current/chef/18.11.11/windows/2022/chef-client-18.11.11-1-x64.msi"
-  # The progress bar makes Invoke-WebRequest extremely slow in Windows PowerShell 5.
-  $ProgressPreference = 'SilentlyContinue'
-  Write-Output "Downloading $chef_url"
-  Invoke-WebRequest -UseBasicParsing -Uri $chef_url -OutFile $chef_msi -TimeoutSec 600
-  Write-Output "Downloaded $([math]::Round((Get-Item $chef_msi).Length / 1MB, 1)) MB, installing"
-  $chef_msi_log = Join-Path $env:TEMP "chef-client-install.log"
-  # Prints the install log tail and the installer process tree; only used when the install fails or hangs.
-  function Write-MsiDiagnostics {
-    Get-Content $chef_msi_log -Tail 50 -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "  log> $_" }
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-      Where-Object { $_.Name -in 'msiexec.exe', 'rundll32.exe', '7z.exe' } |
-      Select-Object ProcessId, ParentProcessId, Name, @{ n = 'Cmd'; e = { "$($_.CommandLine)".Substring(0, [math]::Min(120, "$($_.CommandLine)".Length)) } } |
-      Format-Table -AutoSize | Out-String -Width 250 | Write-Output
-  }
-
-  # Start-Process hung in this container; Process.Start does not.
-  $msi_psi = New-Object System.Diagnostics.ProcessStartInfo
-  $msi_psi.FileName = "msiexec.exe"
-  $msi_psi.Arguments = "/i `"$chef_msi`" /qn /norestart /l*v `"$chef_msi_log`""
-  $msi_psi.UseShellExecute = $false
-  $msi_psi.CreateNoWindow = $true
-  $msi = [System.Diagnostics.Process]::Start($msi_psi)
-  $msi_started = Get-Date
-  Write-Output "$(Get-Date -Format 'HH:mm:ss') started msiexec PID $($msi.Id), log at $chef_msi_log"
-  while (-not $msi.HasExited) {
-    $elapsed = [int]((Get-Date) - $msi_started).TotalSeconds
-    if ($elapsed -gt 600) {
-      Write-MsiDiagnostics
-      $msi.Kill()
-      throw "Chef-Client MSI install timed out after 10 minutes"
-    }
-    Start-Sleep -Seconds 30
-    Write-Output "$(Get-Date -Format 'HH:mm:ss') msiexec still running after $($elapsed + 30)s"
-  }
-  $msi.WaitForExit()
-  Write-Output "msiexec exited with code $($msi.ExitCode) after $([int]((Get-Date) - $msi_started).TotalSeconds)s"
-  if ($msi.ExitCode -notin 0, 3010) {
-    Write-MsiDiagnostics
-    throw "Chef-Client MSI install failed with exit code $($msi.ExitCode)"
-  }
-  Remove-Item $chef_msi -Force -ErrorAction SilentlyContinue
-  if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) { throw "unable to install Chef-Client" }
-}
-Write-Output "`r"
-
 Write-Output "--- :chopsticks: Refreshing the build environment to pick up Hab binaries"
 Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
 refreshenv
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+# refreshenv can drop the image's Ruby from PATH; put its folder back first
+$env:Path = (Split-Path $image_ruby.Source) + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 Write-Output "`r"
 
 # Write-Output "--- :building_construction: Correcting a gem build problem, moving header files around"
@@ -162,6 +111,15 @@ else{
   Copy-Item "$x64\bin\*" -Destination $x64_bin_path -Force -Recurse
 }
 
+Write-Output "--- :mag: Checking the DLL payload copied from the Habitat package"
+# chef-powershell-shim's habitat/plan.ps1 ships the VC++ runtime next to the wrapper DLLs; the gem loads them from here.
+Get-ChildItem -Path $x64_bin_path -File | Sort-Object Name | ForEach-Object { Write-Output ("  {0,-48} {1,10:N0} bytes" -f $_.Name, $_.Length) }
+$expected_dlls = @("Chef.PowerShell.Wrapper.dll", "Chef.PowerShell.dll", "vcruntime140.dll", "msvcp140.dll")
+foreach ($dll in $expected_dlls) {
+  if (-not (Test-Path (Join-Path $x64_bin_path $dll))) { throw "$dll is missing from $x64_bin_path - the Habitat build or the copy above did not produce a complete payload" }
+}
+Write-Output "`r"
+
 Write-Output "--- :truck: Moving to the chef-powershell gem directory"
 Set-Location "$project_root\chef-powershell"
 Write-Output "We are now here : $(Get-Location)"
@@ -187,7 +145,8 @@ Write-Output "`r"
 
 Write-Output "--- :bank: Refreshing the build environment to pick up Node.js binaries"
 refreshenv
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User") + ";c:\opscode\chef\embedded\bin"
+# refreshenv can drop the image's Ruby from PATH; put its folder back first
+$env:Path = (Split-Path $image_ruby.Source) + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 Write-Output "`r"
 
 Write-Output "--- :bank: Installing CSPell via NPM, Getting Ready to SpellCheck the Gem code"
@@ -234,6 +193,22 @@ if (Test-Path $($parent_folder + "\chef.powershell.dll")){
 }
 Write-Output "`r"
 
+Write-Output "--- :microscope: Diagnosing whether the wrapper DLL loads in this image (informational)"
+# Error 126 means the DLL or one of its dependencies could not be found. This probes the load outside Ruby.
+$net_release = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue).Release
+Write-Output ".NET Framework release key: $net_release (533320 or higher = 4.8.1)"
+Add-Type -Namespace Probe -Name Native -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern System.IntPtr LoadLibraryEx(string path, System.IntPtr file, uint flags);
+'@
+foreach ($flags in @(0x8, 0x1100)) {
+  # 0x8 = LOAD_WITH_ALTERED_SEARCH_PATH, 0x1100 = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR
+  $handle = [Probe.Native]::LoadLibraryEx("$x64_bin_path\Chef.PowerShell.Wrapper.dll", [System.IntPtr]::Zero, $flags)
+  $win32_error = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+  Write-Output ("LoadLibraryEx flags 0x{0:X}: handle={1} last error={2}" -f $flags, $handle, $win32_error)
+}
+Write-Output "`r"
+
 Write-Output "--- :point_right: finally verifying the gem code (chefstyle, spellcheck, spec)"
 bundle update
 if (-not $?) { throw "Bundle update failed"}
@@ -242,11 +217,13 @@ if (-not $?) { throw "Bundle Gem failed"}
 
 Write-Output "`r"
 
-# There are ~100 released chef-infra-client patch versions per major line, so we
-# resolve the newest one for a given major version at run time via the Habitat
-# Depot API rather than hardcoding a patch version that will inevitably go stale.
+# The newest chef-infra-client of a given major version is resolved at run time via the Habitat
+# Depot API rather than pinned, so every promotion of an unreleased Chef package (the 'unstable'
+# channel) is tested against this repo's chef-powershell code.
 # `hab pkg install chef/chef-infra-client/18` does not support a major-only partial
 # version, so we need the fully qualified origin/name/version/release ident anyway.
+# The Depot lists a channel oldest-first (thousands of entries in 'unstable'), so we read pages from
+# the newest end backwards and stop once we have walked past the requested major version.
 function Get-LatestHabPackageIdent {
   param(
     [Parameter(Mandatory=$true)] [string]$Origin,
@@ -255,13 +232,24 @@ function Get-LatestHabPackageIdent {
     [Parameter(Mandatory=$true)] [string]$MajorVersion
   )
 
+  $base_url = "https://bldr.habitat.sh/v1/depot/channels/$Origin/$Channel/pkgs/$Name"
+  $first_page = Invoke-RestMethod "$base_url`?range=0"
+  $total = $first_page.total_count
+  $page_size = [math]::Max($first_page.data.Count, 1)
+
   $matching_releases = @()
-  $range = 0
-  do {
-    $page = Invoke-RestMethod "https://bldr.habitat.sh/v1/depot/channels/$Origin/$Channel/pkgs/$Name`?range=$range"
-    $matching_releases += $page.data | Where-Object { $_.version -like "$MajorVersion.*" }
-    $range += $page.data.Count
-  } while ($page.data.Count -gt 0 -and $range -lt $page.total_count)
+  $range = [math]::Max($total - $page_size, 0)
+  while ($true) {
+    $page = Invoke-RestMethod "$base_url`?range=$range"
+    $page_matches = @($page.data | Where-Object { $_.version -like "$MajorVersion.*" })
+    if ($page_matches.Count -gt 0) {
+      $matching_releases += $page_matches
+    } elseif ($matching_releases.Count -gt 0) {
+      break
+    }
+    if ($range -eq 0) { break }
+    $range = [math]::Max($range - $page_size, 0)
+  }
 
   if ($matching_releases.Count -eq 0) {
     throw "No $Origin/$Name releases matching version '$MajorVersion.*' found in the '$Channel' channel"
@@ -299,6 +287,70 @@ function Set-VendoredChefPowerShellGem {
   Copy-Item "$FreshDllBin\*" -Destination $vendored_dll_dir -Recurse -Force
 }
 
+# Installs the newest Chef-18 Omnibus package from the 'current' channel (every unreleased
+# Chef-18 build) via the licensed Chef download API, which needs CHEF_LICENSE_KEY.
+# `v=18` asks the API for the newest 18.x; the resolved version is logged after the install.
+function Install-ChefOmnibusCurrent {
+  param([Parameter(Mandatory=$true)] [string]$MajorVersion)
+
+  if ([string]::IsNullOrWhiteSpace($env:CHEF_LICENSE_KEY)) {
+    throw "CHEF_LICENSE_KEY is not set; it is required to download Chef-Client from the licensed Chef download API"
+  }
+  $chef_msi = Join-Path $env:TEMP "chef-client-$MajorVersion-current.msi"
+  $chef_url = "https://chefdownload-commercial.chef.io/current/chef/download?p=windows&pv=2022&m=x86_64&v=$MajorVersion&license_id=$($env:CHEF_LICENSE_KEY)"
+  # The progress bar makes Invoke-WebRequest extremely slow in Windows PowerShell 5.
+  $ProgressPreference = 'SilentlyContinue'
+  # The URL contains the license key, so neither it nor an exception carrying it is printed.
+  Write-Output "Downloading the latest Chef-Client $MajorVersion from the 'current' channel of chefdownload-commercial.chef.io"
+  try {
+    Invoke-WebRequest -UseBasicParsing -Uri $chef_url -OutFile $chef_msi -TimeoutSec 600
+  }
+  catch {
+    $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { "n/a" }
+    throw "Chef-Client $MajorVersion download failed (HTTP status $status)"
+  }
+  Write-Output "Downloaded $([math]::Round((Get-Item $chef_msi).Length / 1MB, 1)) MB, installing"
+  $chef_msi_log = Join-Path $env:TEMP "chef-client-install.log"
+  # Prints the install log tail and the installer process tree; only used when the install fails or hangs.
+  function Write-MsiDiagnostics {
+    Get-Content $chef_msi_log -Tail 50 -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "  log> $_" }
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -in 'msiexec.exe', 'rundll32.exe', '7z.exe' } |
+      Select-Object ProcessId, ParentProcessId, Name, @{ n = 'Cmd'; e = { "$($_.CommandLine)".Substring(0, [math]::Min(120, "$($_.CommandLine)".Length)) } } |
+      Format-Table -AutoSize | Out-String -Width 250 | Write-Output
+  }
+
+  # Start-Process hung in this container; Process.Start does not.
+  $msi_psi = New-Object System.Diagnostics.ProcessStartInfo
+  $msi_psi.FileName = "msiexec.exe"
+  $msi_psi.Arguments = "/i `"$chef_msi`" /qn /norestart /l*v `"$chef_msi_log`""
+  $msi_psi.UseShellExecute = $false
+  $msi_psi.CreateNoWindow = $true
+  $msi = [System.Diagnostics.Process]::Start($msi_psi)
+  $msi_started = Get-Date
+  Write-Output "$(Get-Date -Format 'HH:mm:ss') started msiexec PID $($msi.Id), log at $chef_msi_log"
+  while (-not $msi.HasExited) {
+    $elapsed = [int]((Get-Date) - $msi_started).TotalSeconds
+    if ($elapsed -gt 600) {
+      Write-MsiDiagnostics
+      $msi.Kill()
+      throw "Chef-Client MSI install timed out after 10 minutes"
+    }
+    Start-Sleep -Seconds 30
+    Write-Output "$(Get-Date -Format 'HH:mm:ss') msiexec still running after $($elapsed + 30)s"
+  }
+  $msi.WaitForExit()
+  Write-Output "msiexec exited with code $($msi.ExitCode) after $([int]((Get-Date) - $msi_started).TotalSeconds)s"
+  if ($msi.ExitCode -notin 0, 3010) {
+    Write-MsiDiagnostics
+    throw "Chef-Client MSI install failed with exit code $($msi.ExitCode)"
+  }
+  Remove-Item $chef_msi -Force -ErrorAction SilentlyContinue
+  if (-not (Test-Path "C:\opscode\chef\embedded\bin\gem.cmd")) { throw "unable to install Chef-Client" }
+  $omnibus_manifest = Get-Content "C:\opscode\chef\version-manifest.json" -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
+  Write-Output "Installed Chef-Client Omnibus $($omnibus_manifest.build_version) from the 'current' channel"
+}
+
 function Invoke-ChefPowerShellIntegrationTest {
   param(
     [Parameter(Mandatory=$true)] [string]$Label,
@@ -321,10 +373,12 @@ function Invoke-ChefPowerShellIntegrationTest {
 
 Write-Output "--- :mag: Determining which Chef version to integration-test against this Ruby"
 $ruby_version = (ruby -e "puts RbConfig::CONFIG['ruby_version']").Trim()
-Write-Output "System Ruby under test: $ruby_version"
+Write-Output "System Ruby under test: $ruby_version ($((Get-Command ruby).Source))"
 Write-Output "`r"
 
 $integration_test_script = "$project_root\chef-powershell\chef_gem_integration_test.rb"
+# The integration test uses this to assert it is exercising this branch's chef-powershell code
+$env:CHEF_POWERSHELL_EXPECTED_LIB = "$project_root\chef-powershell\lib"
 
 if ($ruby_version.StartsWith("3.1")) {
   # ---- Chef-18 ships as both Omnibus and Habitat: test it both ways ----
@@ -336,6 +390,10 @@ if ($ruby_version.StartsWith("3.1")) {
   if (-not $?) { throw "unable to build the chef-powershell gem" }
   $built_gem = (Get-ChildItem *.gem | Select-Object -First 1).FullName
   Pop-Location
+  Write-Output "`r"
+
+  Write-Output "--- :screwdriver: Installing the latest Chef-18 Omnibus from the 'current' channel"
+  Install-ChefOmnibusCurrent -MajorVersion "18"
   Write-Output "`r"
 
   Write-Output "--- :gem: Replacing the chef-powershell gem bundled in the Omnibus Chef-18 install"
@@ -358,10 +416,10 @@ if ($ruby_version.StartsWith("3.1")) {
   }
 
   Write-Output "--- :package: Installing Chef-18 (Habitat) for integration testing"
-  # chef/chef-infra-client is published to 'stable', not the 'base-2025' channel set above for our own package build
-  $chef18_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "stable" -MajorVersion "18"
+  # Test against unreleased packages: 'unstable' gets every build, not the 'base-2025' channel set above for our own package build
+  $chef18_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "unstable" -MajorVersion "18"
   Write-Output "Resolved latest Chef-18 Habitat package: $chef18_ident"
-  hab pkg install $chef18_ident --channel stable
+  hab pkg install $chef18_ident --channel unstable
   if (-not $?) { throw "unable to install $chef18_ident" }
   Write-Output "`r"
 
@@ -375,10 +433,10 @@ elseif ($ruby_version.StartsWith("3.4")) {
   # ---- Chef-19 ships as Habitat only ----
 
   Write-Output "--- :package: Installing Chef-19 (Habitat) for integration testing"
-  # chef/chef-infra-client is published to 'stable', not the 'base-2025' channel set above for our own package build
-  $chef19_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "stable" -MajorVersion "19"
+  # Test against unreleased packages: 'unstable' gets every build, not the 'base-2025' channel set above for our own package build
+  $chef19_ident = Get-LatestHabPackageIdent -Origin "chef" -Name "chef-infra-client" -Channel "unstable" -MajorVersion "19"
   Write-Output "Resolved latest Chef-19 Habitat package: $chef19_ident"
-  hab pkg install $chef19_ident --channel stable
+  hab pkg install $chef19_ident --channel unstable
   if (-not $?) { throw "unable to install $chef19_ident" }
   Write-Output "`r"
 

@@ -1,7 +1,7 @@
 # Testing chef-powershell with Chef-18 and Chef-19
 
 
-**This is now automated.** `.expeditor/build_gems.ps1` runs this exact flow (both Chef-18 formats
+**This is now automated.** `.expeditor/ci/verify_gem.ps1` runs this exact flow (both Chef-18 formats
 and Chef-19) as part of CI, using `chef_gem_integration_test.rb` (same directory as this doc) as
 the shared assertions (Part 5 below). If you're testing manually, treat that script as the source
 of truth for exact commands — this guide explains the *why* behind each step and gives you
@@ -55,7 +55,7 @@ set by the `before` block in the spec to the gem's own `bin/ruby_bin_folder/<ARC
 without needing Chef installed at all.
 
 **Step 1 — install the .hart file you want to test and capture its installed path:**
-`build_gems.ps1` already does this for you (see `$x64`/`$x64_bin_path`); for a standalone
+`verify_gem.ps1` already does this for you (see `$x64`/`$x64_bin_path`); for a standalone
 `.hart` you built manually:
 
 ```powershell
@@ -116,15 +116,15 @@ $env:CHEF_POWERSHELL_GC_STRESS = "1"    # opt-in to the slower, more thorough GC
 ruby memory_pressure_test.rb
 ```
 
-`.expeditor\local_low_memory_test.ps1` runs this same script inside a memory-constrained (default
+`.expeditor\ci\local_low_memory_test.ps1` runs this same script inside a memory-constrained (default
 512MB) Windows Docker container, using whatever DLLs are currently under
 `chef-powershell\bin\ruby_bin_folder\<ARCH>` (i.e. the output of a local
-`.expeditor\build_gems.ps1` / `local_build_gems.ps1` run), so the .NET/CLR side is also put under
+`.expeditor\ci\verify_gem.ps1` / `local_verify_in_docker.ps1` run), so the .NET/CLR side is also put under
 genuine OS-level memory pressure, not just the Ruby side:
 
 ```powershell
-.\.expeditor\local_build_gems.ps1          # produces fresh DLLs under chef-powershell\bin\...
-.\.expeditor\local_low_memory_test.ps1     # runs memory_pressure_test.rb in a 512MB container
+.\.expeditor\ci\local_verify_in_docker.ps1          # produces fresh DLLs under chef-powershell\bin\...
+.\.expeditor\ci\local_low_memory_test.ps1     # runs memory_pressure_test.rb in a 512MB container
 ```
 
 Exit code 0 = every round-trip came back exact.
@@ -135,6 +135,12 @@ Exit code 0 = every round-trip came back exact.
 
 Chef-19 is only distributed as a Habitat package. There is no Omnibus installer or standalone gem
 path.
+
+> **What CI (`.expeditor/ci/verify_gem.ps1`) tests against:** moving targets, not pins, so every
+> unreleased Chef build exercises this repo's chef-powershell code. Chef-18 Omnibus (Ruby 3.1 job
+> only) comes from the `current` channel of the licensed download API and needs `CHEF_LICENSE_KEY`;
+> Chef-18 and Chef-19 Habitat packages are the newest `18.*`/`19.*` in the `unstable` channel.
+> `chef_gem_integration_test.rb` fails if the `powershell_exec.rb` it loads differs from this repo's.
 
 ### 2.1 Install Chef-19 via Habitat
 
@@ -180,7 +186,7 @@ New-Item -ItemType Directory -Force -Path $vendoredDllDir | Out-Null
 Copy-Item "C:\localrepo\chef-powershell-shim\chef-powershell\bin\ruby_bin_folder\$env:PROCESSOR_ARCHITECTURE\*" -Destination $vendoredDllDir -Recurse -Force
 ```
 
-This is exactly what `Set-VendoredChefPowerShellGem` in `.expeditor/build_gems.ps1` automates.
+This is exactly what `Set-VendoredChefPowerShellGem` in `.expeditor/ci/verify_gem.ps1` automates.
 Once done, **no `RUBYOPT` or `CHEF_POWERSHELL_BIN` override is needed** for the rest of this
 section — `require 'chef-powershell'` now resolves to this branch's code and DLLs directly, and
 `ffi`/`ffi-yajl` are already resolved because Chef's own vendor/bundle setup provides them (the
@@ -266,7 +272,7 @@ as Chef-19 applies: `chef/chef-infra-client` lives in `stable`, not `base-2025`.
 
 ```powershell
 # Resolve the newest 18.x release ident dynamically (mirrors Get-LatestHabPackageIdent
-# in .expeditor/build_gems.ps1)
+# in .expeditor/ci/verify_gem.ps1)
 $matching_releases = @()
 $range = 0
 do {
@@ -572,11 +578,11 @@ hab pkg install C:\localrepo\chef-powershell-shim\results\chef-chef-powershell-s
 | Run RSpec unit tests | `bundle exec rake spec` (from `chef-powershell/`) |
 | Smoke test local Hab build | `bundle exec ruby smoke_test_dlls.rb <pkg>\bin` |
 | Full layout verification | `bundle exec ruby verify_hab_build.rb <pkg>\bin` |
-| Memory-pressure / heap-lifetime regression test | `ruby memory_pressure_test.rb` (or `.expeditor\local_low_memory_test.ps1` for the low-memory container version) |
+| Memory-pressure / heap-lifetime regression test | `ruby memory_pressure_test.rb` (or `.expeditor\ci\local_low_memory_test.ps1` for the low-memory container version) |
 | Test under Chef-19 Hab | `hab pkg exec chef/chef-infra-client ruby -e "..."` (`--channel stable` on install; replace vendored gem first, see 2.2) |
 | Test under Chef-18 Hab | `hab pkg exec $chef18Ident ruby -e "..."` (replace vendored gem first, see 3.2) |
 | Test under Chef-18 Omnibus | `C:\opscode\chef\embedded\bin\ruby -e "..."` |
 | Install local gem into Omnibus | `C:\opscode\chef\embedded\bin\gem install .\chef-powershell-<version>.gem` |
-| Replace a Habitat package's vendored gem | see `Set-VendoredChefPowerShellGem` in `.expeditor/build_gems.ps1`, or 2.2/3.2 |
+| Replace a Habitat package's vendored gem | see `Set-VendoredChefPowerShellGem` in `.expeditor/ci/verify_gem.ps1`, or 2.2/3.2 |
 | Override DLL path at runtime (Omnibus only) | `$env:CHEF_POWERSHELL_BIN = "<path>\bin"` |
-| Automated CI equivalent | `.expeditor\build_gems.ps1` + `chef_gem_integration_test.rb` |
+| Automated CI equivalent | `.expeditor\ci\verify_gem.ps1` + `chef_gem_integration_test.rb` |

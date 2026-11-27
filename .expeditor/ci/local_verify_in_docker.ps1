@@ -4,7 +4,7 @@
 
 <#
 .SYNOPSIS
-  Reproduces the ".expeditor/build_gems.ps1" Buildkite build locally by
+  Reproduces the ".expeditor/ci/verify_gem.ps1" Buildkite build locally by
   spinning up a disposable Windows Server 2022 Core container and running
   the build inside it, instead of on your workstation directly.
 
@@ -13,11 +13,11 @@
      (docker/windows2022-core/Dockerfile) containing just Ruby, Git, and
      Chocolatey - the same baseline the Buildkite `rubydistros/windows-*`
      agents provide. Everything else (Habitat, Chef-Client, Node.js, etc.)
-     is installed by build_gems.ps1 itself at build time, exactly like CI.
+     is installed by verify_gem.ps1 itself at build time, exactly like CI.
   2. Runs that image as a container with two volumes mounted:
        - the repository root, read-write, at C:\workdir
        - -OutputPath (created if needed), at C:\output
-  3. Executes .expeditor\build_gems.ps1 inside the container.
+  3. Executes .expeditor\ci\verify_gem.ps1 inside the container.
   4. Copies the resulting Habitat artifacts and gem/DLL output out of the
      container's C:\workdir into C:\output (i.e. -OutputPath on the host),
      so build artifacts are easy to find without digging through the repo
@@ -29,7 +29,7 @@
 
 .PARAMETER RubyVersion
   Major.minor Ruby version to install in the image (e.g. "3.4" or "3.1"),
-  matching one of the Ruby lines build_gems.ps1 is verified against in
+  matching one of the Ruby lines verify_gem.ps1 is verified against in
   .expeditor/verify.pipeline.yml. Resolved to the newest matching Chocolatey
   "ruby" package version at image build time.
 
@@ -46,7 +46,7 @@
 
 .PARAMETER SkipImageBuild
   Skips (re)building the Docker image and just runs -ImageTag as-is. Useful
-  once you already have an image built and are iterating on build_gems.ps1.
+  once you already have an image built and are iterating on verify_gem.ps1.
 
 .PARAMETER HabAuthToken
   Habitat Builder personal access token, forwarded into the container as
@@ -57,11 +57,16 @@
   $env:HAB_AUTH_TOKEN, then a HAB_AUTH_TOKEN=... entry in ~/.env. Generate
   one at https://bldr.habitat.sh/#/profile if you don't have one.
 
-.EXAMPLE
-  .\.expeditor\local_build_gems.ps1
+  Chef license key: with -RubyVersion 3.1, verify_gem.ps1 downloads the newest
+  Chef-18 Omnibus from the 'current' channel of the licensed Chef download API
+  to test the gem against it. Set $env:CHEF_LICENSE_KEY (forwarded into the
+  container); it is not needed for Ruby 3.4.
 
 .EXAMPLE
-  .\.expeditor\local_build_gems.ps1 -OutputPath C:\chef-powershell-shim-output -RubyVersion 3.1
+  .\.expeditor\ci\local_verify_in_docker.ps1
+
+.EXAMPLE
+  .\.expeditor\ci\local_verify_in_docker.ps1 -OutputPath C:\chef-powershell-shim-output -RubyVersion 3.1
 #>
 
 [CmdletBinding()]
@@ -187,7 +192,7 @@ else {
 
 # The bulk of the actual build work (installing Habitat/Chef-Client/Node,
 # building the Habitat package, building the gem) is delegated to
-# build_gems.ps1 itself so this container reproduces CI exactly. After it
+# verify_gem.ps1 itself so this container reproduces CI exactly. After it
 # completes (or fails), copy whatever build artifacts exist into C:\output
 # so a failed run still leaves useful output/logs behind for inspection.
 $containerCommand = @'
@@ -196,10 +201,10 @@ Set-Location C:\workdir
 
 $buildFailed = $false
 try {
-    powershell -ExecutionPolicy Bypass -File .expeditor\build_gems.ps1
-    if ($LASTEXITCODE -ne 0) { throw "build_gems.ps1 exited with code $LASTEXITCODE" }
+    powershell -ExecutionPolicy Bypass -File .expeditor\ci\verify_gem.ps1
+    if ($LASTEXITCODE -ne 0) { throw "verify_gem.ps1 exited with code $LASTEXITCODE" }
 } catch {
-    Write-Warning "build_gems.ps1 failed: $_"
+    Write-Warning "verify_gem.ps1 failed: $_"
     $buildFailed = $true
 }
 
@@ -224,7 +229,7 @@ if (Test-Path $binFolder) {
 if ($buildFailed) { exit 1 } else { exit 0 }
 '@
 
-Write-Step 'Running build_gems.ps1 inside the container'
+Write-Step 'Running verify_gem.ps1 inside the container'
 $dockerRunArgs = @(
     'run',
     '--rm',
@@ -239,7 +244,7 @@ if (-not [string]::IsNullOrWhiteSpace($HabAuthToken)) {
     $dockerRunArgs += "HAB_AUTH_TOKEN=$HabAuthToken"
 }
 
-foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE')) {
+foreach ($envVar in @('GEM_HOST_API_KEY', 'CHEF_POWERSHELL_VERSION_UPDATE', 'CHEF_LICENSE_KEY')) {
     $value = [Environment]::GetEnvironmentVariable($envVar, 'Process')
     if (-not [string]::IsNullOrWhiteSpace($value)) {
         $dockerRunArgs += '-e'
@@ -256,7 +261,7 @@ $buildExitCode = $LASTEXITCODE
 Write-Output "`r"
 if ($buildExitCode -ne 0) {
     Write-Output "--- :x: Build failed (exit code $buildExitCode). Partial artifacts, if any, are available under: $OutputPath"
-    throw "local build_gems.ps1 run failed with exit code $buildExitCode"
+    throw "local verify_gem.ps1 run failed with exit code $buildExitCode"
 }
 
 Write-Output "--- :white_check_mark: Build complete. Artifacts available under: $OutputPath"
