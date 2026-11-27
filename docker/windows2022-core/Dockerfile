@@ -2,11 +2,11 @@
 #
 # Windows Server 2022 Core build environment for chef-powershell-shim.
 #
-# This image intentionally stays minimal: `.expeditor\build_gems.ps1` itself
-# installs Habitat, Chef-Client, Node.js, etc. at build time (exactly like the
+# This image intentionally stays minimal: `.expeditor\ci\verify_gem.ps1` itself
+# installs Habitat, Chef-Client, etc. at build time (exactly like the
 # Buildkite CI agents do), so this Dockerfile only needs to provide the base
 # OS plus the handful of things CI gets "for free" from the `rubydistros`
-# image it runs on: Ruby, Git, and Chocolatey (used by build_gems.ps1 to
+# image it runs on: Ruby, Git, and Chocolatey (used by verify_gem.ps1 to
 # install everything else).
 #
 # RUBY_VERSION is a major.minor prefix (e.g. "3.4" or "3.1"), matching the
@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-# Chocolatey - used by build_gems.ps1 to install Habitat/Chef-Client/Node.js,
+# Chocolatey - used by verify_gem.ps1 to install Habitat/Chef-Client,
 # and used here to install Ruby and Git.
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force ; `
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072 ; `

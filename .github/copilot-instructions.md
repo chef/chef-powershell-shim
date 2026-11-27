@@ -206,7 +206,7 @@ chef-powershell-shim/
 
 ### File Encoding & Line Endings
 
-- New and edited files should match this repo's actual convention: UTF-8, LF (`\n`) line endings, no byte-order-mark (BOM) - except where a specific existing file already deviates (e.g. `.expeditor/build_gems.ps1` is UTF-8 with a BOM); don't introduce new inconsistency.
+- New and edited files should match this repo's actual convention: UTF-8, LF (`\n`) line endings, no byte-order-mark (BOM) - except where a specific existing file already deviates (e.g. `.expeditor/ci/verify_gem.ps1` is UTF-8 with a BOM); don't introduce new inconsistency.
 - This repo relies on Git's `core.autocrlf` to convert line endings on checkout, so a file can show CRLF in your local working tree while still being stored as LF in the actual commit (and vice versa). **Verify the committed content, not just the working-tree copy**, e.g.:
   ```bash
   git cat-file -p HEAD:path/to/file | file -  # or inspect bytes directly

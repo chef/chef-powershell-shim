@@ -1,0 +1,33 @@
+name: Lint and spellcheck
+# Style and spellcheck only need a checkout of the commit under test (no DLLs, Habitat or Chef),
+# so they run here rather than in the Buildkite verify pipeline (.expeditor/verify.pipeline.yml).
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-spellcheck:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: chef-powershell
+    steps:
+      - name: Check out the commit under test
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: chef-powershell
+      - name: Install cspell
+        run: npm install -g cspell
+      - name: Style (cookstyle --chefstyle)
+        run: bundle exec rake style
+      - name: Spellcheck (cspell)
+        run: bundle exec rake spellcheck
